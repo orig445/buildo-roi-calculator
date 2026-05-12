@@ -318,6 +318,20 @@ export default function CalculatorV2() {
           </div>
         </FadeIn>
 
+        {/* CTA AFTER DEMO CHAT */}
+        <FadeIn delay={0.05}>
+          <div style={{ textAlign: "center", marginTop: 24, marginBottom: 8 }}>
+            <button
+              onClick={() => handleCTA("demo_chat_cta")}
+              className="cta-btn"
+              style={{ padding: "16px 40px", fontSize: 16 }}
+            >
+              🗓️ קבע פגישת הדגמה חינם עכשיו
+            </button>
+            <p style={{ fontSize: 12, color: "#8b7ab8", marginTop: 10 }}>ללא עלות · ללא התחייבות · מענה תוך שעות</p>
+          </div>
+        </FadeIn>
+
         {/* TESTIMONIALS */}
         <FadeIn delay={0.05}>
           <Testimonials />
