@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
 import Calculator from "@/pages/Calculator";
+import CalculatorV2 from "@/pages/CalculatorV2";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -35,6 +36,7 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route path="/" element={<Calculator />} />
+      <Route path="/v2" element={<CalculatorV2 />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
