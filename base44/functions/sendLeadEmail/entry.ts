@@ -26,11 +26,12 @@ Deno.serve(async (req) => {
 תאריך: ${new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" })}
 `.trim();
 
-  await base44.asServiceRole.integrations.Core.SendEmail({
-    to: "orig445@gmail.com",
-    subject: `ליד חדש: ${lead.name || "ללא שם"} ${lead.phone ? "· " + lead.phone : ""}`,
-    body,
-  });
+  const subject = `ליד חדש: ${lead.name || "ללא שם"} ${lead.phone ? "· " + lead.phone : ""}`;
+
+  await Promise.all([
+    base44.asServiceRole.integrations.Core.SendEmail({ to: "orig445@gmail.com", subject, body }),
+    base44.asServiceRole.integrations.Core.SendEmail({ to: "nevo@buildoai.com", subject, body }),
+  ]);
 
   return Response.json({ ok: true });
 });
