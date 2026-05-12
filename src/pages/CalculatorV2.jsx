@@ -351,7 +351,11 @@ export default function CalculatorV2() {
       </section>
 
       <footer style={{ background: "white", borderTop: "1px solid #ede8ff", padding: "14px 20px", textAlign: "center" }}>
-        <p style={{ fontSize: 11, color: "#8b7ab8" }}>© 2026 בילדו · שותף רשמי Meta · WhatsApp Business API</p>
+        <p style={{ fontSize: 11, color: "#8b7ab8", marginBottom: 6 }}>© 2026 בילדו · שותף רשמי Meta · WhatsApp Business API</p>
+        <div style={{ display: "flex", justifyContent: "center", gap: 20 }}>
+          <a href="/about" style={{ fontSize: 11, color: "#7c5cbf", textDecoration: "none", fontWeight: 600 }}>אודות</a>
+          <a href="/contact" style={{ fontSize: 11, color: "#7c5cbf", textDecoration: "none", fontWeight: 600 }}>צור קשר</a>
+        </div>
       </footer>
 
       <ContactFormV2
