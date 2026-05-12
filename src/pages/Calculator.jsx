@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import { HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ContactForm from "@/components/calculator/ContactForm";
 import TrustBar from "@/components/calculator/TrustBar";
 import WebsiteAnalyzer from "@/components/calculator/WebsiteAnalyzer";
@@ -151,7 +153,21 @@ export default function Calculator() {
             <div className="space-y-4">
               {/* Loss */}
               <div className="rounded-xl border border-red-100 bg-red-50 p-5">
-                <p className="text-xs font-semibold text-red-400 uppercase tracking-wider mb-4">מה אתה מפסיד היום</p>
+                <div className="flex items-center gap-1.5 mb-4">
+                  <p className="text-xs font-semibold text-red-400 uppercase tracking-wider">מה אתה מפסיד היום</p>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="w-3.5 h-3.5 text-red-300 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs text-right">
+                        <p className="text-xs leading-relaxed">
+                          מחושב לפי 18% מהלקוחות שלך שלא מקבלים מענה מהיר ועוזבים — נתון מבוסס על מחקרי שוק בתחום שירות הלקוחות בוואטסאפ. ההפסד = לקוחות אבודים × ערך עסקה ממוצע.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <Stat label="חודשי" value={fmt(r.monthLoss)} color="text-red-500" />
                   <Stat label="שנתי" value={fmt(r.annualLoss)} color="text-red-400" />
@@ -160,7 +176,21 @@ export default function Calculator() {
 
               {/* Gain */}
               <div className="rounded-xl border border-violet-100 bg-violet-50 p-5">
-                <p className="text-xs font-semibold text-violet-500 uppercase tracking-wider mb-4">עם בילדו</p>
+                <div className="flex items-center gap-1.5 mb-4">
+                  <p className="text-xs font-semibold text-violet-500 uppercase tracking-wider">עם בילדו</p>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="w-3.5 h-3.5 text-violet-300 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs text-right">
+                        <p className="text-xs leading-relaxed">
+                          מחושב לפי שיפור של 25% בסגירת עסקאות בעזרת מענה אוטומטי מיידי, תזכורות חכמות וקמפיינים ממוקדים. הרווח = לקוחות נוספים × ערך עסקה ממוצע.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <Stat label="רווח חודשי" value={`+${fmt(r.monthGain)}`} color="text-violet-600" />
                   <Stat label="רווח שנתי" value={`+${fmt(r.annualGain)}`} color="text-violet-500" />
