@@ -28,10 +28,7 @@ Deno.serve(async (req) => {
 
   const subject = `ליד חדש: ${lead.name || "ללא שם"} ${lead.phone ? "· " + lead.phone : ""}`;
 
-  await Promise.all([
-    base44.asServiceRole.integrations.Core.SendEmail({ to: "orig445@gmail.com", subject, body }),
-    base44.asServiceRole.integrations.Core.SendEmail({ to: "nevo@buildoai.com", subject, body }),
-  ]);
+  await base44.asServiceRole.integrations.Core.SendEmail({ to: "orig445@gmail.com", subject, body });
 
   return Response.json({ ok: true });
 });
