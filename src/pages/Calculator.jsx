@@ -117,10 +117,10 @@ export default function Calculator() {
             מחשבון ROI חינמי
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-3">
-            כמה כסף אתה מפסיד כל חודש<br/>ללא WhatsApp Business API?
+            כמה כסף אתה מפסיד כל חודש בלי WhatsApp?
           </h1>
           <p className="text-gray-500 text-base max-w-xl mx-auto">
-            הזן את פרטי העסק שלך וגלה את הפוטנציאל האמיתי שמחכה לך
+            הכנס את פרטי העסק וגלה כמה כסף אתה מפסיד כל חודש
           </p>
         </div>
       </div>
