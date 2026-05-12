@@ -8,6 +8,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
 import Calculator from "@/pages/Calculator";
 import CalculatorV2 from "@/pages/CalculatorV2";
+import Admin from "@/pages/Admin";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -37,6 +38,7 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route path="/" element={<Calculator />} />
       <Route path="/v2" element={<CalculatorV2 />} />
+      <Route path="/admin" element={<Admin />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
