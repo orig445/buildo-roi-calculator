@@ -31,6 +31,7 @@ export default function ContactFormV2({ isOpen, onClose, calculatorData, source 
     e.preventDefault();
     trackEvent("form_submit", "v2", "contact_form", { has_slot: !!selectedSlot });
     setLoading(true);
+    const isProduction = !window.location.hostname.includes("base44") && window.location.hostname !== "localhost";
     await Promise.all([
       base44.entities.Lead.create({
         ...form,
@@ -42,7 +43,7 @@ export default function ContactFormV2({ isOpen, onClose, calculatorData, source 
         notes: form.db_size ? `מאגר לקוחות: ${form.db_size}` : undefined,
         source,
       }),
-      base44.functions.invoke("createCalendarEvent", {
+      ...(isProduction ? [base44.functions.invoke("createCalendarEvent", {
         name: form.name,
         phone: form.phone,
         email: form.email,
@@ -50,7 +51,7 @@ export default function ContactFormV2({ isOpen, onClose, calculatorData, source 
         monthlyLoss: calculatorData.monthlyLoss,
         potentialGain: calculatorData.potentialGain,
         selectedDateTime: selectedSlot ? selectedSlot.toISOString() : null,
-      }),
+      })] : []),
     ]);
     setLoading(false);
     setSuccess(true);
