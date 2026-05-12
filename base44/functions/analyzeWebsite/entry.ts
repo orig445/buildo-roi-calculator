@@ -64,20 +64,25 @@ SCALE MODIFIERS:
 - If pricing is visible, use that directly for deal value
 
 OUTPUT FIELDS:
-- business_type: short label in Hebrew (2–4 words, e.g. "מספרה ועיצוב שיער")
+- business_name: the actual business name as it appears on the site (e.g. "מספרת דנה", "קליניקת ד״ר לוי") — CRITICAL: use the EXACT name from the website, not a description
+- business_type: short industry label in Hebrew (2–4 words, e.g. "מספרה ועיצוב שיער")
 - insight: 1–2 Hebrew sentences explaining the specific WhatsApp opportunity for THIS business
 - monthly_messages: integer
 - monthly_customers: integer  
 - avg_deal_value: integer (NIS)
-- opening_message: Hebrew WhatsApp greeting from bot — use actual business name/services from site, friendly & specific, 1–2 sentences, include relevant emoji
-- follow_up_message: Hebrew follow-up after customer shows interest — mention a specific service/product/price from site, add urgency, 1–2 sentences
-- closing_message: Hebrew confirmation message — 1 sentence, mention something specific about the business
+- opening_message: Hebrew WhatsApp greeting from the business bot — use actual business name and specific services found on site, friendly & welcoming, 1–2 sentences, include relevant emoji. Write as if you ARE the business replying to an inquiry.
+- follow_up_message: Hebrew follow-up after customer shows interest — mention a specific service/product/price from site if found, 1–2 sentences. DO NOT invent prices or services not on the site.
+- info_message: Hebrew informational response — describe what the business offers based on what was found on the site, 2–3 sentences. DO NOT invent anything.
+- closing_message: Hebrew confirmation message — 1 sentence, friendly, mention the business name
+- quick_reply_1: short Hebrew quick-reply button text (4–6 words) — relevant to the main service, e.g. "קביעת תור 📅" or "רוצה לשמוע עוד 🙋"
+- quick_reply_2: short Hebrew quick-reply button text (4–6 words) — secondary action, e.g. "מחירים ושירותים 💸" or "שאלה על מוצר"
 
 Return ONLY valid JSON.
 `,
       response_json_schema: {
         type: "object",
         properties: {
+          business_name: { type: "string" },
           business_type: { type: "string" },
           insight: { type: "string" },
           monthly_messages: { type: "number" },
@@ -85,9 +90,12 @@ Return ONLY valid JSON.
           avg_deal_value: { type: "number" },
           opening_message: { type: "string" },
           follow_up_message: { type: "string" },
+          info_message: { type: "string" },
           closing_message: { type: "string" },
+          quick_reply_1: { type: "string" },
+          quick_reply_2: { type: "string" },
         },
-        required: ["business_type", "insight", "monthly_messages", "monthly_customers", "avg_deal_value", "opening_message", "follow_up_message", "closing_message"]
+        required: ["business_name", "business_type", "insight", "monthly_messages", "monthly_customers", "avg_deal_value", "opening_message", "follow_up_message", "info_message", "closing_message", "quick_reply_1", "quick_reply_2"]
       }
     });
 

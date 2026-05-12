@@ -118,7 +118,7 @@ export default function WebsiteAnalyzer({ onAnalyzed, onSiteData, onScanningChan
               </div>
               <div>
                 <p style={{ fontSize: 13, fontWeight: 800, color: "#2d1b69", marginBottom: 4 }}>
-                  ✓ זיהינו: <span style={{ color: "#5a3fa8" }}>{insight.business_type}</span> — הסליידרים עודכנו אוטומטית
+                  ✓ זיהינו: <span style={{ color: "#5a3fa8" }}>{insight.business_name || insight.business_type}</span> — הסליידרים עודכנו אוטומטית
                 </p>
                 <p style={{ fontSize: 12, color: "#5a3fa8", lineHeight: 1.65 }}>{insight.insight}</p>
               </div>

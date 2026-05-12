@@ -106,25 +106,36 @@ export default function DemoChat({ siteData, isScanning, onOpenCTA }) {
     addUser(replyText);
     setStep(0);
     if (nextStep === "interested") {
-      await addBot(siteData?.follow_up_message || "מצוין! נשמח לתאם שיחה קצרה עם נציג שלנו.", 1100);
-      await addBot("מה מספר הטלפון שלך כדי שנחזור אליך? 📞", 1200);
+      const followUp = siteData?.follow_up_message;
+      if (followUp) {
+        await addBot(followUp, 1100);
+      }
+      await addBot("השאר פרטים ונציג שלנו יחזור אליך בהקדם 📞", 1200);
       setStep(2);
-    } else if (nextStep === "price") {
-      await addBot("המחיר מותאם לגודל העסק — בדרך כלל כמה מאות שקלים בחודש עם ROI תוך 30 יום.", 1100);
-      await addBot("רוצה הדגמה מותאמת חינם? 🎁", 1200);
+    } else if (nextStep === "info") {
+      const info = siteData?.info_message;
+      if (info) {
+        await addBot(info, 1100);
+      }
+      await addBot("רוצה לקבל פרטים נוספים או לתאם שיחה? 😊", 1200);
       setStep(2);
     } else if (nextStep === "book") {
-      await addBot("מעולה! 🚀 נעביר אותך לקביעת הדגמה עם הצוות:", 800);
+      await addBot("מעולה! 🚀 אעביר אותך לקביעת הפגישה:", 800);
       setStep(3);
       setTimeout(() => onOpenCTA?.(), 800);
     } else if (nextStep === "phone") {
-      await addBot(siteData?.closing_message || "תודה! נציג שלנו יחזור אליך בהקדם. 💡", 1000);
+      const closing = siteData?.closing_message;
+      if (closing) {
+        await addBot(closing, 1000);
+      } else {
+        await addBot("תודה! נחזור אליך בהקדם. 💡", 1000);
+      }
       setStep(3);
     }
   };
 
   const isIdle = !siteData && !isScanning;
-  const statusText = isScanning ? "סורק את האתר שלך..." : siteData ? `${siteData.business_type} · מחובר` : "ממתין לכתובת אתר...";
+  const statusText = isScanning ? "סורק את האתר שלך..." : siteData ? "מחובר · מותאם אישית" : "ממתין לכתובת אתר...";
 
   return (
     <div style={{ background: "white", borderRadius: 20, border: "1px solid #ede8ff", overflow: "hidden", boxShadow: "0 8px 32px rgba(90,63,168,0.1)" }}>
@@ -135,7 +146,9 @@ export default function DemoChat({ siteData, isScanning, onOpenCTA }) {
           <div style={{ position: "absolute", bottom: 1, right: 1, width: 10, height: 10, borderRadius: "50%", background: isScanning ? "#ffd166" : siteData ? "#4dff91" : "#bbb", border: "2px solid white" }} />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: "white", letterSpacing: "0.01em" }}>בילדו · WhatsApp Bot</div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "white", letterSpacing: "0.01em" }}>
+            {siteData?.business_name || siteData?.business_type || "WhatsApp Bot"}
+          </div>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", marginTop: 1 }}>{statusText}</div>
         </div>
         <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.1)", borderRadius: 20, padding: "4px 10px" }}>
@@ -176,8 +189,14 @@ export default function DemoChat({ siteData, isScanning, onOpenCTA }) {
         {!typing && step === 1 && (
           <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
             style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
-            <QuickReply text="אשמח לשמוע עוד 🙋" onClick={() => handleQuickReply("אשמח לשמוע עוד 🙋", "interested")} />
-            <QuickReply text="כמה זה עולה? 💸" onClick={() => handleQuickReply("כמה זה עולה? 💸", "price")} />
+            {siteData?.quick_reply_1 && (
+              <QuickReply text={siteData.quick_reply_1} onClick={() => handleQuickReply(siteData.quick_reply_1, "interested")} />
+            )}
+            {siteData?.quick_reply_2 && (
+              <QuickReply text={siteData.quick_reply_2} onClick={() => handleQuickReply(siteData.quick_reply_2, "info")} />
+            )}
+            {!siteData?.quick_reply_1 && <QuickReply text="אשמח לשמוע עוד 🙋" onClick={() => handleQuickReply("אשמח לשמוע עוד 🙋", "interested")} />}
+            {!siteData?.quick_reply_2 && <QuickReply text="פרטים נוספים" onClick={() => handleQuickReply("פרטים נוספים", "info")} />}
           </motion.div>
         )}
         {!typing && step === 2 && (

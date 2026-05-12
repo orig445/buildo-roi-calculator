@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { motion, useInView } from "framer-motion";
 import { ChevronLeft, Sparkles, Users, MessageCircle, Zap } from "lucide-react";
 import ContactFormV2 from "@/components/calculator/ContactFormV2";
@@ -34,6 +34,15 @@ export default function CalculatorV2() {
   const [activeSlider, setActiveSlider] = useState(null);
   const [siteData, setSiteData] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
+  const chatSectionRef = useRef(null);
+
+  const scrollToChat = useCallback(() => {
+    if (chatSectionRef.current) {
+      chatSectionRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    } else {
+      setShowForm(true);
+    }
+  }, []);
 
   const r = useMemo(() => {
     // Missed customers: those who don't get a fast reply leave (industry avg ~35% of non-answered)
@@ -264,7 +273,7 @@ export default function CalculatorV2() {
                 </div>
               </div>
 
-              <button onClick={handleCTA} className="cta-btn" style={{ width: "100%", padding: "15px", fontSize: 14 }}>
+              <button onClick={scrollToChat} className="cta-btn" style={{ width: "100%", padding: "15px", fontSize: 14 }}>
                 אני רוצה לראות את זה בפועל 🚀
               </button>
               <p style={{ textAlign: "center", fontSize: 11, color: "#8b7ab8" }}>ללא התחייבות · מענה תוך שעות</p>
@@ -272,29 +281,9 @@ export default function CalculatorV2() {
           </FadeIn>
         </div>
 
-        {/* HOW IT WORKS */}
-        <FadeIn delay={0.05}>
-          <div style={{ marginTop: 36, padding: "28px 22px", background: "white", borderRadius: 20, border: "1px solid #ede8ff" }}>
-            <h3 style={{ fontSize: 17, fontWeight: 800, color: "#2d1b69", textAlign: "center", marginBottom: 22 }}>איך בילדו עוזר לך לסגור יותר עסקאות?</h3>
-            <div className="how-grid">
-              {[
-                { icon: "⚡", title: "מענה מיידי", desc: "כל לקוח שפונה מקבל תשובה תוך שניות — גם בלילה, גם בשישי" },
-                { icon: "🔄", title: "תזכורות חכמות", desc: "המערכת שולחת תזכורות אוטומטיות ללקוחות שלא ענו ומחזירה אותם" },
-                { icon: "📊", title: "קמפיינים ממוקדים", desc: "שלח הודעות ממוקדות לאלפי לקוחות בלחיצה אחת" },
-              ].map((s) => (
-                <div key={s.title} style={{ textAlign: "center", padding: "18px 14px", background: "#f8f6ff", borderRadius: 14, border: "1px solid #ede8ff" }}>
-                  <div style={{ fontSize: 26, marginBottom: 8 }}>{s.icon}</div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#2d1b69", marginBottom: 5 }}>{s.title}</div>
-                  <div style={{ fontSize: 12, color: "#8b7ab8", lineHeight: 1.6 }}>{s.desc}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </FadeIn>
-
         {/* DEMO CHAT */}
         <FadeIn delay={0.05}>
-          <div style={{ marginTop: 36 }}>
+          <div ref={chatSectionRef} style={{ marginTop: 36 }}>
             <div style={{ textAlign: "center", marginBottom: 16 }}>
               <div style={{ fontSize: 11, color: "#7c5cbf", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>✦ הדגמה חיה</div>
               <h3 style={{ fontSize: 20, fontWeight: 900, color: "#2d1b69", marginBottom: 6 }}>כך הבוט מדבר עם הלקוחות שלך</h3>
