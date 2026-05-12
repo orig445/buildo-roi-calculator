@@ -1,242 +1,184 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import HeroSection from "@/components/calculator/HeroSection";
-import SliderInput from "@/components/calculator/SliderInput";
-import ResultsPanel from "@/components/calculator/ResultsPanel";
 import ContactForm from "@/components/calculator/ContactForm";
-import TrustSection from "@/components/calculator/TrustSection";
 
-const formatNum = (n) => n.toLocaleString('he-IL');
-const formatCurrency = (n) => `₪${n.toLocaleString('he-IL')}`;
+function SliderRow({ label, value, min, max, step, onChange, formatDisplay }) {
+  const pct = ((value - min) / (max - min)) * 100;
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between items-baseline">
+        <span className="text-sm text-gray-600">{label}</span>
+        <span className="text-base font-bold text-gray-900">{formatDisplay(value)}</span>
+      </div>
+      <input
+        type="range"
+        min={min} max={max} step={step} value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+        style={{
+          background: `linear-gradient(to left, #7c3aed ${pct}%, #e5e7eb ${pct}%)`,
+          WebkitAppearance: 'none',
+        }}
+      />
+      <style>{`
+        input[type=range]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 18px; height: 18px;
+          border-radius: 50%;
+          background: #7c3aed;
+          cursor: pointer;
+          border: 2px solid white;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function Stat({ label, value, color = "text-gray-900", size = "text-2xl" }) {
+  return (
+    <div className="text-center">
+      <motion.div
+        key={value}
+        initial={{ opacity: 0, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+        className={`${size} font-black ${color} tabular-nums`}
+      >
+        {value}
+      </motion.div>
+      <div className="text-xs text-gray-400 mt-0.5">{label}</div>
+    </div>
+  );
+}
+
+const fmt = (n) => `₪${Math.round(n).toLocaleString('he-IL')}`;
 
 export default function Calculator() {
-  const [messages, setMessages] = useState(5000);
-  const [customers, setCustomers] = useState(200);
-  const [dealValue, setDealValue] = useState(1500);
-  const [showForm, setShowForm] = useState(false);
+  const [messages, setMessages]     = useState(5000);
+  const [customers, setCustomers]   = useState(200);
+  const [dealValue, setDealValue]   = useState(1500);
+  const [showForm, setShowForm]     = useState(false);
 
-  const results = useMemo(() => {
-    // Assumptions based on industry data
-    const noResponseRate = 0.18; // 18% of leads don't get timely response
-    const conversionLift = 0.25; // 25% more conversions with automation
-    const messageCost = 0.08; // cost per message with Bildo API (₪)
-
-    const lostCustomers = Math.round(customers * noResponseRate);
-    const monthlyLoss = Math.round(lostCustomers * dealValue);
-    const annualLoss = monthlyLoss * 12;
-
-    const additionalCustomers = Math.round(customers * conversionLift);
-    const potentialGain = Math.round(additionalCustomers * dealValue);
-    const annualGain = potentialGain * 12;
-
-    const totalMessageCost = messages * messageCost;
-
+  const r = useMemo(() => {
+    const lostRate   = 0.18;
+    const liftRate   = 0.25;
+    const lostCust   = Math.round(customers * lostRate);
+    const monthLoss  = lostCust * dealValue;
+    const monthGain  = Math.round(customers * liftRate) * dealValue;
     return {
-      monthlyLoss,
-      annualLoss,
-      potentialGain,
-      annualGain,
-      conversionBoost: Math.round(noResponseRate * 100),
-      messageCost,
-      totalMessageCost: Math.round(totalMessageCost),
+      monthLoss, annualLoss: monthLoss * 12,
+      monthGain, annualGain: monthGain * 12,
+      lostCust,
+      msgCost: Math.round(messages * 0.08),
     };
   }, [messages, customers, dealValue]);
 
   return (
-    <div className="min-h-screen noise-bg" style={{ background: 'hsl(28 15% 8%)' }}>
-      {/* Ambient background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full opacity-10 blur-3xl"
-          style={{ background: 'radial-gradient(circle, hsl(271 60% 55%), transparent)' }} />
-        <div className="absolute bottom-1/4 left-1/4 w-64 h-64 rounded-full opacity-8 blur-3xl"
-          style={{ background: 'radial-gradient(circle, hsl(42 85% 58%), transparent)' }} />
-      </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-3xl bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
-      <div className="relative z-10 max-w-6xl mx-auto">
-        {/* Hero */}
-        <HeroSection />
-
-        {/* Main Calculator */}
-        <section className="px-4 pb-8">
-          <div className="grid lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
-            
-            {/* Left: Inputs */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="rounded-3xl p-8 space-y-8"
-              style={{ background: 'hsl(28 12% 11%)', border: '1px solid hsl(28 10% 18%)' }}
-            >
-              <div>
-                <h2 className="text-xl font-bold mb-1" style={{ fontFamily: 'Frank Ruhl Libre, serif' }}>
-                  📊 הזן את נתוני העסק שלך
-                </h2>
-                <p className="text-sm text-muted-foreground">המחשבון יעשה את כל השאר</p>
-              </div>
-
-              <SliderInput
-                label="הודעות וואטסאפ בחודש"
-                description="כמה הודעות אתה שולח / מקבל"
-                icon="💬"
-                value={messages}
-                min={100}
-                max={100000}
-                step={100}
-                onChange={setMessages}
-                format={(v) => `${v.toLocaleString('he-IL')}`}
-              />
-
-              <SliderInput
-                label="לקוחות / עסקאות בחודש"
-                description="כמה עסקאות חדשות נסגרות"
-                icon="🤝"
-                value={customers}
-                min={10}
-                max={5000}
-                step={10}
-                onChange={setCustomers}
-                format={(v) => `${v.toLocaleString('he-IL')}`}
-              />
-
-              <SliderInput
-                label="ערך ממוצע לעסקה / לקוח"
-                description="כמה שווה כל לקוח חדש"
-                icon="💰"
-                value={dealValue}
-                min={100}
-                max={50000}
-                step={100}
-                onChange={setDealValue}
-                format={(v) => `₪${v.toLocaleString('he-IL')}`}
-              />
-
-              {/* Live preview mini */}
-              <div className="rounded-xl p-4 text-xs space-y-2" style={{ background: 'hsl(28 10% 14%)' }}>
-                <p className="text-muted-foreground font-medium mb-2">תמצית הנתונים:</p>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">לקוחות שיוצאים ללא מענה:</span>
-                  <span className="font-bold text-red-400">{Math.round(customers * 0.18)} / חודש</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">עלות API משוערת:</span>
-                  <span className="font-bold gold-text">₪{results.totalMessageCost} / חודש</span>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Right: Results */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4, duration: 0.6 }}
-            >
-              <ResultsPanel
-                results={results}
-                onCTAClick={() => setShowForm(true)}
-              />
-            </motion.div>
-          </div>
-        </section>
-
-        {/* How it works */}
-        <section className="px-4 py-12">
-          <div className="max-w-4xl mx-auto">
-            <motion.h2
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className="text-3xl font-bold text-center mb-10"
-              style={{ fontFamily: 'Frank Ruhl Libre, serif' }}
-            >
-              איך בילדו עובד עם ה-API שלך?
-            </motion.h2>
-
-            <div className="grid md:grid-cols-3 gap-4">
-              {[
-                {
-                  step: "01",
-                  title: "חיבור ה-API",
-                  desc: "מחברים את המערכת שלך ל-API של Meta דרך בילדו — תוך 24 שעות",
-                  icon: "🔌"
-                },
-                {
-                  step: "02",
-                  title: "הגדרת תרחישים",
-                  desc: "מגדירים תשובות אוטומטיות, follow-ups, וזרימות שיחה חכמות",
-                  icon: "⚙️"
-                },
-                {
-                  step: "03",
-                  title: "גידול בהכנסות",
-                  desc: "כל לקוח מקבל מענה מידי — שיעורי ההמרה עולים תוך ימים",
-                  icon: "📈"
-                }
-              ].map((item, i) => (
-                <motion.div
-                  key={item.step}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.15 }}
-                  className="rounded-2xl p-6 relative overflow-hidden"
-                  style={{ background: 'hsl(28 12% 11%)', border: '1px solid hsl(28 10% 18%)' }}
-                >
-                  <div className="absolute top-3 right-3 text-4xl font-black opacity-10 text-purple-400"
-                    style={{ fontFamily: 'Frank Ruhl Libre, serif' }}>
-                    {item.step}
-                  </div>
-                  <div className="text-3xl mb-3">{item.icon}</div>
-                  <h3 className="font-bold text-lg mb-2">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Trust Section */}
-        <TrustSection />
-
-        {/* Final CTA */}
-        <section className="px-4 pb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-2xl mx-auto text-center rounded-3xl p-12 card-glow"
-            style={{ background: 'linear-gradient(135deg, hsl(271 60% 15%) 0%, hsl(28 12% 11%) 100%)', border: '1px solid hsl(271 60% 30%)' }}
-          >
+        {/* Header */}
+        <div className="flex items-center justify-between px-8 py-5 border-b border-gray-100">
+          <div className="flex items-center gap-3">
             <img
               src="https://media.base44.com/images/public/user_683dc40f7f28b76cbf2cfd30/67ecd3deb_1.png"
               alt="Bildo"
-              className="w-20 h-20 rounded-2xl mx-auto mb-6 float-anim"
+              className="w-9 h-9 rounded-xl"
             />
-            <h2 className="text-3xl font-black mb-4" style={{ fontFamily: 'Frank Ruhl Libre, serif' }}>
-              מוכן להפסיק להפסיד כסף?
-            </h2>
-            <p className="text-muted-foreground mb-8 text-lg">
-              קבל הדגמה חינמית ומותאמת אישית לעסק שלך — תוך 24 שעות
-            </p>
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => setShowForm(true)}
-              className="px-10 py-5 rounded-2xl text-lg font-bold text-white pulse-glow"
-              style={{ background: 'linear-gradient(135deg, hsl(271 60% 45%) 0%, hsl(271 60% 65%) 100%)' }}
-            >
-              🎯 קבל הדגמה חינם עכשיו
-            </motion.button>
-            <p className="text-xs text-muted-foreground mt-4">ללא התחייבות • ללא כרטיס אשראי</p>
-          </motion.div>
-        </section>
+            <span className="font-bold text-gray-900 text-lg">בילדו</span>
+          </div>
+          <p className="text-sm text-gray-400">WhatsApp Business API</p>
+        </div>
+
+        <div className="px-8 py-6">
+          {/* Title */}
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-black text-gray-900 mb-1">
+              כמה כסף אתה מפסיד כל חודש?
+            </h1>
+            <p className="text-sm text-gray-500">הזז את הסליידרים וגלה את המספרים האמיתיים</p>
+          </div>
+
+          {/* Grid: Sliders + Results */}
+          <div className="grid md:grid-cols-2 gap-8">
+
+            {/* Sliders */}
+            <div className="space-y-7">
+              <SliderRow
+                label="הודעות וואטסאפ בחודש"
+                value={messages} min={100} max={100000} step={100}
+                onChange={setMessages}
+                formatDisplay={(v) => v.toLocaleString('he-IL')}
+              />
+              <SliderRow
+                label="לקוחות / עסקאות בחודש"
+                value={customers} min={10} max={5000} step={10}
+                onChange={setCustomers}
+                formatDisplay={(v) => v.toLocaleString('he-IL')}
+              />
+              <SliderRow
+                label="ערך ממוצע לעסקה"
+                value={dealValue} min={100} max={50000} step={100}
+                onChange={setDealValue}
+                formatDisplay={(v) => `₪${v.toLocaleString('he-IL')}`}
+              />
+
+              {/* Mini note */}
+              <div className="bg-gray-50 rounded-xl p-4 text-xs text-gray-500 space-y-1.5">
+                <div className="flex justify-between">
+                  <span>לקוחות שיוצאים ללא מענה:</span>
+                  <span className="font-semibold text-gray-700">{r.lostCust} / חודש</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>עלות API משוערת:</span>
+                  <span className="font-semibold text-gray-700">₪{r.msgCost} / חודש</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Results */}
+            <div className="space-y-4">
+              {/* Loss */}
+              <div className="rounded-xl border border-red-100 bg-red-50 p-5">
+                <p className="text-xs font-semibold text-red-400 uppercase tracking-wider mb-4">מה אתה מפסיד היום</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <Stat label="חודשי" value={fmt(r.monthLoss)} color="text-red-500" />
+                  <Stat label="שנתי" value={fmt(r.annualLoss)} color="text-red-400" />
+                </div>
+              </div>
+
+              {/* Gain */}
+              <div className="rounded-xl border border-violet-100 bg-violet-50 p-5">
+                <p className="text-xs font-semibold text-violet-500 uppercase tracking-wider mb-4">עם בילדו</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <Stat label="רווח חודשי" value={`+${fmt(r.monthGain)}`} color="text-violet-600" />
+                  <Stat label="רווח שנתי" value={`+${fmt(r.annualGain)}`} color="text-violet-500" />
+                </div>
+              </div>
+
+              {/* CTA */}
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                onClick={() => setShowForm(true)}
+                className="w-full py-4 rounded-xl text-sm font-bold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+              >
+                קבל הדגמה חינם ←
+              </motion.button>
+              <p className="text-center text-xs text-gray-400">ללא התחייבות · תגובה תוך 24 שעות</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Contact Form Modal */}
+      {/* Footer */}
+      <p className="text-xs text-gray-400 mt-4">© 2026 בילדו · ספק רשמי Meta WhatsApp Business API</p>
+
       <ContactForm
         isOpen={showForm}
         onClose={() => setShowForm(false)}
-        calculatorData={{ messages, customers, dealValue, ...results }}
+        calculatorData={{ messages, customers, dealValue, monthlyLoss: r.monthLoss, potentialGain: r.monthGain }}
       />
     </div>
   );

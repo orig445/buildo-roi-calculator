@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@300;400;500;700;900&family=Heebo:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,30 +6,26 @@
 
 @layer base {
   :root {
-    --background: 28 15% 8%;
-    --foreground: 45 30% 92%;
-    --card: 28 12% 11%;
-    --card-foreground: 45 30% 92%;
-    --popover: 28 12% 11%;
-    --popover-foreground: 45 30% 92%;
-    --primary: 271 60% 55%;
+    --background: 0 0% 98%;
+    --foreground: 0 0% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 271 70% 50%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 28 12% 15%;
-    --secondary-foreground: 45 30% 80%;
-    --muted: 28 10% 14%;
-    --muted-foreground: 45 15% 55%;
-    --accent: 42 85% 58%;
-    --accent-foreground: 28 15% 8%;
-    --destructive: 0 70% 50%;
+    --secondary: 0 0% 95%;
+    --secondary-foreground: 0 0% 30%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 50%;
+    --accent: 0 0% 92%;
+    --accent-foreground: 0 0% 10%;
+    --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 28 10% 18%;
-    --input: 28 10% 16%;
-    --ring: 271 60% 55%;
+    --border: 0 0% 90%;
+    --input: 0 0% 95%;
+    --ring: 271 70% 50%;
     --radius: 0.75rem;
-    --gold: 42 85% 58%;
-    --purple: 271 60% 55%;
-    --purple-light: 271 60% 68%;
-    --purple-dark: 271 60% 35%;
   }
 }
 
@@ -41,9 +37,6 @@
     @apply bg-background text-foreground;
     font-family: 'Heebo', sans-serif;
     direction: rtl;
-  }
-  h1, h2, h3 {
-    font-family: 'Frank Ruhl Libre', serif;
   }
 }
 
