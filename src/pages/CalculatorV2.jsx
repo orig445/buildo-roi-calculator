@@ -134,7 +134,7 @@ export default function CalculatorV2() {
                   id="messages"
                   icon={<MessageCircle style={{ width: 14, height: 14 }} />}
                   label="הודעות וואטסאפ בחודש"
-                  value={messages} min={100} max={100000} step={100}
+                  value={messages} min={100} max={20000} step={100}
                   onChange={setMessages}
                   onDragStart={() => setActiveSlider("messages")}
                   onDragEnd={() => setActiveSlider(null)}
@@ -148,7 +148,7 @@ export default function CalculatorV2() {
                   id="customers"
                   icon={<Users style={{ width: 14, height: 14 }} />}
                   label="לקוחות פוטנציאליים בחודש"
-                  value={customers} min={10} max={5000} step={10}
+                  value={customers} min={1} max={1000} step={1}
                   onChange={setCustomers}
                   onDragStart={() => setActiveSlider("customers")}
                   onDragEnd={() => setActiveSlider(null)}
@@ -162,7 +162,7 @@ export default function CalculatorV2() {
                   id="dealValue"
                   icon={<span style={{ fontSize: 13, color: "#7c5cbf" }}>₪</span>}
                   label="ערך ממוצע לעסקה / לקוח"
-                  value={dealValue} min={100} max={50000} step={100}
+                  value={dealValue} min={10} max={50000} step={10}
                   onChange={setDealValue}
                   onDragStart={() => setActiveSlider("dealValue")}
                   onDragEnd={() => setActiveSlider(null)}
