@@ -40,7 +40,7 @@ export default function ContactForm({ isOpen, onClose, calculatorData }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           transition={{ type: "spring", damping: 25 }}
-          className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-gray-100 p-7 relative"
+          className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-gray-100 p-7 relative max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
           <button
