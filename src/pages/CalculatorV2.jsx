@@ -245,35 +245,35 @@ export default function CalculatorV2() {
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
               {/* Missed revenue */}
-              <div className="soft-card result-card-red">
+              <div className="soft-card" style={{ padding: 20, borderTop: "3px solid #5a3fa8" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                   <span style={{ fontSize: 20 }}>😔</span>
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 800, color: "#2d1b69" }}>הכנסה שאתה מפספס כרגע</div>
-                    <div style={{ fontSize: 11, color: "#c47a7a" }}>לא הפסד — כסף שיכול להיות שלך</div>
+                    <div style={{ fontSize: 11, color: "#8b7ab8" }}>לא הפסד — כסף שיכול להיות שלך</div>
                   </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <ResultNumber label="בחודש" value={fmt(r.monthMissed)} color="#cc3333" bg="#fff5f5" />
-                  <ResultNumber label="בשנה" value={fmt(r.annualMissed)} color="#cc3333" bg="#fff5f5" small />
+                  <ResultNumber label="בחודש" value={fmt(r.monthMissed)} color="#5a3fa8" bg="#f3f0ff" />
+                  <ResultNumber label="בשנה" value={fmt(r.annualMissed)} color="#5a3fa8" bg="#f3f0ff" small />
                 </div>
-                <div style={{ marginTop: 10, fontSize: 11, color: "#c47a7a", background: "#fff5f5", borderRadius: 8, padding: "8px 10px", lineHeight: 1.5 }}>
+                <div style={{ marginTop: 10, fontSize: 11, color: "#8b7ab8", background: "#f3f0ff", borderRadius: 8, padding: "8px 10px", lineHeight: 1.5 }}>
                   🤷 {r.missedCust} לקוחות בחודש פשוט לא מקבלים מענה מהיר ועוזבים
                 </div>
               </div>
 
               {/* Potential gain */}
-              <div className="soft-card result-card-green">
+              <div className="soft-card" style={{ padding: 20, borderTop: "3px solid #2d1b69" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                   <span style={{ fontSize: 20 }}>🎯</span>
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 800, color: "#2d1b69" }}>הפוטנציאל שלך עם בילדו</div>
-                    <div style={{ fontSize: 11, color: "#5a9b7a" }}>על בסיס שחזור ~55% מהלקוחות שנשרו</div>
+                    <div style={{ fontSize: 11, color: "#8b7ab8" }}>על בסיס שחזור ~55% מהלקוחות שנשרו</div>
                   </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <ResultNumber label="בחודש" value={`+${fmt(r.monthGain)}`} color="#1a7a44" bg="#f0faf5" />
-                  <ResultNumber label="בשנה" value={`+${fmt(r.annualGain)}`} color="#1a7a44" bg="#f0faf5" small />
+                  <ResultNumber label="בחודש" value={`+${fmt(r.monthGain)}`} color="#2d1b69" bg="#ede8ff" />
+                  <ResultNumber label="בשנה" value={`+${fmt(r.annualGain)}`} color="#2d1b69" bg="#ede8ff" small />
                 </div>
               </div>
 
@@ -372,8 +372,7 @@ export default function CalculatorV2() {
           border: 1px solid #ede8ff;
           box-shadow: 0 4px 24px rgba(90,63,168,0.06);
         }
-        .result-card-red { padding: 20px; border-top: 3px solid #ffb3b3; }
-        .result-card-green { padding: 20px; border-top: 3px solid #a8e6cf; }
+
         .cta-btn {
           display: inline-flex;
           align-items: center;
