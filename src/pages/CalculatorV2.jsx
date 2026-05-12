@@ -31,8 +31,9 @@ export default function CalculatorV2() {
   const [dealValue, setDealValue] = useState(1500);
   const [responseRate, setResponseRate] = useState(40);
   const [showForm, setShowForm] = useState(false);
-  // track which slider is being dragged so only IT animates
   const [activeSlider, setActiveSlider] = useState(null);
+  const [siteData, setSiteData] = useState(null);
+  const [isScanning, setIsScanning] = useState(false);
 
   const r = useMemo(() => {
     // Missed customers: those who don't get a fast reply leave (industry avg ~35% of non-answered)
@@ -116,9 +117,13 @@ export default function CalculatorV2() {
               <Sparkles style={{ width: 16, height: 16, color: "#7c5cbf" }} />
               <span style={{ fontSize: 13, fontWeight: 700, color: "#7c5cbf" }}>מלא אוטומטית לפי האתר שלך</span>
             </div>
-            <WebsiteAnalyzer onAnalyzed={({ messages: m, customers: c, dealValue: d }) => {
-              setMessages(m); setCustomers(c); setDealValue(d);
-            }} />
+            <WebsiteAnalyzer
+              onAnalyzed={({ messages: m, customers: c, dealValue: d }) => {
+                setMessages(m); setCustomers(c); setDealValue(d);
+              }}
+              onSiteData={setSiteData}
+              onScanningChange={setIsScanning}
+            />
           </div>
         </FadeIn>
 
@@ -292,10 +297,10 @@ export default function CalculatorV2() {
           <div style={{ marginTop: 36 }}>
             <div style={{ textAlign: "center", marginBottom: 16 }}>
               <div style={{ fontSize: 11, color: "#7c5cbf", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>✦ הדגמה חיה</div>
-              <h3 style={{ fontSize: 20, fontWeight: 900, color: "#2d1b69", marginBottom: 6 }}>תראה איך הבוט מדבר עם הלקוחות שלך</h3>
-              <p style={{ fontSize: 13, color: "#8b7ab8", margin: 0 }}>הכנס את כתובת האתר שלך — הבוט יסרוק ויתאים את עצמו לעסק שלך בזמן אמת</p>
+              <h3 style={{ fontSize: 20, fontWeight: 900, color: "#2d1b69", marginBottom: 6 }}>כך הבוט מדבר עם הלקוחות שלך</h3>
+              <p style={{ fontSize: 13, color: "#8b7ab8", margin: 0 }}>הכנס כתובת אתר למעלה — הבוט יתאים את עצמו לעסק שלך אוטומטית</p>
             </div>
-            <DemoChat onOpenCTA={handleCTA} />
+            <DemoChat siteData={siteData} isScanning={isScanning} onOpenCTA={handleCTA} />
           </div>
         </FadeIn>
 

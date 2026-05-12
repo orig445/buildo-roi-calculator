@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Globe, Loader2, Sparkles } from "lucide-react";
 import confetti from "canvas-confetti";
 
-export default function WebsiteAnalyzer({ onAnalyzed }) {
+export default function WebsiteAnalyzer({ onAnalyzed, onSiteData, onScanningChange }) {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [insight, setInsight] = useState(null);
@@ -21,36 +21,30 @@ export default function WebsiteAnalyzer({ onAnalyzed }) {
     setLoading(true);
     setError(null);
     setInsight(null);
+    onScanningChange?.(true);
+    onSiteData?.(null);
     try {
       const res = await base44.functions.invoke("analyzeWebsite", { url: normalizeUrl(url) });
       const data = res.data;
       setInsight(data);
+      // Update sliders
       onAnalyzed({
-        messages: Math.min(Math.max(Math.round(data.monthly_messages / 100) * 100, 100), 100000),
-        customers: Math.min(Math.max(Math.round(data.monthly_customers / 10) * 10, 10), 5000),
-        dealValue: Math.min(Math.max(Math.round(data.avg_deal_value / 100) * 100, 100), 50000),
+        messages: Math.min(Math.max(Math.round(data.monthly_messages / 100) * 100, 100), 20000),
+        customers: Math.min(Math.max(Math.round(data.monthly_customers), 1), 1000),
+        dealValue: Math.min(Math.max(Math.round(data.avg_deal_value / 10) * 10, 10), 50000),
       });
-      // 🎉 confetti on success
+      // Pass full siteData to parent (for DemoChat)
+      onSiteData?.(data);
       confetti({
-        particleCount: 80,
-        spread: 60,
-        origin: { y: 0.5 },
-        colors: ["#7c5cbf", "#b09de0", "#ffd166", "#ffffff"],
-        scalar: 0.9,
+        particleCount: 80, spread: 60, origin: { y: 0.5 },
+        colors: ["#7c5cbf", "#b09de0", "#ffd166", "#ffffff"], scalar: 0.9,
       });
     } catch {
       setError("לא הצלחנו לנתח את האתר. נסה להזין כתובת מלאה כגון: example.co.il");
     } finally {
       setLoading(false);
+      onScanningChange?.(false);
     }
-  };
-
-  const inputBase = {
-    width: "100%", paddingRight: 40, paddingLeft: 14, paddingTop: 10, paddingBottom: 10,
-    border: "1.5px solid #ede8ff", borderRadius: 10, fontSize: 14,
-    color: "#2d1b69", background: "#f8f6ff", outline: "none",
-    fontFamily: "'Heebo', sans-serif", boxSizing: "border-box",
-    transition: "border-color 0.2s, box-shadow 0.2s",
   };
 
   return (
@@ -65,7 +59,13 @@ export default function WebsiteAnalyzer({ onAnalyzed }) {
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
             disabled={loading}
-            style={{ ...inputBase, opacity: loading ? 0.6 : 1 }}
+            style={{
+              width: "100%", paddingRight: 40, paddingLeft: 14, paddingTop: 10, paddingBottom: 10,
+              border: "1.5px solid #ede8ff", borderRadius: 10, fontSize: 14,
+              color: "#2d1b69", background: "#f8f6ff", outline: "none",
+              fontFamily: "'Heebo', sans-serif", boxSizing: "border-box", opacity: loading ? 0.6 : 1,
+              transition: "border-color 0.2s, box-shadow 0.2s",
+            }}
             onFocus={(e) => { e.target.style.borderColor = "#7c5cbf"; e.target.style.boxShadow = "0 0 0 3px rgba(124,92,191,0.1)"; }}
             onBlur={(e) => { e.target.style.borderColor = "#ede8ff"; e.target.style.boxShadow = "none"; }}
           />
