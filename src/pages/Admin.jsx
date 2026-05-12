@@ -2,17 +2,24 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import { Phone, Mail, Building2, MessageSquare, TrendingDown, TrendingUp, Calendar, Search, RefreshCw } from "lucide-react";
+import { Phone, Mail, Building2, MessageSquare, TrendingDown, TrendingUp, Calendar, Search, RefreshCw, BarChart2 } from "lucide-react";
+import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 
 const fmt = (n) => n ? `₪${Math.round(n).toLocaleString("he-IL")}` : "—";
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—";
 
 export default function Admin() {
   const [search, setSearch] = useState("");
+  const [tab, setTab] = useState("leads");
 
   const { data: leads = [], isLoading, refetch } = useQuery({
     queryKey: ["leads"],
     queryFn: () => base44.entities.Lead.list("-created_date", 200),
+  });
+
+  const { data: analyticsEvents = [], refetch: refetchAnalytics } = useQuery({
+    queryKey: ["analytics"],
+    queryFn: () => base44.entities.AnalyticsEvent.list("-created_date", 2000),
   });
 
   const filtered = leads.filter((l) => {
@@ -34,12 +41,39 @@ export default function Admin() {
             <div className="font-display" style={{ fontSize: 18, color: "var(--gold-light)", fontWeight: 700 }}>ניהול לידים</div>
           </div>
         </div>
-        <button onClick={() => refetch()} style={{ background: "none", border: "1px solid var(--gold-border)", borderRadius: 3, color: "var(--gold-light)", padding: "6px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+        <button onClick={() => { refetch(); refetchAnalytics(); }} style={{ background: "none", border: "1px solid var(--gold-border)", borderRadius: 3, color: "var(--gold-light)", padding: "6px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
           <RefreshCw style={{ width: 13, height: 13 }} /> רענן
         </button>
       </div>
 
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "28px 24px" }}>
+
+        {/* Tabs */}
+        <div style={{ display: "flex", gap: 6, marginBottom: 24, borderBottom: "2px solid var(--gold-border)", paddingBottom: 0 }}>
+          {[
+            { key: "leads", label: "לידים", icon: <MessageSquare style={{ width: 13, height: 13 }} /> },
+            { key: "analytics", label: "אנליטיקות", icon: <BarChart2 style={{ width: 13, height: 13 }} /> },
+          ].map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "9px 20px", fontSize: 13, fontWeight: 700,
+                background: "none", border: "none", cursor: "pointer",
+                fontFamily: "'Heebo',sans-serif",
+                color: tab === t.key ? "var(--forest)" : "var(--ink-light)",
+                borderBottom: tab === t.key ? "2.5px solid var(--gold)" : "2.5px solid transparent",
+                marginBottom: -2,
+              }}>
+              {t.icon} {t.label}
+            </button>
+          ))}
+        </div>
+
+        {tab === "analytics" && (
+          <AnalyticsDashboard events={analyticsEvents} />
+        )}
+
+        {tab === "leads" && <>
         {/* Summary Cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 28 }} className="stats-grid">
           {[
@@ -56,7 +90,6 @@ export default function Admin() {
             </motion.div>
           ))}
         </div>
-
         {/* Search */}
         <div style={{ position: "relative", marginBottom: 20 }}>
           <Search style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", width: 15, height: 15, color: "var(--ink-light)" }} />
@@ -152,6 +185,7 @@ export default function Admin() {
             </table>
           </div>
         )}
+        </>}
       </div>
     </div>
   );

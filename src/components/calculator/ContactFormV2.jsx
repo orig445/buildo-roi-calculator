@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { X, Clock, CheckCircle, CalendarCheck } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 export default function ContactFormV2({ isOpen, onClose, calculatorData, source = "home" }) {
   const buildSlots = () => {
@@ -28,6 +29,7 @@ export default function ContactFormV2({ isOpen, onClose, calculatorData, source 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    trackEvent("form_submit", "v2", "contact_form", { has_slot: !!selectedSlot });
     setLoading(true);
     await Promise.all([
       base44.entities.Lead.create({
@@ -52,6 +54,7 @@ export default function ContactFormV2({ isOpen, onClose, calculatorData, source 
     ]);
     setLoading(false);
     setSuccess(true);
+    trackEvent("form_success", "v2", "contact_form");
   };
 
   if (!isOpen) return null;

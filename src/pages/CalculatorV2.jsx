@@ -6,6 +6,7 @@ import TrustBar from "@/components/calculator/TrustBar";
 import WebsiteAnalyzer from "@/components/calculator/WebsiteAnalyzer";
 import DemoChat from "@/components/calculator/DemoChat";
 import Testimonials from "@/components/calculator/Testimonials";
+import { trackEvent } from "@/lib/analytics";
 
 const fmt = (n) => `₪${Math.round(n).toLocaleString("he-IL")}`;
 
@@ -36,14 +37,24 @@ export default function CalculatorV2() {
   const [isScanning, setIsScanning] = useState(false);
   const chatSectionRef = useRef(null);
   const analyzerRef = useRef(null);
+  const pageViewTracked = useRef(false);
+
+  useEffect(() => {
+    if (!pageViewTracked.current) {
+      pageViewTracked.current = true;
+      trackEvent("page_view", "v2", "landing");
+    }
+  }, []);
 
   const scrollToAnalyzer = useCallback(() => {
+    trackEvent("cta_click", "v2", "hero", { button: "קבל הדגמה חינם - הדר" });
     if (analyzerRef.current) {
       analyzerRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, []);
 
   const scrollToChat = useCallback(() => {
+    trackEvent("cta_click", "v2", "results", { button: "אני רוצה לראות את זה בפועל" });
     if (chatSectionRef.current) {
       chatSectionRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
     } else {
@@ -84,7 +95,10 @@ export default function CalculatorV2() {
     };
   }, [messages, customers, dealValue, responseRate]);
 
-  const handleCTA = useCallback(() => setShowForm(true), []);
+  const handleCTA = useCallback((source = "unknown") => {
+    trackEvent("form_open", "v2", "contact_form", { trigger: source });
+    setShowForm(true);
+  }, []);
 
   return (
     <div dir="rtl" style={{ minHeight: "100vh", background: "#F8F6FF", fontFamily: "'Heebo', sans-serif", color: "#2d1b69" }}>
@@ -116,7 +130,7 @@ export default function CalculatorV2() {
               כשלקוח שולח הודעה ולא מקבל מענה מהיר — הוא הולך למתחרה.{" "}
               <strong style={{ color: "white" }}>בוא נראה בדיוק כמה זה שווה לך.</strong>
             </p>
-            <button onClick={scrollToAnalyzer} className="cta-btn cta-btn-white" style={{ padding: "13px 32px", fontSize: 15 }}>
+            <button onClick={() => { trackEvent("cta_click", "v2", "hero", { button: "חשב את הפוטנציאל שלי" }); scrollToAnalyzer(); }} className="cta-btn cta-btn-white" style={{ padding: "13px 32px", fontSize: 15 }}>
               חשב את הפוטנציאל שלי 🚀
             </button>
           </motion.div>
@@ -136,9 +150,13 @@ export default function CalculatorV2() {
             <WebsiteAnalyzer
               onAnalyzed={({ messages: m, customers: c, dealValue: d }) => {
                 setMessages(m); setCustomers(c); setDealValue(d);
+                trackEvent("website_scanned", "v2", "analyzer");
               }}
               onSiteData={setSiteData}
-              onScanningChange={setIsScanning}
+              onScanningChange={(scanning) => {
+                setIsScanning(scanning);
+                if (scanning) trackEvent("scan_started", "v2", "analyzer");
+              }}
             />
           </div>
         </FadeIn>
@@ -280,7 +298,7 @@ export default function CalculatorV2() {
                 </div>
               </div>
 
-              <button onClick={scrollToChat} className="cta-btn" style={{ width: "100%", padding: "15px", fontSize: 14 }}>
+              <button onClick={() => { trackEvent("cta_click", "v2", "results", { button: "ראה בפועל" }); scrollToChat(); }} className="cta-btn" style={{ width: "100%", padding: "15px", fontSize: 14 }}>
                 אני רוצה לראות את זה בפועל 🚀
               </button>
               <p style={{ textAlign: "center", fontSize: 11, color: "#8b7ab8" }}>ללא התחייבות · מענה תוך שעות</p>
@@ -325,7 +343,7 @@ export default function CalculatorV2() {
             קבל הדגמה חינמית ב-15 דקות ותראה בדיוק<br />
             כמה עסקאות אפשר להוסיף לעסק שלך עכשיו.
           </p>
-          <button onClick={handleCTA} className="cta-btn cta-btn-white" style={{ padding: "15px 36px", fontSize: 15 }}>
+          <button onClick={() => handleCTA("footer")} className="cta-btn cta-btn-white" style={{ padding: "15px 36px", fontSize: 15 }}>
             קבל הדגמה חינם עכשיו →
           </button>
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 14 }}>ללא כרטיס אשראי · ללא התחייבות</p>
