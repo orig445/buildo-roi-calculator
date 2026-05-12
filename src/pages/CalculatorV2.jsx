@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useCallback } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
-import { HelpCircle, ChevronLeft, Sparkles, TrendingUp, Users, MessageCircle, Zap } from "lucide-react";
+import { motion, useInView } from "framer-motion";
+import { ChevronLeft, Sparkles, Users, MessageCircle, Zap } from "lucide-react";
 import ContactFormV2 from "@/components/calculator/ContactFormV2";
 import TrustBar from "@/components/calculator/TrustBar";
 import WebsiteAnalyzer from "@/components/calculator/WebsiteAnalyzer";
@@ -17,10 +17,10 @@ const BUSINESS_SIZES = [
 const getSize = (c) => BUSINESS_SIZES.find((s) => c <= s.max) || BUSINESS_SIZES[4];
 
 const getResponseLabel = (r) => {
-  if (r < 30) return { label: "נמוך", color: "#e05858" };
-  if (r < 60) return { label: "ממוצע", color: "#9b7fd4" };
-  if (r < 80) return { label: "טוב", color: "#7c5cbf" };
-  return { label: "מצוין!", color: "#5a3fa8" };
+  if (r < 30) return { label: "נמוך — אפשר לשפר הרבה", color: "#e05858" };
+  if (r < 60) return { label: "ממוצע בשוק", color: "#9b7fd4" };
+  if (r < 80) return { label: "טוב", color: "#5a3fa8" };
+  return { label: "מצוין!", color: "#2a7d55" };
 };
 
 export default function CalculatorV2() {
@@ -29,17 +29,40 @@ export default function CalculatorV2() {
   const [dealValue, setDealValue] = useState(1500);
   const [responseRate, setResponseRate] = useState(40);
   const [showForm, setShowForm] = useState(false);
+  // track which slider is being dragged so only IT animates
+  const [activeSlider, setActiveSlider] = useState(null);
 
   const r = useMemo(() => {
-    const missedRate = (1 - responseRate / 100) * 0.6;
-    const potentialRate = Math.min((responseRate / 100) * 0.4 + 0.1, 0.45);
-    const missedCust  = Math.round(customers * missedRate);
+    // Missed customers: those who don't get a fast reply leave (industry avg ~35% of non-answered)
+    const nonAnsweredRate = 1 - responseRate / 100;
+    const leaveRate = nonAnsweredRate * 0.35; // 35% of non-answered actually leave
+    const missedCust = Math.round(customers * leaveRate);
     const monthMissed = missedCust * dealValue;
-    const monthGain   = Math.round(customers * potentialRate) * dealValue;
-    const msgCost     = Math.round(messages * 0.08);
-    const roi         = msgCost > 0 ? Math.round((monthGain * 12) / (msgCost * 12)) : 0;
-    const size        = getSize(customers);
-    return { monthMissed, annualMissed: monthMissed * 12, monthGain, annualGain: monthGain * 12, missedCust, msgCost, roi, size };
+
+    // With Bildo: recover ~55% of missed customers (realistic benchmark)
+    const recoveredCust = Math.round(missedCust * 0.55);
+    const monthGain = recoveredCust * dealValue;
+
+    // Real API cost: ~0.05 USD per message ≈ ₪0.19, but billing is per conversation (~₪0.4)
+    // Approx: (messages / 5) * 0.4 NIS per conversation
+    const monthApiCost = Math.max(Math.round((messages / 5) * 0.4), 200); // min ₪200/month
+    const platformFee = 500; // typical monthly platform fee
+    const totalMonthlyCost = monthApiCost + platformFee;
+
+    // ROI: how much extra revenue vs total cost
+    const roiMonths = totalMonthlyCost > 0 ? (monthGain / totalMonthlyCost).toFixed(1) : "0";
+
+    return {
+      monthMissed,
+      annualMissed: monthMissed * 12,
+      monthGain,
+      annualGain: monthGain * 12,
+      missedCust,
+      recoveredCust,
+      totalMonthlyCost,
+      roiMonths: parseFloat(roiMonths),
+      size: getSize(customers),
+    };
   }, [messages, customers, dealValue, responseRate]);
 
   const handleCTA = useCallback(() => setShowForm(true), []);
@@ -49,35 +72,32 @@ export default function CalculatorV2() {
 
       {/* HEADER */}
       <header style={{ background: "white", borderBottom: "1px solid #ede8ff", position: "sticky", top: 0, zIndex: 40, boxShadow: "0 2px 16px rgba(90,63,168,0.07)" }}>
-        <div style={{ maxWidth: 1080, margin: "0 auto", padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <img src="https://media.base44.com/images/public/user_683dc40f7f28b76cbf2cfd30/67ecd3deb_1.png" alt="בילדו" style={{ height: 36 }} />
-          <button onClick={handleCTA} className="cta-btn" style={{ padding: "10px 24px", fontSize: 13 }}>
-            קבל הדגמה חינם <ChevronLeft style={{ width: 15, height: 15, display: "inline", verticalAlign: "middle" }} />
+        <div style={{ maxWidth: 1080, margin: "0 auto", padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <img src="https://media.base44.com/images/public/user_683dc40f7f28b76cbf2cfd30/67ecd3deb_1.png" alt="בילדו" style={{ height: 34 }} />
+          <button onClick={handleCTA} className="cta-btn" style={{ padding: "9px 20px", fontSize: 13 }}>
+            קבל הדגמה חינם <ChevronLeft style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle" }} />
           </button>
         </div>
       </header>
 
       {/* HERO */}
-      <section style={{ background: "linear-gradient(135deg, #5a3fa8 0%, #7c5cbf 50%, #9b7fd4 100%)", padding: "64px 24px 72px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-        {/* Soft bg circles */}
+      <section style={{ background: "linear-gradient(135deg, #5a3fa8 0%, #7c5cbf 50%, #9b7fd4 100%)", padding: "52px 20px 60px", textAlign: "center", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: -60, right: -60, width: 300, height: 300, borderRadius: "50%", background: "rgba(255,255,255,0.06)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", bottom: -80, left: -40, width: 250, height: 250, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" }} />
-
         <div style={{ maxWidth: 680, margin: "0 auto", position: "relative" }}>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: 20, padding: "5px 16px", marginBottom: 24, fontSize: 12, color: "rgba(255,255,255,0.9)", backdropFilter: "blur(4px)" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: 20, padding: "5px 16px", marginBottom: 22, fontSize: 12, color: "rgba(255,255,255,0.9)" }}>
               ✨ מחשבון חינמי לעסקים · ספק רשמי Meta
             </div>
-            <h1 style={{ fontFamily: "'Heebo', sans-serif", fontWeight: 900, fontSize: "clamp(28px, 5vw, 52px)", color: "white", lineHeight: 1.2, marginBottom: 16 }}>
-              כמה לקוחות פשוט <br />
+            <h1 style={{ fontWeight: 900, fontSize: "clamp(26px, 5vw, 50px)", color: "white", lineHeight: 1.2, marginBottom: 14 }}>
+              כמה לקוחות פשוט{" "}
               <span style={{ color: "#ffd166", fontStyle: "italic" }}>עוזבים בלי לקנות?</span>
             </h1>
-            <p style={{ fontSize: 17, color: "rgba(255,255,255,0.85)", maxWidth: 500, margin: "0 auto 32px", lineHeight: 1.7 }}>
-              כשלקוח שולח הודעה ולא מקבל מענה מהיר — הוא הולך למתחרה.
-              <br />
+            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.85)", maxWidth: 500, margin: "0 auto 28px", lineHeight: 1.7 }}>
+              כשלקוח שולח הודעה ולא מקבל מענה מהיר — הוא הולך למתחרה.{" "}
               <strong style={{ color: "white" }}>בוא נראה בדיוק כמה זה שווה לך.</strong>
             </p>
-            <button onClick={handleCTA} className="cta-btn cta-btn-white" style={{ padding: "14px 36px", fontSize: 15 }}>
+            <button onClick={handleCTA} className="cta-btn cta-btn-white" style={{ padding: "13px 32px", fontSize: 15 }}>
               חשב את הפוטנציאל שלי 🚀
             </button>
           </motion.div>
@@ -85,14 +105,14 @@ export default function CalculatorV2() {
       </section>
 
       {/* MAIN */}
-      <main style={{ maxWidth: 1080, margin: "0 auto", padding: "36px 24px 80px" }}>
+      <main style={{ maxWidth: 1080, margin: "0 auto", padding: "28px 16px 80px" }}>
 
         {/* ANALYZER */}
         <FadeIn delay={0}>
-          <div className="soft-card" style={{ padding: "22px 24px", marginBottom: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+          <div className="soft-card" style={{ padding: "20px 22px", marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
               <Sparkles style={{ width: 16, height: 16, color: "#7c5cbf" }} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#7c5cbf" }}>מלא אוטומטית לפי האתר שלך</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#7c5cbf" }}>מלא אוטומטית לפי האתר שלך</span>
             </div>
             <WebsiteAnalyzer onAnalyzed={({ messages: m, customers: c, dealValue: d }) => {
               setMessages(m); setCustomers(c); setDealValue(d);
@@ -100,61 +120,80 @@ export default function CalculatorV2() {
           </div>
         </FadeIn>
 
-        {/* CALC GRID */}
-        <div className="calc-grid" style={{ display: "grid", gridTemplateColumns: "3fr 2fr", gap: 20, alignItems: "start" }}>
+        {/* CALC GRID — stacks on mobile */}
+        <div className="calc-grid">
 
           {/* SLIDERS */}
           <FadeIn delay={0.06}>
-            <div className="soft-card" style={{ padding: "28px 26px" }}>
-              <h2 style={{ fontSize: 18, fontWeight: 800, color: "#2d1b69", marginBottom: 6 }}>הגדר את הנתונים שלך</h2>
-              <p style={{ fontSize: 13, color: "#8b7ab8", marginBottom: 24 }}>הזז את הסליידרים לפי המצב האמיתי שלך</p>
+            <div className="soft-card" style={{ padding: "24px 22px" }}>
+              <h2 style={{ fontSize: 17, fontWeight: 800, color: "#2d1b69", marginBottom: 4 }}>הגדר את הנתונים שלך</h2>
+              <p style={{ fontSize: 13, color: "#8b7ab8", marginBottom: 22 }}>הזז את הסליידרים לפי המצב האמיתי שלך</p>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
                 <SliderRow
-                  icon={<MessageCircle style={{ width: 15, height: 15 }} />}
+                  id="messages"
+                  icon={<MessageCircle style={{ width: 14, height: 14 }} />}
                   label="הודעות וואטסאפ בחודש"
                   value={messages} min={100} max={100000} step={100}
                   onChange={setMessages}
+                  onDragStart={() => setActiveSlider("messages")}
+                  onDragEnd={() => setActiveSlider(null)}
+                  isActive={activeSlider === "messages"}
                   display={messages.toLocaleString("he-IL")}
                   hint={messages < 1000 ? "נמוך" : messages < 10000 ? "ממוצע" : "גבוה 🔥"}
                   hintOk={messages >= 10000}
                 />
+                <div style={{ height: 1, background: "#f0ecff" }} />
                 <SliderRow
-                  icon={<Users style={{ width: 15, height: 15 }} />}
+                  id="customers"
+                  icon={<Users style={{ width: 14, height: 14 }} />}
                   label="לקוחות פוטנציאליים בחודש"
                   value={customers} min={10} max={5000} step={10}
                   onChange={setCustomers}
+                  onDragStart={() => setActiveSlider("customers")}
+                  onDragEnd={() => setActiveSlider(null)}
+                  isActive={activeSlider === "customers"}
                   display={`${customers.toLocaleString("he-IL")} ${r.size.emoji}`}
                   hint={r.size.label}
                   hintOk={customers >= 200}
                 />
+                <div style={{ height: 1, background: "#f0ecff" }} />
                 <SliderRow
-                  icon={<span style={{ fontSize: 14 }}>₪</span>}
+                  id="dealValue"
+                  icon={<span style={{ fontSize: 13, color: "#7c5cbf" }}>₪</span>}
                   label="ערך ממוצע לעסקה / לקוח"
                   value={dealValue} min={100} max={50000} step={100}
                   onChange={setDealValue}
+                  onDragStart={() => setActiveSlider("dealValue")}
+                  onDragEnd={() => setActiveSlider(null)}
+                  isActive={activeSlider === "dealValue"}
                   display={`₪${dealValue.toLocaleString("he-IL")}`}
                   hint={dealValue < 500 ? "נמוך" : dealValue < 5000 ? "בינוני" : "גבוה 💰"}
                   hintOk={dealValue >= 1000}
                 />
+                <div style={{ height: 1, background: "#f0ecff" }} />
                 <SliderRow
-                  icon={<Zap style={{ width: 15, height: 15 }} />}
-                  label="אחוז פניות שמקבלות מענה תוך שעה"
+                  id="responseRate"
+                  icon={<Zap style={{ width: 14, height: 14 }} />}
+                  label="% פניות שמקבלות מענה תוך שעה"
                   value={responseRate} min={5} max={95} step={5}
                   onChange={setResponseRate}
+                  onDragStart={() => setActiveSlider("responseRate")}
+                  onDragEnd={() => setActiveSlider(null)}
+                  isActive={activeSlider === "responseRate"}
                   display={`${responseRate}%`}
                   hint={getResponseLabel(responseRate).label}
-                  hintOk={responseRate >= 70}
-                  subHint="רוב העסקים עונים לפחות מ-40% מהפניות בזמן"
+                  hintColor={getResponseLabel(responseRate).color}
+                  subHint="ממוצע בשוק: 35–50%"
                 />
               </div>
 
-              {/* Mini insight */}
-              <div style={{ marginTop: 24, padding: "14px 16px", background: "#f3f0ff", borderRadius: 12, border: "1px solid #e0d9f5" }}>
-                <div style={{ fontSize: 12, color: "#7c5cbf", fontWeight: 600, marginBottom: 4 }}>💡 מה המספרים אומרים?</div>
-                <div style={{ fontSize: 13, color: "#2d1b69", lineHeight: 1.6 }}>
-                  כרגע בערך <strong style={{ color: "#e05858" }}>{r.missedCust} לקוחות בחודש</strong> לא מקבלים מענה מהיר ועוזבים.
-                  עם בילדו אפשר לשמור על רובם אוטומטית.
+              {/* Mini insight box */}
+              <div style={{ marginTop: 22, padding: "14px 16px", background: "#f3f0ff", borderRadius: 12, border: "1px solid #e0d9f5" }}>
+                <div style={{ fontSize: 12, color: "#7c5cbf", fontWeight: 700, marginBottom: 5 }}>💡 מה המספרים אומרים?</div>
+                <div style={{ fontSize: 13, color: "#2d1b69", lineHeight: 1.65 }}>
+                  כרגע בערך <strong style={{ color: "#d44" }}>{r.missedCust} לקוחות בחודש</strong> לא מקבלים מענה מהיר ועוזבים.
+                  {" "}עם בילדו אפשר לשמור בחזרה על <strong style={{ color: "#2a7d55" }}>~{r.recoveredCust} מהם</strong> אוטומטית.
                 </div>
               </div>
             </div>
@@ -164,74 +203,61 @@ export default function CalculatorV2() {
           <FadeIn delay={0.1}>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
-              {/* Missed opportunity */}
-              <div className="soft-card" style={{ padding: "20px", borderTop: "3px solid #ffb3b3" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
-                  <span style={{ fontSize: 18 }}>😔</span>
+              {/* Missed revenue */}
+              <div className="soft-card result-card-red">
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                  <span style={{ fontSize: 20 }}>😔</span>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#2d1b69" }}>רווח שאתה מפספס כרגע</div>
-                    <div style={{ fontSize: 11, color: "#8b7ab8" }}>לא הפסד — הכסף פשוט עוד לא בכיס שלך</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "#2d1b69" }}>הכנסה שאתה מפספס כרגע</div>
+                    <div style={{ fontSize: 11, color: "#c47a7a" }}>לא הפסד — כסף שיכול להיות שלך</div>
                   </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <div style={{ background: "#fff5f5", borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
-                    <div style={{ fontSize: 10, color: "#c47a7a", fontWeight: 600, marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.05em" }}>בחודש</div>
-                    <motion.div key={r.monthMissed} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                      style={{ fontSize: 24, fontWeight: 900, color: "#d44", lineHeight: 1 }}>
-                      {fmt(r.monthMissed)}
-                    </motion.div>
-                  </div>
-                  <div style={{ background: "#fff5f5", borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
-                    <div style={{ fontSize: 10, color: "#c47a7a", fontWeight: 600, marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.05em" }}>בשנה</div>
-                    <motion.div key={r.annualMissed} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                      style={{ fontSize: 20, fontWeight: 800, color: "#d44", lineHeight: 1 }}>
-                      {fmt(r.annualMissed)}
-                    </motion.div>
-                  </div>
+                  <ResultNumber label="בחודש" value={fmt(r.monthMissed)} color="#cc3333" bg="#fff5f5" />
+                  <ResultNumber label="בשנה" value={fmt(r.annualMissed)} color="#cc3333" bg="#fff5f5" small />
                 </div>
                 <div style={{ marginTop: 10, fontSize: 11, color: "#c47a7a", background: "#fff5f5", borderRadius: 8, padding: "8px 10px", lineHeight: 1.5 }}>
-                  🤷 בערך {r.missedCust} לקוחות בחודש פשוט לא מקבלים מענה מהיר ועוזבים
+                  🤷 {r.missedCust} לקוחות בחודש פשוט לא מקבלים מענה מהיר ועוזבים
                 </div>
               </div>
 
-              {/* Potential with Bildo */}
-              <div className="soft-card" style={{ padding: "20px", borderTop: "3px solid #a8e6cf" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
-                  <span style={{ fontSize: 18 }}>🎯</span>
+              {/* Potential gain */}
+              <div className="soft-card result-card-green">
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                  <span style={{ fontSize: 20 }}>🎯</span>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#2d1b69" }}>הפוטנציאל שלך עם בילדו</div>
-                    <div style={{ fontSize: 11, color: "#8b7ab8" }}>מה אפשר להשיג עם מענה אוטומטי חכם</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "#2d1b69" }}>הפוטנציאל שלך עם בילדו</div>
+                    <div style={{ fontSize: 11, color: "#5a9b7a" }}>על בסיס שחזור ~55% מהלקוחות שנשרו</div>
                   </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <div style={{ background: "#f0faf5", borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
-                    <div style={{ fontSize: 10, color: "#5a9b7a", fontWeight: 600, marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.05em" }}>בחודש</div>
-                    <motion.div key={r.monthGain} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                      style={{ fontSize: 24, fontWeight: 900, color: "#2a7d55", lineHeight: 1 }}>
-                      +{fmt(r.monthGain)}
-                    </motion.div>
-                  </div>
-                  <div style={{ background: "#f0faf5", borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
-                    <div style={{ fontSize: 10, color: "#5a9b7a", fontWeight: 600, marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.05em" }}>בשנה</div>
-                    <motion.div key={r.annualGain} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                      style={{ fontSize: 20, fontWeight: 800, color: "#2a7d55", lineHeight: 1 }}>
-                      +{fmt(r.annualGain)}
-                    </motion.div>
-                  </div>
+                  <ResultNumber label="בחודש" value={`+${fmt(r.monthGain)}`} color="#1a7a44" bg="#f0faf5" />
+                  <ResultNumber label="בשנה" value={`+${fmt(r.annualGain)}`} color="#1a7a44" bg="#f0faf5" small />
                 </div>
               </div>
 
-              {/* ROI pill */}
-              <div style={{ background: "linear-gradient(135deg, #5a3fa8, #9b7fd4)", borderRadius: 16, padding: "18px 20px", textAlign: "center" }}>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginBottom: 8, letterSpacing: "0.05em" }}>🏆 כל ₪1 שמשקיעים בבילדו מחזיר בממוצע</div>
-                <motion.div key={r.roi} style={{ fontSize: 52, fontWeight: 900, color: "#ffd166", lineHeight: 1, fontStyle: "italic" }}
-                  initial={{ opacity: 0.7, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-                  {r.roi}x
-                </motion.div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginTop: 4 }}>החזר שנתי על ההשקעה</div>
+              {/* ROI — realistic */}
+              <div style={{ background: "linear-gradient(135deg, #5a3fa8, #7c5cbf)", borderRadius: 16, padding: "18px 20px", textAlign: "center" }}>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", marginBottom: 6 }}>📊 כמה מרוויחים ביחס לעלות השירות</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20 }}>
+                  <div>
+                    <div style={{ fontSize: 40, fontWeight: 900, color: "#ffd166", lineHeight: 1, fontStyle: "italic" }}>
+                      {r.roiMonths}x
+                    </div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", marginTop: 3 }}>תשואה חודשית</div>
+                  </div>
+                  <div style={{ borderLeft: "1px solid rgba(255,255,255,0.15)", height: 50 }} />
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginBottom: 4 }}>עלות שירות משוערת</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: "white" }}>{fmt(r.totalMonthlyCost)}<span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)" }}>/חודש</span></div>
+                  </div>
+                </div>
+                <div style={{ marginTop: 10, fontSize: 10, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
+                  * כולל עלות API + דמי פלטפורמה. החישוב מבוסס על נתוני ממוצע שוק.
+                </div>
               </div>
 
-              <button onClick={handleCTA} className="cta-btn" style={{ width: "100%", padding: "16px", fontSize: 14 }}>
+              <button onClick={handleCTA} className="cta-btn" style={{ width: "100%", padding: "15px", fontSize: 14 }}>
                 אני רוצה לראות את זה בפועל 🚀
               </button>
               <p style={{ textAlign: "center", fontSize: 11, color: "#8b7ab8" }}>ללא התחייבות · מענה תוך שעות</p>
@@ -239,19 +265,19 @@ export default function CalculatorV2() {
           </FadeIn>
         </div>
 
-        {/* HOW IT WORKS — simple 3-step */}
+        {/* HOW IT WORKS */}
         <FadeIn delay={0.05}>
-          <div style={{ marginTop: 40, padding: "32px 28px", background: "white", borderRadius: 20, border: "1px solid #ede8ff" }}>
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#2d1b69", textAlign: "center", marginBottom: 24 }}>איך בילדו עוזר לך לסגור יותר עסקאות?</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+          <div style={{ marginTop: 36, padding: "28px 22px", background: "white", borderRadius: 20, border: "1px solid #ede8ff" }}>
+            <h3 style={{ fontSize: 17, fontWeight: 800, color: "#2d1b69", textAlign: "center", marginBottom: 22 }}>איך בילדו עוזר לך לסגור יותר עסקאות?</h3>
+            <div className="how-grid">
               {[
                 { icon: "⚡", title: "מענה מיידי", desc: "כל לקוח שפונה מקבל תשובה תוך שניות — גם בלילה, גם בשישי" },
-                { icon: "🔄", title: "תזכורות חכמות", desc: "מערכת שולחת תזכורות אוטומטיות ללקוחות שלא ענו ומחזירה אותם" },
-                { icon: "📊", title: "קמפיינים ממוקדים", desc: "שלח הודעות ממוקדות לאלפי לקוחות בלחיצה אחת ותראה תוצאות" },
+                { icon: "🔄", title: "תזכורות חכמות", desc: "המערכת שולחת תזכורות אוטומטיות ללקוחות שלא ענו ומחזירה אותם" },
+                { icon: "📊", title: "קמפיינים ממוקדים", desc: "שלח הודעות ממוקדות לאלפי לקוחות בלחיצה אחת" },
               ].map((s) => (
-                <div key={s.title} style={{ textAlign: "center", padding: "20px 16px", background: "#f8f6ff", borderRadius: 14, border: "1px solid #ede8ff" }}>
-                  <div style={{ fontSize: 28, marginBottom: 10 }}>{s.icon}</div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#2d1b69", marginBottom: 6 }}>{s.title}</div>
+                <div key={s.title} style={{ textAlign: "center", padding: "18px 14px", background: "#f8f6ff", borderRadius: 14, border: "1px solid #ede8ff" }}>
+                  <div style={{ fontSize: 26, marginBottom: 8 }}>{s.icon}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#2d1b69", marginBottom: 5 }}>{s.title}</div>
                   <div style={{ fontSize: 12, color: "#8b7ab8", lineHeight: 1.6 }}>{s.desc}</div>
                 </div>
               ))}
@@ -261,32 +287,32 @@ export default function CalculatorV2() {
 
         {/* TRUST */}
         <FadeIn delay={0.05}>
-          <div style={{ marginTop: 32 }}>
+          <div style={{ marginTop: 28 }}>
             <TrustBar />
           </div>
         </FadeIn>
       </main>
 
       {/* FOOTER CTA */}
-      <section style={{ background: "linear-gradient(135deg, #5a3fa8 0%, #7c5cbf 100%)", padding: "56px 24px", textAlign: "center" }}>
+      <section style={{ background: "linear-gradient(135deg, #5a3fa8 0%, #7c5cbf 100%)", padding: "52px 20px", textAlign: "center" }}>
         <div style={{ maxWidth: 560, margin: "0 auto" }}>
-          <div style={{ fontSize: 36, marginBottom: 12 }}>💜</div>
-          <h2 style={{ fontFamily: "'Heebo', sans-serif", fontWeight: 900, fontSize: "clamp(22px, 4vw, 36px)", color: "white", marginBottom: 12, lineHeight: 1.3 }}>
+          <div style={{ fontSize: 34, marginBottom: 10 }}>💜</div>
+          <h2 style={{ fontWeight: 900, fontSize: "clamp(20px, 4vw, 34px)", color: "white", marginBottom: 12, lineHeight: 1.3 }}>
             הלקוחות שלך כבר שולחים הודעות.<br />
             <span style={{ color: "#ffd166" }}>השאלה היא מי עונה להם.</span>
           </h2>
-          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", marginBottom: 28, lineHeight: 1.7 }}>
+          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", marginBottom: 26, lineHeight: 1.7 }}>
             קבל הדגמה חינמית ב-15 דקות ותראה בדיוק<br />
             כמה עסקאות אפשר להוסיף לעסק שלך עכשיו.
           </p>
-          <button onClick={handleCTA} className="cta-btn cta-btn-white" style={{ padding: "16px 40px", fontSize: 15 }}>
+          <button onClick={handleCTA} className="cta-btn cta-btn-white" style={{ padding: "15px 36px", fontSize: 15 }}>
             קבל הדגמה חינם עכשיו →
           </button>
-          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 16 }}>ללא כרטיס אשראי · ללא התחייבות</p>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 14 }}>ללא כרטיס אשראי · ללא התחייבות</p>
         </div>
       </section>
 
-      <footer style={{ background: "white", borderTop: "1px solid #ede8ff", padding: "14px 24px", textAlign: "center" }}>
+      <footer style={{ background: "white", borderTop: "1px solid #ede8ff", padding: "14px 20px", textAlign: "center" }}>
         <p style={{ fontSize: 11, color: "#8b7ab8" }}>© 2026 בילדו · שותף רשמי Meta · WhatsApp Business API</p>
       </footer>
 
@@ -303,6 +329,8 @@ export default function CalculatorV2() {
           border: 1px solid #ede8ff;
           box-shadow: 0 4px 24px rgba(90,63,168,0.06);
         }
+        .result-card-red { padding: 20px; border-top: 3px solid #ffb3b3; }
+        .result-card-green { padding: 20px; border-top: 3px solid #a8e6cf; }
         .cta-btn {
           display: inline-flex;
           align-items: center;
@@ -320,11 +348,7 @@ export default function CalculatorV2() {
         }
         .cta-btn:hover { background: #4a3290; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(90,63,168,0.4); }
         .cta-btn:active { transform: translateY(0); }
-        .cta-btn-white {
-          background: white;
-          color: #5a3fa8;
-          box-shadow: 0 4px 18px rgba(0,0,0,0.12);
-        }
+        .cta-btn-white { background: white; color: #5a3fa8; box-shadow: 0 4px 18px rgba(0,0,0,0.12); }
         .cta-btn-white:hover { background: #f8f6ff; box-shadow: 0 8px 24px rgba(0,0,0,0.18); }
         .slider-purple {
           -webkit-appearance: none;
@@ -337,60 +361,102 @@ export default function CalculatorV2() {
         }
         .slider-purple::-webkit-slider-thumb {
           -webkit-appearance: none;
-          width: 24px; height: 24px;
+          width: 26px; height: 26px;
           border-radius: 50%;
           background: white;
-          border: 2.5px solid #7c5cbf;
+          border: 3px solid #7c5cbf;
           cursor: pointer;
-          box-shadow: 0 2px 8px rgba(90,63,168,0.25);
-          transition: transform 0.15s;
+          box-shadow: 0 2px 10px rgba(90,63,168,0.3);
+          transition: transform 0.15s, box-shadow 0.15s;
         }
-        .slider-purple::-webkit-slider-thumb:hover { transform: scale(1.15); }
+        .slider-purple::-webkit-slider-thumb:hover {
+          transform: scale(1.15);
+          box-shadow: 0 4px 16px rgba(90,63,168,0.4);
+        }
         .slider-purple::-moz-range-thumb {
-          width: 24px; height: 24px;
+          width: 26px; height: 26px;
           border-radius: 50%;
           background: white;
-          border: 2.5px solid #7c5cbf;
+          border: 3px solid #7c5cbf;
           cursor: pointer;
         }
-        @media (max-width: 768px) {
+        /* GRID */
+        .calc-grid {
+          display: grid;
+          grid-template-columns: 3fr 2fr;
+          gap: 20px;
+          align-items: start;
+        }
+        .how-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+        }
+        /* MOBILE */
+        @media (max-width: 700px) {
           .calc-grid { grid-template-columns: 1fr !important; }
+          .how-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>
   );
 }
 
-function SliderRow({ icon, label, value, min, max, step, onChange, display, hint, hintOk, subHint }) {
+// Only animates when this specific slider is active
+function SliderRow({ id, icon, label, value, min, max, step, onChange, onDragStart, onDragEnd, isActive, display, hint, hintOk, hintColor, subHint }) {
   const pct = ((value - min) / (max - min)) * 100;
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-          <span style={{ color: "#7c5cbf" }}>{icon}</span>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 7 }}>
+          <span style={{ color: "#7c5cbf", marginTop: 2 }}>{icon}</span>
           <div>
             <span style={{ fontSize: 13, fontWeight: 600, color: "#2d1b69" }}>{label}</span>
             {subHint && <div style={{ fontSize: 10, color: "#8b7ab8", marginTop: 1 }}>{subHint}</div>}
           </div>
         </div>
-        <div style={{ textAlign: "left" }}>
-          <motion.span key={display} initial={{ opacity: 0.7 }} animate={{ opacity: 1 }}
-            style={{ fontSize: 20, fontWeight: 800, color: "#5a3fa8", display: "block", lineHeight: 1 }}>
-            {display}
-          </motion.span>
-          {hint && <span style={{ fontSize: 10, color: hintOk ? "#2a7d55" : "#9b7fd4", fontWeight: 600, display: "block", textAlign: "left" }}>{hint}</span>}
+        <div style={{ textAlign: "left", flexShrink: 0, marginRight: 8 }}>
+          {isActive ? (
+            <motion.span
+              key={display}
+              initial={{ scale: 1.15, color: "#5a3fa8" }}
+              animate={{ scale: 1, color: "#5a3fa8" }}
+              transition={{ duration: 0.15 }}
+              style={{ fontSize: 20, fontWeight: 800, display: "block", lineHeight: 1 }}
+            >
+              {display}
+            </motion.span>
+          ) : (
+            <span style={{ fontSize: 20, fontWeight: 800, color: "#5a3fa8", display: "block", lineHeight: 1 }}>{display}</span>
+          )}
+          {hint && (
+            <span style={{ fontSize: 10, color: hintColor || (hintOk ? "#2a7d55" : "#9b7fd4"), fontWeight: 600, display: "block", textAlign: "left", marginTop: 2 }}>
+              {hint}
+            </span>
+          )}
         </div>
       </div>
       <input
         type="range" min={min} max={max} step={step} value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        onMouseDown={onDragStart} onTouchStart={onDragStart}
+        onMouseUp={onDragEnd} onTouchEnd={onDragEnd}
         className="slider-purple"
         style={{ background: `linear-gradient(to left, #7c5cbf ${pct}%, #ede8ff ${pct}%)` }}
       />
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#b8aad4", marginTop: 4 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#c4b8e0", marginTop: 4 }}>
         <span>{min.toLocaleString("he-IL")}</span>
         <span>{max.toLocaleString("he-IL")}</span>
       </div>
+    </div>
+  );
+}
+
+function ResultNumber({ label, value, color, bg, small }) {
+  return (
+    <div style={{ background: bg, borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
+      <div style={{ fontSize: 10, color, fontWeight: 600, marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.05em", opacity: 0.75 }}>{label}</div>
+      <div style={{ fontSize: small ? 18 : 22, fontWeight: 900, color, lineHeight: 1 }}>{value}</div>
     </div>
   );
 }

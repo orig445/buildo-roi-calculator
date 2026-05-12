@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { Globe, Loader2, Sparkles } from "lucide-react";
+import confetti from "canvas-confetti";
 
 export default function WebsiteAnalyzer({ onAnalyzed }) {
   const [url, setUrl] = useState("");
@@ -29,11 +30,27 @@ export default function WebsiteAnalyzer({ onAnalyzed }) {
         customers: Math.min(Math.max(Math.round(data.monthly_customers / 10) * 10, 10), 5000),
         dealValue: Math.min(Math.max(Math.round(data.avg_deal_value / 100) * 100, 100), 50000),
       });
+      // 🎉 confetti on success
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.5 },
+        colors: ["#7c5cbf", "#b09de0", "#ffd166", "#ffffff"],
+        scalar: 0.9,
+      });
     } catch {
       setError("לא הצלחנו לנתח את האתר. נסה להזין כתובת מלאה כגון: example.co.il");
     } finally {
       setLoading(false);
     }
+  };
+
+  const inputBase = {
+    width: "100%", paddingRight: 40, paddingLeft: 14, paddingTop: 10, paddingBottom: 10,
+    border: "1.5px solid #ede8ff", borderRadius: 10, fontSize: 14,
+    color: "#2d1b69", background: "#f8f6ff", outline: "none",
+    fontFamily: "'Heebo', sans-serif", boxSizing: "border-box",
+    transition: "border-color 0.2s, box-shadow 0.2s",
   };
 
   return (
@@ -48,13 +65,7 @@ export default function WebsiteAnalyzer({ onAnalyzed }) {
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
             disabled={loading}
-            style={{
-              width: "100%", paddingRight: 40, paddingLeft: 14, paddingTop: 10, paddingBottom: 10,
-              border: "1.5px solid #ede8ff", borderRadius: 10, fontSize: 14,
-              color: "#2d1b69", background: "#f8f6ff", outline: "none",
-              fontFamily: "'Heebo', sans-serif", opacity: loading ? 0.6 : 1,
-              boxSizing: "border-box", transition: "border-color 0.2s",
-            }}
+            style={{ ...inputBase, opacity: loading ? 0.6 : 1 }}
             onFocus={(e) => { e.target.style.borderColor = "#7c5cbf"; e.target.style.boxShadow = "0 0 0 3px rgba(124,92,191,0.1)"; }}
             onBlur={(e) => { e.target.style.borderColor = "#ede8ff"; e.target.style.boxShadow = "none"; }}
           />
@@ -67,8 +78,9 @@ export default function WebsiteAnalyzer({ onAnalyzed }) {
             background: loading || !url.trim() ? "#c4b5e8" : "#5a3fa8",
             color: "white", border: "none", borderRadius: 10,
             padding: "10px 18px", fontSize: 13, fontWeight: 700,
-            fontFamily: "'Heebo', sans-serif", cursor: loading || !url.trim() ? "not-allowed" : "pointer",
-            transition: "all 0.2s", whiteSpace: "nowrap",
+            fontFamily: "'Heebo', sans-serif",
+            cursor: loading || !url.trim() ? "not-allowed" : "pointer",
+            transition: "all 0.2s", whiteSpace: "nowrap", flexShrink: 0,
           }}
         >
           {loading
@@ -94,12 +106,17 @@ export default function WebsiteAnalyzer({ onAnalyzed }) {
 
       <AnimatePresence>
         {insight && (
-          <motion.div initial={{ opacity: 0, y: -6, height: 0 }} animate={{ opacity: 1, y: 0, height: "auto" }} exit={{ opacity: 0, height: 0 }} style={{ overflow: "hidden", marginTop: 12 }}>
-            <div style={{ background: "#f3f0ff", border: "1px solid #ede8ff", borderRadius: 10, padding: "12px 14px", display: "flex", gap: 10 }}>
-              <Sparkles style={{ width: 15, height: 15, color: "#7c5cbf", marginTop: 2, flexShrink: 0 }} />
+          <motion.div
+            initial={{ opacity: 0, y: -6, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            style={{ overflow: "hidden", marginTop: 12 }}
+          >
+            <div style={{ background: "#f3f0ff", border: "1px solid #ddd5f5", borderRadius: 12, padding: "12px 14px", display: "flex", gap: 10 }}>
+              <Sparkles style={{ width: 16, height: 16, color: "#7c5cbf", marginTop: 2, flexShrink: 0 }} />
               <div>
                 <p style={{ fontSize: 13, fontWeight: 700, color: "#2d1b69", marginBottom: 3 }}>
-                  זיהינו: {insight.business_type} ✓ הסליידרים עודכנו אוטומטית
+                  ✓ זיהינו: {insight.business_type} — הסליידרים עודכנו אוטומטית
                 </p>
                 <p style={{ fontSize: 12, color: "#7c5cbf", lineHeight: 1.6 }}>{insight.insight}</p>
               </div>
