@@ -1,29 +1,26 @@
-import { useState, useMemo, useRef, useCallback, useEffect } from "react";
-import { motion, useInView } from "framer-motion";
-import { HelpCircle } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useState, useMemo, useRef, useCallback } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { HelpCircle, ChevronLeft, Sparkles, TrendingUp, Users, MessageCircle, Zap } from "lucide-react";
 import ContactFormV2 from "@/components/calculator/ContactFormV2";
 import TrustBar from "@/components/calculator/TrustBar";
 import WebsiteAnalyzer from "@/components/calculator/WebsiteAnalyzer";
-import confetti from "canvas-confetti";
 
 const fmt = (n) => `₪${Math.round(n).toLocaleString("he-IL")}`;
 
 const BUSINESS_SIZES = [
-  { max: 50,    label: "עסק זעיר",   badge: "xs", emoji: "🌱", desc: "עד 50 לקוחות/חודש" },
-  { max: 200,   label: "עסק קטן",    badge: "sm", emoji: "🏪", desc: "50–200 לקוחות/חודש" },
-  { max: 600,   label: "עסק בינוני", badge: "md", emoji: "🏢", desc: "200–600 לקוחות/חודש" },
-  { max: 2000,  label: "עסק גדול",   badge: "lg", emoji: "🏗️", desc: "600–2000 לקוחות/חודש" },
-  { max: 99999, label: "תאגיד",      badge: "xl", emoji: "🏦", desc: "2000+ לקוחות/חודש" },
+  { max: 50,    label: "עסק קטן",    emoji: "🌱" },
+  { max: 200,   label: "עסק בינוני", emoji: "🏪" },
+  { max: 600,   label: "עסק פעיל",   emoji: "🏢" },
+  { max: 2000,  label: "עסק גדול",   emoji: "🏗️" },
+  { max: 99999, label: "תאגיד",      emoji: "🏦" },
 ];
-
 const getSize = (c) => BUSINESS_SIZES.find((s) => c <= s.max) || BUSINESS_SIZES[4];
 
 const getResponseLabel = (r) => {
-  if (r < 30) return { label: "נמוך מאוד", color: "var(--rust)" };
-  if (r < 60) return { label: "ממוצע", color: "var(--gold)" };
-  if (r < 80) return { label: "טוב", color: "var(--forest-mid)" };
-  return { label: "מצוין", color: "var(--forest)" };
+  if (r < 30) return { label: "נמוך", color: "#e05858" };
+  if (r < 60) return { label: "ממוצע", color: "#9b7fd4" };
+  if (r < 80) return { label: "טוב", color: "#7c5cbf" };
+  return { label: "מצוין!", color: "#5a3fa8" };
 };
 
 export default function CalculatorV2() {
@@ -34,399 +31,363 @@ export default function CalculatorV2() {
   const [showForm, setShowForm] = useState(false);
 
   const r = useMemo(() => {
-    const lostRate  = (1 - responseRate / 100) * 0.6;
-    const liftRate  = Math.min((responseRate / 100) * 0.4 + 0.1, 0.45);
-    const lostCust  = Math.round(customers * lostRate);
-    const monthLoss = lostCust * dealValue;
-    const monthGain = Math.round(customers * liftRate) * dealValue;
-    const msgCost   = Math.round(messages * 0.08);
-    const roi       = msgCost > 0 ? Math.round((monthGain * 12) / (msgCost * 12)) : 0;
-    const size      = getSize(customers);
-    const dailyLoss = Math.round(monthLoss / 30);
-    return { monthLoss, annualLoss: monthLoss * 12, monthGain, annualGain: monthGain * 12, lostCust, msgCost, roi, size, dailyLoss };
+    const missedRate = (1 - responseRate / 100) * 0.6;
+    const potentialRate = Math.min((responseRate / 100) * 0.4 + 0.1, 0.45);
+    const missedCust  = Math.round(customers * missedRate);
+    const monthMissed = missedCust * dealValue;
+    const monthGain   = Math.round(customers * potentialRate) * dealValue;
+    const msgCost     = Math.round(messages * 0.08);
+    const roi         = msgCost > 0 ? Math.round((monthGain * 12) / (msgCost * 12)) : 0;
+    const size        = getSize(customers);
+    return { monthMissed, annualMissed: monthMissed * 12, monthGain, annualGain: monthGain * 12, missedCust, msgCost, roi, size };
   }, [messages, customers, dealValue, responseRate]);
 
-  const handleCTAClick = useCallback(() => {
-    confetti({
-      particleCount: 120,
-      spread: 75,
-      origin: { y: 0.6 },
-      colors: ["#C4962A", "#E8C96B", "#F5E9C5", "#1A3325", "#4A8C60"],
-      scalar: 1.1,
-    });
-    setTimeout(() => setShowForm(true), 350);
-  }, []);
+  const handleCTA = useCallback(() => setShowForm(true), []);
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--cream)", direction: "rtl", fontFamily: "'Heebo', sans-serif" }}>
+    <div dir="rtl" style={{ minHeight: "100vh", background: "#F8F6FF", fontFamily: "'Heebo', sans-serif", color: "#2d1b69" }}>
 
       {/* HEADER */}
-      <header style={{
-        background: "rgba(245,240,232,0.93)",
-        backdropFilter: "blur(12px)",
-        borderBottom: "1px solid var(--gold-border)",
-        position: "sticky", top: 0, zIndex: 40,
-        boxShadow: "0 1px 12px rgba(26,18,8,0.06)"
-      }}>
-        <div style={{ maxWidth: 1080, margin: "0 auto", padding: "11px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <img src="https://media.base44.com/images/public/user_683dc40f7f28b76cbf2cfd30/67ecd3deb_1.png" alt="בילדו" style={{ height: 34, borderRadius: 8 }} />
-            <div>
-              <div style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 15, color: "var(--ink)", lineHeight: 1.2 }}>בילדו</div>
-              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, color: "var(--ink-light)", letterSpacing: "0.12em", textTransform: "uppercase" }}>WhatsApp Business API</div>
-            </div>
-          </div>
-          <button className="btn-stamp" style={{ padding: "9px 22px", fontSize: 11 }} onClick={handleCTAClick}>
-            קבל הדגמה חינם
+      <header style={{ background: "white", borderBottom: "1px solid #ede8ff", position: "sticky", top: 0, zIndex: 40, boxShadow: "0 2px 16px rgba(90,63,168,0.07)" }}>
+        <div style={{ maxWidth: 1080, margin: "0 auto", padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <img src="https://media.base44.com/images/public/user_683dc40f7f28b76cbf2cfd30/67ecd3deb_1.png" alt="בילדו" style={{ height: 36 }} />
+          <button onClick={handleCTA} className="cta-btn" style={{ padding: "10px 24px", fontSize: 13 }}>
+            קבל הדגמה חינם <ChevronLeft style={{ width: 15, height: 15, display: "inline", verticalAlign: "middle" }} />
           </button>
         </div>
       </header>
 
       {/* HERO */}
-      <section style={{ background: "white", borderBottom: "1px solid var(--gold-border)", padding: "52px 24px 44px" }}>
-        <div style={{ maxWidth: 720, margin: "0 auto", textAlign: "center" }}>
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 20 }}>
-              {["◆", "◇", "◆"].map((c, i) => (
-                <span key={i} style={{ color: "var(--gold)", fontSize: 10, letterSpacing: 4 }}>{c}</span>
-              ))}
+      <section style={{ background: "linear-gradient(135deg, #5a3fa8 0%, #7c5cbf 50%, #9b7fd4 100%)", padding: "64px 24px 72px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+        {/* Soft bg circles */}
+        <div style={{ position: "absolute", top: -60, right: -60, width: 300, height: 300, borderRadius: "50%", background: "rgba(255,255,255,0.06)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: -80, left: -40, width: 250, height: 250, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" }} />
+
+        <div style={{ maxWidth: 680, margin: "0 auto", position: "relative" }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: 20, padding: "5px 16px", marginBottom: 24, fontSize: 12, color: "rgba(255,255,255,0.9)", backdropFilter: "blur(4px)" }}>
+              ✨ מחשבון חינמי לעסקים · ספק רשמי Meta
             </div>
-            <div className="font-label" style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              fontSize: 9, color: "var(--gold)",
-              border: "1px solid var(--gold-border)", background: "var(--gold-pale)",
-              padding: "5px 16px", borderRadius: 20, marginBottom: 22
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--gold)", display: "inline-block" }} />
-              מחשבון ROI חינמי · בילדו · ספק רשמי Meta
-            </div>
+            <h1 style={{ fontFamily: "'Heebo', sans-serif", fontWeight: 900, fontSize: "clamp(28px, 5vw, 52px)", color: "white", lineHeight: 1.2, marginBottom: 16 }}>
+              כמה לקוחות פשוט <br />
+              <span style={{ color: "#ffd166", fontStyle: "italic" }}>עוזבים בלי לקנות?</span>
+            </h1>
+            <p style={{ fontSize: 17, color: "rgba(255,255,255,0.85)", maxWidth: 500, margin: "0 auto 32px", lineHeight: 1.7 }}>
+              כשלקוח שולח הודעה ולא מקבל מענה מהיר — הוא הולך למתחרה.
+              <br />
+              <strong style={{ color: "white" }}>בוא נראה בדיוק כמה זה שווה לך.</strong>
+            </p>
+            <button onClick={handleCTA} className="cta-btn cta-btn-white" style={{ padding: "14px 36px", fontSize: 15 }}>
+              חשב את הפוטנציאל שלי 🚀
+            </button>
           </motion.div>
-
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.1 }}
-            style={{ fontFamily: "'Fraunces', serif", fontSize: "clamp(32px, 5.5vw, 60px)", fontWeight: 900, lineHeight: 1.12, color: "var(--ink)", marginBottom: 4 }}>
-            כמה כסף אתה מפסיד
-          </motion.h1>
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.2 }}
-            style={{ fontFamily: "'Fraunces', serif", fontSize: "clamp(32px, 5.5vw, 60px)", fontWeight: 900, fontStyle: "italic", color: "var(--rust)", marginBottom: 22 }}>
-            מדי חודש?
-          </motion.h1>
-
-          <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
-            style={{ fontSize: 16, color: "var(--ink-light)", maxWidth: 500, margin: "0 auto 28px", lineHeight: 1.75 }}>
-            עסקים שמנהלים וואטסאפ ידנית מפסידים לקוחות כל יום.{" "}
-            <strong style={{ color: "var(--ink-mid)", fontWeight: 600 }}>הגדר את הנתונים שלך — ראה את האמת.</strong>
-          </motion.p>
-
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.42 }}
-            style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
-            {[{ icon: "✅", t: "ספק רשמי Meta" }, { icon: "🔒", t: "API מאובטח" }, { icon: "⚡", t: "הטמעה תוך 24 שעות" }].map((b) => (
-              <span key={b.t} className="font-label" style={{ fontSize: 9, padding: "5px 14px", border: "1px solid var(--gold-border)", borderRadius: 20, color: "var(--ink-light)", background: "var(--cream)" }}>
-                {b.icon} {b.t}
-              </span>
-            ))}
-          </motion.div>
-
-          <span className="gold-line" style={{ width: "40%", display: "block", margin: "32px auto 0" }} />
         </div>
       </section>
 
       {/* MAIN */}
-      <main style={{ maxWidth: 1080, margin: "0 auto", padding: "32px 24px 72px" }}>
+      <main style={{ maxWidth: 1080, margin: "0 auto", padding: "36px 24px 80px" }}>
 
         {/* ANALYZER */}
-        <FadeSection delay={0}>
-          <div className="card-v corner-frame corner-inner" style={{ padding: "22px 24px", marginBottom: 24 }}>
+        <FadeIn delay={0}>
+          <div className="soft-card" style={{ padding: "22px 24px", marginBottom: 24 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--gold)", display: "inline-block" }} />
-              <span className="font-label" style={{ fontSize: 9, color: "var(--gold)", letterSpacing: "0.14em" }}>מלא אוטומטית לפי האתר שלך</span>
+              <Sparkles style={{ width: 16, height: 16, color: "#7c5cbf" }} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#7c5cbf" }}>מלא אוטומטית לפי האתר שלך</span>
             </div>
             <WebsiteAnalyzer onAnalyzed={({ messages: m, customers: c, dealValue: d }) => {
               setMessages(m); setCustomers(c); setDealValue(d);
             }} />
           </div>
-        </FadeSection>
-
-        {/* BUSINESS SIZE BANNER */}
-        <FadeSection delay={0.04}>
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12,
-            marginBottom: 20, padding: "14px 20px",
-            background: "white", border: "1px solid var(--gold-border)", borderRadius: 6
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ fontFamily: "'Fraunces', serif", fontSize: 24 }}>{r.size.emoji}</span>
-              <div>
-                <span className={`size-badge ${r.size.badge}`}>{r.size.label}</span>
-                <div style={{ fontSize: 11, color: "var(--ink-light)", fontFamily: "'DM Sans', sans-serif", marginTop: 3 }}>{r.size.desc}</div>
-              </div>
-            </div>
-            <div style={{ textAlign: "left" }}>
-              <div className="font-label" style={{ fontSize: 9, color: "var(--ink-light)" }}>הפסד יומי משוער</div>
-              <div style={{ fontFamily: "'Fraunces', serif", fontSize: 20, fontWeight: 700, color: "var(--rust)" }}>
-                ₪{r.dailyLoss.toLocaleString("he-IL")}
-              </div>
-            </div>
-          </div>
-        </FadeSection>
+        </FadeIn>
 
         {/* CALC GRID */}
         <div className="calc-grid" style={{ display: "grid", gridTemplateColumns: "3fr 2fr", gap: 20, alignItems: "start" }}>
 
           {/* SLIDERS */}
-          <FadeSection delay={0.06}>
-            <div className="card-ledger corner-frame corner-inner" style={{ padding: "26px 24px 22px" }}>
-              <div style={{ marginBottom: 22 }}>
-                <div className="font-label" style={{ fontSize: 9, letterSpacing: "0.15em", color: "var(--gold)", marginBottom: 5 }}>הגדרת פרמטרים</div>
-                <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 20, fontWeight: 700, color: "var(--ink)", lineHeight: 1.2 }}>פרמטרי העסק שלך</h2>
-                <span className="gold-line" style={{ width: "50%", display: "block", marginTop: 10 }} />
-              </div>
+          <FadeIn delay={0.06}>
+            <div className="soft-card" style={{ padding: "28px 26px" }}>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: "#2d1b69", marginBottom: 6 }}>הגדר את הנתונים שלך</h2>
+              <p style={{ fontSize: 13, color: "#8b7ab8", marginBottom: 24 }}>הזז את הסליידרים לפי המצב האמיתי שלך</p>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-                <VintageSliderRow
-                  roman="I" label="הודעות וואטסאפ בחודש"
+              <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+                <SliderRow
+                  icon={<MessageCircle style={{ width: 15, height: 15 }} />}
+                  label="הודעות וואטסאפ בחודש"
                   value={messages} min={100} max={100000} step={100}
-                  onChange={setMessages} display={messages.toLocaleString("he-IL")}
-                  accent="var(--gold)"
-                  hint={messages < 1000 ? "נמוך" : messages < 10000 ? "ממוצע לתעשייה" : "גבוה — מצוין!"}
-                  hintColor={messages < 1000 ? "var(--rust)" : messages < 10000 ? "var(--gold)" : "var(--forest-mid)"}
+                  onChange={setMessages}
+                  display={messages.toLocaleString("he-IL")}
+                  hint={messages < 1000 ? "נמוך" : messages < 10000 ? "ממוצע" : "גבוה 🔥"}
+                  hintOk={messages >= 10000}
                 />
-                <span className="gold-line" />
-                <VintageSliderRow
-                  roman="II" label="לקוחות / עסקאות בחודש"
+                <SliderRow
+                  icon={<Users style={{ width: 15, height: 15 }} />}
+                  label="לקוחות פוטנציאליים בחודש"
                   value={customers} min={10} max={5000} step={10}
-                  onChange={setCustomers} display={customers.toLocaleString("he-IL")}
-                  accent="var(--gold)"
-                  hint={r.size.label} hintEmoji={r.size.emoji}
-                  hintColor={r.size.badge === "xs" ? "var(--ink-light)" : r.size.badge === "sm" ? "var(--gold)" : r.size.badge === "md" ? "var(--forest-mid)" : r.size.badge === "lg" ? "var(--forest)" : "var(--rust)"}
+                  onChange={setCustomers}
+                  display={`${customers.toLocaleString("he-IL")} ${r.size.emoji}`}
+                  hint={r.size.label}
+                  hintOk={customers >= 200}
                 />
-                <span className="gold-line" />
-                <VintageSliderRow
-                  roman="III" label="ערך ממוצע לעסקה"
+                <SliderRow
+                  icon={<span style={{ fontSize: 14 }}>₪</span>}
+                  label="ערך ממוצע לעסקה / לקוח"
                   value={dealValue} min={100} max={50000} step={100}
-                  onChange={setDealValue} display={`₪${dealValue.toLocaleString("he-IL")}`}
-                  accent="var(--rust)"
-                  hint={dealValue < 500 ? "עסקה קטנה" : dealValue < 5000 ? "עסקה בינונית" : "עסקה גדולה"}
-                  hintColor={dealValue < 500 ? "var(--ink-light)" : dealValue < 5000 ? "var(--gold)" : "var(--forest-mid)"}
+                  onChange={setDealValue}
+                  display={`₪${dealValue.toLocaleString("he-IL")}`}
+                  hint={dealValue < 500 ? "נמוך" : dealValue < 5000 ? "בינוני" : "גבוה 💰"}
+                  hintOk={dealValue >= 1000}
                 />
-                <span className="gold-line" />
-                <VintageSliderRow
-                  roman="IV" label="אחוז מענה נוכחי לפניות"
+                <SliderRow
+                  icon={<Zap style={{ width: 15, height: 15 }} />}
+                  label="אחוז פניות שמקבלות מענה תוך שעה"
                   value={responseRate} min={5} max={95} step={5}
-                  onChange={setResponseRate} display={`${responseRate}%`}
-                  accent="var(--forest-mid)"
+                  onChange={setResponseRate}
+                  display={`${responseRate}%`}
                   hint={getResponseLabel(responseRate).label}
-                  hintColor={getResponseLabel(responseRate).color}
-                  subHint="כמה % מהפניות מקבלות מענה תוך שעה?"
+                  hintOk={responseRate >= 70}
+                  subHint="רוב העסקים עונים לפחות מ-40% מהפניות בזמן"
                 />
               </div>
 
-              {/* Mini stats */}
-              <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid rgba(196,150,42,0.18)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <div className="card-v" style={{ padding: "10px 14px", borderRadius: 4 }}>
-                  <div className="font-label" style={{ fontSize: 8, color: "var(--ink-light)", marginBottom: 3 }}>לקוחות אבודים</div>
-                  <div style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 700, color: "var(--rust)" }}>{r.lostCust}</div>
-                  <div style={{ fontSize: 10, color: "var(--ink-light)" }}>לחודש</div>
-                </div>
-                <div className="card-v" style={{ padding: "10px 14px", borderRadius: 4 }}>
-                  <div className="font-label" style={{ fontSize: 8, color: "var(--ink-light)", marginBottom: 3 }}>עלות API</div>
-                  <div style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 700, color: "var(--ink-mid)" }}>₪{r.msgCost}</div>
-                  <div style={{ fontSize: 10, color: "var(--ink-light)" }}>לחודש</div>
+              {/* Mini insight */}
+              <div style={{ marginTop: 24, padding: "14px 16px", background: "#f3f0ff", borderRadius: 12, border: "1px solid #e0d9f5" }}>
+                <div style={{ fontSize: 12, color: "#7c5cbf", fontWeight: 600, marginBottom: 4 }}>💡 מה המספרים אומרים?</div>
+                <div style={{ fontSize: 13, color: "#2d1b69", lineHeight: 1.6 }}>
+                  כרגע בערך <strong style={{ color: "#e05858" }}>{r.missedCust} לקוחות בחודש</strong> לא מקבלים מענה מהיר ועוזבים.
+                  עם בילדו אפשר לשמור על רובם אוטומטית.
                 </div>
               </div>
             </div>
-          </FadeSection>
+          </FadeIn>
 
           {/* RESULTS */}
-          <FadeSection delay={0.1}>
+          <FadeIn delay={0.1}>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
-              {/* Loss */}
-              <div className="card-loss" style={{ padding: "20px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                  <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--rust)", display: "inline-block" }} />
-                  <span className="font-label" style={{ fontSize: 9, color: "var(--rust)", letterSpacing: "0.12em" }}>מה אתה מפסיד היום</span>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle style={{ width: 13, height: 13, color: "var(--ink-light)", cursor: "help", marginRight: "auto" }} />
-                      </TooltipTrigger>
-                      <TooltipContent side="top" style={{ maxWidth: 220, textAlign: "right" }}>
-                        <p style={{ fontSize: 11 }}>מחושב לפי אחוז המענה הנוכחי × לקוחות × ערך עסקה.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+              {/* Missed opportunity */}
+              <div className="soft-card" style={{ padding: "20px", borderTop: "3px solid #ffb3b3" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+                  <span style={{ fontSize: 18 }}>😔</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#2d1b69" }}>רווח שאתה מפספס כרגע</div>
+                    <div style={{ fontSize: 11, color: "#8b7ab8" }}>לא הפסד — הכסף פשוט עוד לא בכיס שלך</div>
+                  </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <div>
-                    <div className="font-label" style={{ fontSize: 8, color: "var(--ink-light)", marginBottom: 4 }}>חודשי</div>
-                    <motion.div key={r.monthLoss} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                      style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 900, color: "var(--rust)" }}>
-                      {fmt(r.monthLoss)}
+                  <div style={{ background: "#fff5f5", borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
+                    <div style={{ fontSize: 10, color: "#c47a7a", fontWeight: 600, marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.05em" }}>בחודש</div>
+                    <motion.div key={r.monthMissed} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                      style={{ fontSize: 24, fontWeight: 900, color: "#d44", lineHeight: 1 }}>
+                      {fmt(r.monthMissed)}
                     </motion.div>
                   </div>
-                  <div>
-                    <div className="font-label" style={{ fontSize: 8, color: "var(--ink-light)", marginBottom: 4 }}>שנתי</div>
-                    <motion.div key={r.annualLoss} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                      style={{ fontFamily: "'Fraunces', serif", fontSize: 20, fontWeight: 700, color: "var(--rust)", opacity: 0.8 }}>
-                      {fmt(r.annualLoss)}
+                  <div style={{ background: "#fff5f5", borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
+                    <div style={{ fontSize: 10, color: "#c47a7a", fontWeight: 600, marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.05em" }}>בשנה</div>
+                    <motion.div key={r.annualMissed} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                      style={{ fontSize: 20, fontWeight: 800, color: "#d44", lineHeight: 1 }}>
+                      {fmt(r.annualMissed)}
                     </motion.div>
                   </div>
                 </div>
-                <div style={{ marginTop: 10, fontSize: 10, color: "var(--ink-light)", borderTop: "1px solid rgba(139,58,26,0.1)", paddingTop: 8 }}>
-                  * {r.lostCust} לקוחות נושרים מדי חודש ללא מענה מהיר
+                <div style={{ marginTop: 10, fontSize: 11, color: "#c47a7a", background: "#fff5f5", borderRadius: 8, padding: "8px 10px", lineHeight: 1.5 }}>
+                  🤷 בערך {r.missedCust} לקוחות בחודש פשוט לא מקבלים מענה מהיר ועוזבים
                 </div>
               </div>
 
-              {/* Gain */}
-              <div className="card-gain" style={{ padding: "20px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                  <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--forest-accent)", display: "inline-block" }} />
-                  <span className="font-label" style={{ fontSize: 9, color: "var(--forest-mid)", letterSpacing: "0.12em" }}>פוטנציאל עם בילדו</span>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle style={{ width: 13, height: 13, color: "var(--ink-light)", cursor: "help", marginRight: "auto" }} />
-                      </TooltipTrigger>
-                      <TooltipContent side="top" style={{ maxWidth: 220, textAlign: "right" }}>
-                        <p style={{ fontSize: 11 }}>שיפור של עד 40% בסגירת עסקאות עם מענה אוטומטי מיידי, תזכורות וקמפיינים.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+              {/* Potential with Bildo */}
+              <div className="soft-card" style={{ padding: "20px", borderTop: "3px solid #a8e6cf" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+                  <span style={{ fontSize: 18 }}>🎯</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#2d1b69" }}>הפוטנציאל שלך עם בילדו</div>
+                    <div style={{ fontSize: 11, color: "#8b7ab8" }}>מה אפשר להשיג עם מענה אוטומטי חכם</div>
+                  </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <div>
-                    <div className="font-label" style={{ fontSize: 8, color: "var(--ink-light)", marginBottom: 4 }}>רווח חודשי</div>
-                    <motion.div key={r.monthGain} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                      style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 900, color: "var(--forest-mid)" }}>
+                  <div style={{ background: "#f0faf5", borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
+                    <div style={{ fontSize: 10, color: "#5a9b7a", fontWeight: 600, marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.05em" }}>בחודש</div>
+                    <motion.div key={r.monthGain} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                      style={{ fontSize: 24, fontWeight: 900, color: "#2a7d55", lineHeight: 1 }}>
                       +{fmt(r.monthGain)}
                     </motion.div>
                   </div>
-                  <div>
-                    <div className="font-label" style={{ fontSize: 8, color: "var(--ink-light)", marginBottom: 4 }}>רווח שנתי</div>
-                    <motion.div key={r.annualGain} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                      style={{ fontFamily: "'Fraunces', serif", fontSize: 20, fontWeight: 700, color: "var(--forest-mid)", opacity: 0.85 }}>
+                  <div style={{ background: "#f0faf5", borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
+                    <div style={{ fontSize: 10, color: "#5a9b7a", fontWeight: 600, marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.05em" }}>בשנה</div>
+                    <motion.div key={r.annualGain} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                      style={{ fontSize: 20, fontWeight: 800, color: "#2a7d55", lineHeight: 1 }}>
                       +{fmt(r.annualGain)}
                     </motion.div>
                   </div>
                 </div>
               </div>
 
-              {/* ROI Dark Card */}
-              <div className="card-dark" style={{ padding: "18px 20px" }}>
-                <div className="font-label" style={{ fontSize: 8, letterSpacing: "0.18em", color: "rgba(232,201,107,0.6)", marginBottom: 10, textAlign: "center" }}>
-                  ◆ &nbsp; סיכום ROI שנתי &nbsp; ◆
-                </div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div>
-                    <div className="font-label" style={{ fontSize: 8, color: "rgba(232,201,107,0.5)", marginBottom: 3 }}>עלות/הודעה</div>
-                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: 17, fontWeight: 700, color: "var(--gold-light)" }}>
-                      ₪{(r.msgCost / Math.max(messages, 1)).toFixed(3)}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: "center" }}>
-                    <motion.div key={r.roi} className="roi-glow" style={{
-                      fontFamily: "'Fraunces', serif", fontSize: 52, fontWeight: 900, fontStyle: "italic", lineHeight: 1,
-                      color: r.roi < 5 ? "var(--gold)" : r.roi < 15 ? "var(--gold-light)" : "#7FD4A0",
-                    }}>
-                      {r.roi}x
-                    </motion.div>
-                    <div className="font-label" style={{ fontSize: 8, letterSpacing: "0.1em", color: "rgba(232,201,107,0.45)", marginTop: 3 }}>ROI שנתי</div>
-                  </div>
-                  <div style={{ textAlign: "left" }}>
-                    <div className="font-label" style={{ fontSize: 8, color: "rgba(232,201,107,0.5)", marginBottom: 3 }}>החזר</div>
-                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: 16, fontWeight: 700, color: "var(--gold-light)" }}>תוך חודש</div>
-                  </div>
-                </div>
+              {/* ROI pill */}
+              <div style={{ background: "linear-gradient(135deg, #5a3fa8, #9b7fd4)", borderRadius: 16, padding: "18px 20px", textAlign: "center" }}>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginBottom: 8, letterSpacing: "0.05em" }}>🏆 כל ₪1 שמשקיעים בבילדו מחזיר בממוצע</div>
+                <motion.div key={r.roi} style={{ fontSize: 52, fontWeight: 900, color: "#ffd166", lineHeight: 1, fontStyle: "italic" }}
+                  initial={{ opacity: 0.7, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+                  {r.roi}x
+                </motion.div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginTop: 4 }}>החזר שנתי על ההשקעה</div>
               </div>
 
-              <button className="btn-stamp" style={{ width: "100%", padding: "16px 24px", fontSize: 12 }} onClick={handleCTAClick}>
-                🚀 &nbsp; קבל הדגמה חינם — ראה זאת בפועל
+              <button onClick={handleCTA} className="cta-btn" style={{ width: "100%", padding: "16px", fontSize: 14 }}>
+                אני רוצה לראות את זה בפועל 🚀
               </button>
-              <p className="font-label" style={{ textAlign: "center", fontSize: 9, color: "var(--ink-light)" }}>
-                ללא התחייבות · תגובה תוך 24 שעות
-              </p>
+              <p style={{ textAlign: "center", fontSize: 11, color: "#8b7ab8" }}>ללא התחייבות · מענה תוך שעות</p>
             </div>
-          </FadeSection>
+          </FadeIn>
         </div>
 
+        {/* HOW IT WORKS — simple 3-step */}
+        <FadeIn delay={0.05}>
+          <div style={{ marginTop: 40, padding: "32px 28px", background: "white", borderRadius: 20, border: "1px solid #ede8ff" }}>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#2d1b69", textAlign: "center", marginBottom: 24 }}>איך בילדו עוזר לך לסגור יותר עסקאות?</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+              {[
+                { icon: "⚡", title: "מענה מיידי", desc: "כל לקוח שפונה מקבל תשובה תוך שניות — גם בלילה, גם בשישי" },
+                { icon: "🔄", title: "תזכורות חכמות", desc: "מערכת שולחת תזכורות אוטומטיות ללקוחות שלא ענו ומחזירה אותם" },
+                { icon: "📊", title: "קמפיינים ממוקדים", desc: "שלח הודעות ממוקדות לאלפי לקוחות בלחיצה אחת ותראה תוצאות" },
+              ].map((s) => (
+                <div key={s.title} style={{ textAlign: "center", padding: "20px 16px", background: "#f8f6ff", borderRadius: 14, border: "1px solid #ede8ff" }}>
+                  <div style={{ fontSize: 28, marginBottom: 10 }}>{s.icon}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#2d1b69", marginBottom: 6 }}>{s.title}</div>
+                  <div style={{ fontSize: 12, color: "#8b7ab8", lineHeight: 1.6 }}>{s.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </FadeIn>
+
         {/* TRUST */}
-        <FadeSection delay={0.05}>
-          <div style={{ marginTop: 36 }}>
+        <FadeIn delay={0.05}>
+          <div style={{ marginTop: 32 }}>
             <TrustBar />
           </div>
-        </FadeSection>
+        </FadeIn>
       </main>
 
-      {/* FOOTER CTA — DARK */}
-      <section style={{ background: "var(--forest)", padding: "52px 24px", borderTop: "1px solid var(--gold)" }}>
-        <div style={{ maxWidth: 600, margin: "0 auto", textAlign: "center" }}>
-          <div className="font-label" style={{ fontSize: 9, letterSpacing: "0.2em", color: "rgba(232,201,107,0.5)", marginBottom: 16 }}>◆ ◇ ◆</div>
-          <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: "clamp(22px, 4vw, 36px)", fontWeight: 900, color: "var(--gold-light)", marginBottom: 10, lineHeight: 1.2 }}>
-            כל יום שעובר עולה לך
-            <br />
-            <span style={{ fontStyle: "italic", color: "var(--gold)" }}>₪{r.dailyLoss.toLocaleString("he-IL")} נוספים</span>
+      {/* FOOTER CTA */}
+      <section style={{ background: "linear-gradient(135deg, #5a3fa8 0%, #7c5cbf 100%)", padding: "56px 24px", textAlign: "center" }}>
+        <div style={{ maxWidth: 560, margin: "0 auto" }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>💜</div>
+          <h2 style={{ fontFamily: "'Heebo', sans-serif", fontWeight: 900, fontSize: "clamp(22px, 4vw, 36px)", color: "white", marginBottom: 12, lineHeight: 1.3 }}>
+            הלקוחות שלך כבר שולחים הודעות.<br />
+            <span style={{ color: "#ffd166" }}>השאלה היא מי עונה להם.</span>
           </h2>
-          <p style={{ fontSize: 13, color: "rgba(232,201,107,0.55)", marginBottom: 28, fontFamily: "'Heebo', sans-serif" }}>
-            הדגמה חינמית · ₪0 עד שרואים תוצאות · אינטגרציה תוך 24 שעות
+          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", marginBottom: 28, lineHeight: 1.7 }}>
+            קבל הדגמה חינמית ב-15 דקות ותראה בדיוק<br />
+            כמה עסקאות אפשר להוסיף לעסק שלך עכשיו.
           </p>
-          <button className="btn-stamp" style={{ padding: "16px 40px", fontSize: 13, boxShadow: "0 4px 30px rgba(196,150,42,0.3)" }} onClick={handleCTAClick}>
-            🚀 &nbsp; התחל להרוויח יותר עכשיו
+          <button onClick={handleCTA} className="cta-btn cta-btn-white" style={{ padding: "16px 40px", fontSize: 15 }}>
+            קבל הדגמה חינם עכשיו →
           </button>
-          <div className="font-label" style={{ fontSize: 9, letterSpacing: "0.2em", color: "rgba(232,201,107,0.3)", marginTop: 28 }}>◆ ◇ ◆</div>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 16 }}>ללא כרטיס אשראי · ללא התחייבות</p>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer style={{ background: "white", borderTop: "1px solid var(--gold-border)", padding: "14px 24px", textAlign: "center" }}>
-        <div className="font-label" style={{ fontSize: 9, letterSpacing: "0.14em", color: "var(--ink-light)", textTransform: "uppercase" }}>
-          © 2026 בילדו · שותף רשמי Meta · WhatsApp Business API
-        </div>
+      <footer style={{ background: "white", borderTop: "1px solid #ede8ff", padding: "14px 24px", textAlign: "center" }}>
+        <p style={{ fontSize: 11, color: "#8b7ab8" }}>© 2026 בילדו · שותף רשמי Meta · WhatsApp Business API</p>
       </footer>
 
       <ContactFormV2
         isOpen={showForm}
         onClose={() => setShowForm(false)}
-        calculatorData={{ messages, customers, dealValue, monthlyLoss: r.monthLoss, potentialGain: r.monthGain }}
+        calculatorData={{ messages, customers, dealValue, monthlyLoss: r.monthMissed, potentialGain: r.monthGain }}
       />
+
+      <style>{`
+        .soft-card {
+          background: white;
+          border-radius: 20px;
+          border: 1px solid #ede8ff;
+          box-shadow: 0 4px 24px rgba(90,63,168,0.06);
+        }
+        .cta-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          background: #5a3fa8;
+          color: white;
+          border: none;
+          border-radius: 12px;
+          font-family: 'Heebo', sans-serif;
+          font-weight: 800;
+          cursor: pointer;
+          transition: all 0.2s;
+          box-shadow: 0 4px 18px rgba(90,63,168,0.3);
+        }
+        .cta-btn:hover { background: #4a3290; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(90,63,168,0.4); }
+        .cta-btn:active { transform: translateY(0); }
+        .cta-btn-white {
+          background: white;
+          color: #5a3fa8;
+          box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+        }
+        .cta-btn-white:hover { background: #f8f6ff; box-shadow: 0 8px 24px rgba(0,0,0,0.18); }
+        .slider-purple {
+          -webkit-appearance: none;
+          appearance: none;
+          height: 6px;
+          border-radius: 3px;
+          outline: none;
+          cursor: pointer;
+          width: 100%;
+        }
+        .slider-purple::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 24px; height: 24px;
+          border-radius: 50%;
+          background: white;
+          border: 2.5px solid #7c5cbf;
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(90,63,168,0.25);
+          transition: transform 0.15s;
+        }
+        .slider-purple::-webkit-slider-thumb:hover { transform: scale(1.15); }
+        .slider-purple::-moz-range-thumb {
+          width: 24px; height: 24px;
+          border-radius: 50%;
+          background: white;
+          border: 2.5px solid #7c5cbf;
+          cursor: pointer;
+        }
+        @media (max-width: 768px) {
+          .calc-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }
 
-function VintageSliderRow({ roman, label, value, min, max, step, onChange, display, accent, hint, hintColor, hintEmoji, subHint }) {
+function SliderRow({ icon, label, value, min, max, step, onChange, display, hint, hintOk, subHint }) {
   const pct = ((value - min) / (max - min)) * 100;
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span className="font-label" style={{
-            fontSize: 8, color: "var(--gold)", border: "1px solid var(--gold-border)",
-            width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center",
-            borderRadius: 3, flexShrink: 0, background: "var(--gold-pale)"
-          }}>{roman}</span>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+          <span style={{ color: "#7c5cbf" }}>{icon}</span>
           <div>
-            <span style={{ fontSize: 13, color: "var(--ink-mid)", fontFamily: "'Heebo', sans-serif", fontWeight: 500 }}>{label}</span>
-            {subHint && <div style={{ fontSize: 10, color: "var(--ink-light)", marginTop: 1 }}>{subHint}</div>}
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#2d1b69" }}>{label}</span>
+            {subHint && <div style={{ fontSize: 10, color: "#8b7ab8", marginTop: 1 }}>{subHint}</div>}
           </div>
         </div>
         <div style={{ textAlign: "left" }}>
-          <motion.span key={display} initial={{ opacity: 0.6, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 700, color: accent, display: "block", lineHeight: 1 }}>
+          <motion.span key={display} initial={{ opacity: 0.7 }} animate={{ opacity: 1 }}
+            style={{ fontSize: 20, fontWeight: 800, color: "#5a3fa8", display: "block", lineHeight: 1 }}>
             {display}
           </motion.span>
-          {hint && (
-            <span className="font-label" style={{ fontSize: 9, color: hintColor, display: "flex", alignItems: "center", gap: 3, justifyContent: "flex-end", marginTop: 2 }}>
-              {hintEmoji && <span>{hintEmoji}</span>} {hint}
-            </span>
-          )}
+          {hint && <span style={{ fontSize: 10, color: hintOk ? "#2a7d55" : "#9b7fd4", fontWeight: 600, display: "block", textAlign: "left" }}>{hint}</span>}
         </div>
       </div>
       <input
         type="range" min={min} max={max} step={step} value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="slider-v"
-        style={{ background: `linear-gradient(to left, ${accent} ${pct}%, rgba(196,150,42,0.12) ${pct}%)` }}
+        className="slider-purple"
+        style={{ background: `linear-gradient(to left, #7c5cbf ${pct}%, #ede8ff ${pct}%)` }}
       />
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "var(--ink-light)", marginTop: 5, fontFamily: "'DM Sans', sans-serif" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#b8aad4", marginTop: 4 }}>
         <span>{min.toLocaleString("he-IL")}</span>
         <span>{max.toLocaleString("he-IL")}</span>
       </div>
@@ -434,11 +395,11 @@ function VintageSliderRow({ roman, label, value, min, max, step, onChange, displ
   );
 }
 
-function FadeSection({ children, delay = 0 }) {
+function FadeIn({ children, delay = 0 }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-40px" });
   return (
-    <motion.div ref={ref} initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay }}>
+    <motion.div ref={ref} initial={{ opacity: 0, y: 18 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay }}>
       {children}
     </motion.div>
   );

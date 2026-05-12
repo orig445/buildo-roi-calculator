@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
-import { X, Clock } from "lucide-react";
+import { X, Clock, CheckCircle, CalendarCheck } from "lucide-react";
 
 export default function ContactFormV2({ isOpen, onClose, calculatorData }) {
   const buildSlots = () => {
@@ -55,11 +55,20 @@ export default function ContactFormV2({ isOpen, onClose, calculatorData }) {
 
   if (!isOpen) return null;
 
+  const inputStyle = {
+    width: "100%", padding: "10px 14px",
+    border: "1.5px solid #ede8ff", borderRadius: 10,
+    background: "#f8f6ff", color: "#2d1b69",
+    fontFamily: "'Heebo', sans-serif", fontSize: 14,
+    outline: "none", boxSizing: "border-box",
+  };
+
   return (
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(26,18,8,0.55)", backdropFilter: "blur(4px)" }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: "rgba(45,27,105,0.5)", backdropFilter: "blur(8px)" }}
         onClick={onClose}
       >
         <motion.div
@@ -67,40 +76,45 @@ export default function ContactFormV2({ isOpen, onClose, calculatorData }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 12 }}
           transition={{ type: "spring", damping: 25 }}
-          className="card-v corner-frame corner-inner"
-          style={{ width: "100%", maxWidth: 420, background: "var(--cream)", borderRadius: 4, padding: "32px 28px", maxHeight: "90vh", overflowY: "auto", position: "relative" }}
+          style={{
+            width: "100%", maxWidth: 420,
+            background: "white", border: "1px solid #ede8ff",
+            borderRadius: 20, padding: "28px 26px",
+            position: "relative", maxHeight: "90vh", overflowY: "auto",
+            boxShadow: "0 20px 60px rgba(90,63,168,0.2)"
+          }}
           onClick={(e) => e.stopPropagation()}
         >
-          <button onClick={onClose} style={{ position: "absolute", top: 14, left: 14, background: "none", border: "none", cursor: "pointer", color: "var(--ink-light)", padding: 4 }}>
-            <X style={{ width: 15, height: 15 }} />
+          <button onClick={onClose} style={{ position: "absolute", top: 16, left: 16, background: "none", border: "none", cursor: "pointer", color: "#8b7ab8", padding: 4, borderRadius: 8 }}>
+            <X style={{ width: 16, height: 16 }} />
           </button>
 
           {success ? (
-            <div style={{ textAlign: "center", padding: "24px 0" }}>
-              <div style={{ fontSize: 36, marginBottom: 12 }}>◆</div>
-              <h3 className="font-display" style={{ fontSize: 22, fontWeight: 700, color: "var(--ink)", marginBottom: 8 }}>פנייתך התקבלה!</h3>
-              <p style={{ fontSize: 13, color: "var(--ink-light)", lineHeight: 1.7 }}>נחזור אליך תוך שעות ספורות עם הדגמה מותאמת אישית</p>
+            <div style={{ textAlign: "center", padding: "20px 0" }}>
+              <CheckCircle style={{ width: 52, height: 52, color: "#7c5cbf", margin: "0 auto 14px", display: "block" }} />
+              <h3 style={{ fontSize: 22, fontWeight: 900, color: "#2d1b69", marginBottom: 8 }}>מעולה! פנייתך התקבלה 🎉</h3>
+              <p style={{ fontSize: 14, color: "#8b7ab8", lineHeight: 1.7 }}>נחזור אליך תוך שעות ספורות עם הדגמה מותאמת</p>
               <div style={{
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                marginTop: 16, fontSize: 11, color: "var(--forest-mid)",
-                background: "#F0F7F3", borderRadius: 3, padding: "8px 14px",
-                border: "1px solid rgba(26,51,37,0.18)", fontFamily: "'Josefin Sans',sans-serif", letterSpacing: "0.08em"
+                marginTop: 14, fontSize: 12, background: "#f3f0ff",
+                borderRadius: 10, padding: "8px 14px", color: "#5a3fa8", fontWeight: 600
               }}>
-                ✓ אירוע נוסף ביומן Google שלך
+                <CalendarCheck style={{ width: 14, height: 14 }} />
+                <span>אירוע נוסף ביומן Google שלך</span>
               </div>
             </div>
           ) : (
             <>
               <div style={{ marginBottom: 20 }}>
-                <span className="font-label" style={{ fontSize: 9, color: "var(--gold)", letterSpacing: "0.15em", display: "block", marginBottom: 6 }}>◆ הדגמה אישית</span>
-                <h3 className="font-display" style={{ fontSize: 22, fontWeight: 700, color: "var(--ink)" }}>קבל הדגמה אישית</h3>
-                <p style={{ fontSize: 12, color: "var(--ink-light)", marginTop: 4 }}>נראה לך בדיוק איך זה עובד בעסק שלך</p>
+                <div style={{ fontSize: 11, color: "#7c5cbf", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 6 }}>✨ הדגמה חינמית</div>
+                <h3 style={{ fontSize: 20, fontWeight: 900, color: "#2d1b69", marginBottom: 4 }}>נראה לך איך זה עובד</h3>
+                <p style={{ fontSize: 13, color: "#8b7ab8" }}>15 דקות שיכולות לשנות את העסק שלך</p>
               </div>
 
               {/* Summary */}
-              <div style={{ background: "var(--cream-mid)", border: "1px solid var(--gold-border)", borderRadius: 3, padding: "10px 14px", marginBottom: 20, display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 11, color: "var(--rust)", fontWeight: 700 }}>הפסד: ₪{calculatorData.monthlyLoss?.toLocaleString("he-IL")}/חודש</span>
-                <span style={{ fontSize: 11, color: "var(--forest-mid)", fontWeight: 700 }}>פוטנציאל: +₪{calculatorData.potentialGain?.toLocaleString("he-IL")}/חודש</span>
+              <div style={{ display: "flex", justifyContent: "space-between", background: "#f8f6ff", border: "1px solid #ede8ff", borderRadius: 12, padding: "10px 14px", marginBottom: 18 }}>
+                <span style={{ fontSize: 12, color: "#d44", fontWeight: 700 }}>מפספס: ₪{calculatorData.monthlyLoss?.toLocaleString("he-IL")}/חודש</span>
+                <span style={{ fontSize: 12, color: "#2a7d55", fontWeight: 700 }}>פוטנציאל: +₪{calculatorData.potentialGain?.toLocaleString("he-IL")}/חודש</span>
               </div>
 
               <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -111,69 +125,67 @@ export default function ContactFormV2({ isOpen, onClose, calculatorData }) {
                   { key: "company", label: "שם העסק", placeholder: "שם החברה", type: "text" },
                 ].map(({ key, label, placeholder, type, required }) => (
                   <div key={key}>
-                    <label className="font-label" style={{ fontSize: 9, color: "var(--ink-light)", display: "block", marginBottom: 5, letterSpacing: "0.12em" }}>{label}</label>
-                    <input
-                      type={type} required={required} placeholder={placeholder}
-                      value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                      className="input-v"
+                    <label style={{ fontSize: 11, color: "#8b7ab8", display: "block", marginBottom: 5, fontWeight: 600 }}>{label}</label>
+                    <input type={type} required={required} placeholder={placeholder} value={form[key]}
+                      onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                      style={inputStyle}
+                      onFocus={(e) => { e.target.style.borderColor = "#7c5cbf"; e.target.style.boxShadow = "0 0 0 3px rgba(124,92,191,0.1)"; }}
+                      onBlur={(e) => { e.target.style.borderColor = "#ede8ff"; e.target.style.boxShadow = "none"; }}
                     />
                   </div>
                 ))}
 
-                {/* DB Size */}
                 <div>
-                  <label className="font-label" style={{ fontSize: 9, color: "var(--ink-light)", display: "block", marginBottom: 6, letterSpacing: "0.12em" }}>גודל מאגר לקוחות</label>
+                  <label style={{ fontSize: 11, color: "#8b7ab8", display: "block", marginBottom: 6, fontWeight: 600 }}>גודל מאגר לקוחות</label>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
                     {["עד 1,000", "1,000–10,000", "10,000–50,000", "50,000–200,000", "200,000+", "לא יודע"].map((opt) => (
-                      <button
-                        key={opt} type="button"
-                        onClick={() => setForm({ ...form, db_size: opt })}
+                      <button key={opt} type="button" onClick={() => setForm({ ...form, db_size: opt })}
                         style={{
-                          padding: "7px 4px", borderRadius: 2, fontSize: 10, cursor: "pointer", transition: "all 0.2s",
-                          background: form.db_size === opt ? "var(--forest)" : "white",
-                          color: form.db_size === opt ? "var(--gold-light)" : "var(--ink-mid)",
-                          border: form.db_size === opt ? "1px solid var(--gold)" : "1px solid var(--gold-border)",
-                          fontFamily: "'Heebo',sans-serif",
-                        }}
-                      >{opt}</button>
+                          padding: "7px 4px", borderRadius: 8, fontSize: 10, cursor: "pointer",
+                          fontFamily: "'Heebo', sans-serif", fontWeight: 600, transition: "all 0.15s",
+                          background: form.db_size === opt ? "#5a3fa8" : "#f8f6ff",
+                          color: form.db_size === opt ? "white" : "#2d1b69",
+                          border: form.db_size === opt ? "1.5px solid #5a3fa8" : "1.5px solid #ede8ff",
+                        }}>{opt}</button>
                     ))}
                   </div>
                 </div>
 
-                {/* Slot Picker */}
                 <div>
-                  <label className="font-label" style={{ fontSize: 9, color: "var(--ink-light)", display: "flex", alignItems: "center", gap: 4, marginBottom: 6, letterSpacing: "0.12em" }}>
+                  <label style={{ fontSize: 11, color: "#8b7ab8", display: "flex", alignItems: "center", gap: 4, marginBottom: 6, fontWeight: 600 }}>
                     <Clock style={{ width: 12, height: 12 }} /> בחר מועד להדגמה
                   </label>
-                  <div style={{ maxHeight: 160, overflowY: "auto", borderRadius: 3, border: "1px solid var(--gold-border)", background: "var(--cream-mid)" }}>
+                  <div style={{ maxHeight: 160, overflowY: "auto", borderRadius: 10, border: "1.5px solid #ede8ff", background: "#f8f6ff" }}>
                     {slots.map((slot, i) => {
                       const isSelected = selectedSlot?.toISOString() === slot.toISOString();
-                      const dayName = slot.toLocaleDateString("he-IL", { weekday: "short", month: "numeric", day: "numeric" });
-                      const timeStr = slot.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
                       return (
-                        <button
-                          key={i} type="button"
-                          onClick={() => setSelectedSlot(slot)}
+                        <button key={i} type="button" onClick={() => setSelectedSlot(slot)}
                           style={{
-                            width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
-                            padding: "8px 12px", fontSize: 11, cursor: "pointer", transition: "all 0.15s",
-                            background: isSelected ? "var(--forest)" : "transparent",
-                            color: isSelected ? "var(--gold-light)" : "var(--ink-mid)",
-                            border: "none", borderBottom: "1px solid rgba(196,150,42,0.1)",
-                            fontFamily: "'Heebo',sans-serif", fontWeight: isSelected ? 700 : 400,
-                          }}
-                        >
-                          <span>{dayName}</span>
-                          <span>{timeStr}</span>
+                            width: "100%", display: "flex", justifyContent: "space-between",
+                            padding: "8px 12px", fontSize: 12, cursor: "pointer",
+                            border: "none", borderBottom: "1px solid #ede8ff",
+                            background: isSelected ? "#5a3fa8" : "transparent",
+                            color: isSelected ? "white" : "#2d1b69",
+                            fontFamily: "'Heebo', sans-serif", fontWeight: isSelected ? 700 : 400,
+                          }}>
+                          <span>{slot.toLocaleDateString("he-IL", { weekday: "short", month: "numeric", day: "numeric" })}</span>
+                          <span>{slot.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}</span>
                         </button>
                       );
                     })}
                   </div>
-                  {!selectedSlot && <p style={{ fontSize: 10, color: "var(--ink-light)", marginTop: 4, fontStyle: "italic" }}>לא חובה — ניצור קשר לתיאום</p>}
+                  {!selectedSlot && <p style={{ fontSize: 10, color: "#8b7ab8", marginTop: 4 }}>לא חובה — ניצור קשר לתיאום</p>}
                 </div>
 
-                <button type="submit" disabled={loading} className="btn-stamp" style={{ width: "100%", fontSize: 12, padding: "14px", marginTop: 4 }}>
-                  {loading ? "שולח..." : "שלח ותזמן הדגמה ◆"}
+                <button type="submit" disabled={loading}
+                  style={{
+                    width: "100%", padding: "13px", fontSize: 14, fontWeight: 800,
+                    background: loading ? "#c4b5e8" : "#5a3fa8", color: "white",
+                    border: "none", borderRadius: 12, cursor: loading ? "not-allowed" : "pointer",
+                    fontFamily: "'Heebo', sans-serif", marginTop: 4,
+                    boxShadow: "0 4px 18px rgba(90,63,168,0.3)", transition: "all 0.2s",
+                  }}>
+                  {loading ? "שולח..." : "שלח ותזמן הדגמה ✨"}
                 </button>
               </form>
             </>
