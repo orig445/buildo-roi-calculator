@@ -1,11 +1,31 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
-import { X, CheckCircle } from "lucide-react";
+import { X, CheckCircle, Clock } from "lucide-react";
 import { CalendarCheck } from "lucide-react";
 
 export default function ContactForm({ isOpen, onClose, calculatorData }) {
+  // Build available slots: next 7 days, hours 09:00–18:00 every hour, skip today
+  const buildSlots = () => {
+    const slots = [];
+    const now = new Date();
+    for (let d = 1; d <= 7; d++) {
+      const day = new Date(now);
+      day.setDate(now.getDate() + d);
+      const dow = day.getDay(); // 0=Sun,6=Sat
+      if (dow === 6) continue; // skip Saturday
+      for (let h = 9; h <= 17; h++) {
+        const dt = new Date(day);
+        dt.setHours(h, 0, 0, 0);
+        slots.push(dt);
+      }
+    }
+    return slots;
+  };
+  const slots = buildSlots();
+
   const [form, setForm] = useState({ name: "", phone: "", email: "", company: "", db_size: "" });
+  const [selectedSlot, setSelectedSlot] = useState(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -29,6 +49,7 @@ export default function ContactForm({ isOpen, onClose, calculatorData }) {
         company: form.company,
         monthlyLoss: calculatorData.monthlyLoss,
         potentialGain: calculatorData.potentialGain,
+        selectedDateTime: selectedSlot ? selectedSlot.toISOString() : null,
       }),
     ]);
     setLoading(false);
@@ -122,6 +143,36 @@ export default function ContactForm({ isOpen, onClose, calculatorData }) {
                       </button>
                     ))}
                   </div>
+                </div>
+
+                {/* Date/Time Slot Picker */}
+                <div>
+                  <label className="text-xs font-medium text-gray-600 block mb-2 flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" /> בחר מועד להדגמה
+                  </label>
+                  <div className="max-h-44 overflow-y-auto rounded-lg border border-gray-200 divide-y divide-gray-100">
+                    {slots.map((slot, i) => {
+                      const isSelected = selectedSlot?.toISOString() === slot.toISOString();
+                      const dayName = slot.toLocaleDateString('he-IL', { weekday: 'short', month: 'numeric', day: 'numeric' });
+                      const timeStr = slot.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setSelectedSlot(slot)}
+                          className={`w-full flex justify-between items-center px-3 py-2 text-xs transition-all ${
+                            isSelected
+                              ? "bg-green-600 text-white font-semibold"
+                              : "bg-white text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          <span>{dayName}</span>
+                          <span>{timeStr}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {!selectedSlot && <p className="text-xs text-gray-400 mt-1">לא חובה — ניצור קשר לתיאום</p>}
                 </div>
 
                 <button

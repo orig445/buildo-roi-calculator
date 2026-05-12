@@ -3,17 +3,22 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { name, phone, email, company, monthlyLoss, potentialGain } = await req.json();
+    const { name, phone, email, company, monthlyLoss, potentialGain, selectedDateTime } = await req.json();
 
     const { accessToken } = await base44.asServiceRole.connectors.getConnection('googlecalendar');
 
-    // Schedule the demo for tomorrow at 10:00 AM Israel time (UTC+3)
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(10, 0, 0, 0);
+    // Use selected slot if provided, otherwise default to tomorrow 10:00
+    let startDate;
+    if (selectedDateTime) {
+      startDate = new Date(selectedDateTime);
+    } else {
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() + 1);
+      startDate.setHours(10, 0, 0, 0);
+    }
 
-    const startTime = tomorrow.toISOString();
-    const endTime = new Date(tomorrow.getTime() + 60 * 60 * 1000).toISOString(); // 1 hour
+    const startTime = startDate.toISOString();
+    const endTime = new Date(startDate.getTime() + 60 * 60 * 1000).toISOString(); // 1 hour
 
     const description = [
       `👤 שם: ${name}`,
