@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import { Phone, Mail, Building2, MessageSquare, TrendingDown, TrendingUp, Calendar, Search, RefreshCw, BarChart2 } from "lucide-react";
+import { Phone, Mail, Building2, MessageSquare, TrendingDown, TrendingUp, Calendar, Search, RefreshCw, BarChart2, Lock } from "lucide-react";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
+
+const ALLOWED_EMAILS = ["orig445@gmail.com", "nevo@buildoai.com"];
 
 const fmt = (n) => n ? `₪${Math.round(n).toLocaleString("he-IL")}` : "—";
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—";
@@ -11,6 +13,22 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString("he-IL", { day: "2-dig
 export default function Admin() {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("leads");
+  const [authChecked, setAuthChecked] = useState(false);
+  const [allowed, setAllowed] = useState(false);
+
+  useEffect(() => {
+    base44.auth.me().then((user) => {
+      if (user && ALLOWED_EMAILS.includes(user.email)) {
+        setAllowed(true);
+      } else {
+        setAllowed(false);
+      }
+      setAuthChecked(true);
+    }).catch(() => {
+      setAllowed(false);
+      setAuthChecked(true);
+    });
+  }, []);
 
   const { data: leads = [], isLoading, refetch } = useQuery({
     queryKey: ["leads"],
@@ -29,6 +47,30 @@ export default function Admin() {
 
   const totalLoss = leads.reduce((s, l) => s + (l.calculated_loss || 0), 0);
   const totalGain = leads.reduce((s, l) => s + (l.calculated_gain || 0), 0);
+
+  if (!authChecked) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--cream)" }}>
+        <div style={{ width: 32, height: 32, border: "3px solid var(--gold-border)", borderTop: "3px solid var(--gold)", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  if (!allowed) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--cream)", fontFamily: "'Heebo', sans-serif" }}>
+        <div style={{ textAlign: "center", padding: 40 }}>
+          <Lock style={{ width: 48, height: 48, color: "var(--gold)", margin: "0 auto 16px", display: "block" }} />
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--ink)", marginBottom: 8 }}>אין גישה</h2>
+          <p style={{ fontSize: 14, color: "var(--ink-light)", marginBottom: 24 }}>עמוד זה מוגבל למשתמשים מורשים בלבד.</p>
+          <button onClick={() => base44.auth.redirectToLogin(window.location.href)} style={{ background: "var(--forest)", color: "var(--gold-light)", border: "1px solid var(--gold)", borderRadius: 6, padding: "10px 24px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Heebo', sans-serif" }}>
+            התחבר
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div dir="rtl" style={{ minHeight: "100vh", background: "var(--cream)", fontFamily: "'Heebo', sans-serif", padding: "0 0 60px" }}>
