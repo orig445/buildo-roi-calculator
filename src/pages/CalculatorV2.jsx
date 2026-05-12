@@ -93,7 +93,7 @@ export default function CalculatorV2() {
       <header style={{ background: "white", borderBottom: "1px solid #ede8ff", position: "sticky", top: 0, zIndex: 40, boxShadow: "0 2px 16px rgba(90,63,168,0.07)" }}>
         <div style={{ maxWidth: 1080, margin: "0 auto", padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <img src="https://media.base44.com/images/public/user_683dc40f7f28b76cbf2cfd30/67ecd3deb_1.png" alt="בילדו" style={{ height: 34 }} />
-          <button onClick={handleCTA} className="cta-btn" style={{ padding: "9px 20px", fontSize: 13 }}>
+          <button onClick={scrollToAnalyzer} className="cta-btn" style={{ padding: "9px 20px", fontSize: 13 }}>
             קבל הדגמה חינם <ChevronLeft style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle" }} />
           </button>
         </div>
