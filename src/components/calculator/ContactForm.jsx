@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { X, CheckCircle } from "lucide-react";
 
 export default function ContactForm({ isOpen, onClose, calculatorData }) {
-  const [form, setForm] = useState({ name: "", phone: "", email: "", company: "" });
+  const [form, setForm] = useState({ name: "", phone: "", email: "", company: "", db_size: "" });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -18,6 +18,7 @@ export default function ContactForm({ isOpen, onClose, calculatorData }) {
       avg_deal_value: calculatorData.dealValue,
       calculated_loss: calculatorData.monthlyLoss,
       calculated_gain: calculatorData.potentialGain,
+      notes: form.db_size ? `מאגר לקוחות: ${form.db_size}` : undefined,
     });
     setLoading(false);
     setSuccess(true);
@@ -87,6 +88,26 @@ export default function ContactForm({ isOpen, onClose, calculatorData }) {
                     />
                   </div>
                 ))}
+
+                <div>
+                  <label className="text-xs font-medium text-gray-600 block mb-1">גודל מאגר לקוחות</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {["עד 1,000", "1,000–10,000", "10,000–50,000", "50,000–200,000", "200,000+", "לא יודע"].map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setForm({ ...form, db_size: opt })}
+                        className={`py-2 px-2 rounded-lg text-xs font-medium border transition-all ${
+                          form.db_size === opt
+                            ? "bg-violet-600 text-white border-violet-600"
+                            : "bg-white text-gray-600 border-gray-200 hover:border-violet-300"
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 <button
                   type="submit"
