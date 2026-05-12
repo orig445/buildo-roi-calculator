@@ -107,8 +107,8 @@ export default function CalculatorV2() {
       <header style={{ background: "white", borderBottom: "1px solid #ede8ff", position: "sticky", top: 0, zIndex: 40, boxShadow: "0 2px 16px rgba(90,63,168,0.07)" }}>
         <div style={{ maxWidth: 1080, margin: "0 auto", padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <img src="https://media.base44.com/images/public/6a02f33e91d5cbd1f45f106b/b6a902f52_Gemini_Generated_Image_b0y91hb0y91hb0y9.png" alt="בילדו" style={{ height: 40 }} />
-          <button onClick={scrollToAnalyzer} className="cta-btn" style={{ padding: "9px 20px", fontSize: 13 }}>
-            קבל הדגמה חינם <ChevronLeft style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle" }} />
+          <button onClick={() => handleCTA("header")} className="cta-btn" style={{ padding: "9px 20px", fontSize: 13 }}>
+            קבע פגישה ללא עלות <ChevronLeft style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle" }} />
           </button>
         </div>
       </header>
