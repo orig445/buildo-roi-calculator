@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import ContactForm from "@/components/calculator/ContactForm";
+import TrustBar from "@/components/calculator/TrustBar";
 
 function SliderRow({ label, value, min, max, step, onChange, formatDisplay }) {
   const pct = ((value - min) / (max - min)) * 100;
@@ -171,6 +172,8 @@ export default function Calculator() {
           </div>
         </div>
       </div>
+
+      <TrustBar />
 
       {/* Footer */}
       <p className="text-xs text-gray-400 mt-4">© 2026 בילדו · ספק רשמי Meta WhatsApp Business API</p>
