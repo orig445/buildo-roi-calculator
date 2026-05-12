@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Send, MessageCircle } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 
 const BILDO_AVATAR = "https://media.base44.com/images/public/user_683dc40f7f28b76cbf2cfd30/67ecd3deb_1.png";
 
@@ -26,7 +27,7 @@ function BotMessage({ text }) {
     <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.25 }}
       style={{ display: "flex", alignItems: "flex-end", gap: 6, marginBottom: 8 }}>
       <img src={BILDO_AVATAR} alt="" style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
-      <div style={{ background: "white", border: "1px solid #ede8ff", borderRadius: "16px 16px 16px 4px", padding: "10px 14px", maxWidth: "80%", fontSize: 13, color: "#2d1b69", lineHeight: 1.6, boxShadow: "0 1px 6px rgba(90,63,168,0.06)" }}>
+      <div style={{ background: "white", border: "1px solid #ede8ff", borderRadius: "16px 16px 16px 4px", padding: "10px 14px", maxWidth: "80%", fontSize: 13, color: "#2d1b69", lineHeight: 1.6, boxShadow: "0 1px 6px rgba(90,63,168,0.06)", whiteSpace: "pre-line" }}>
         {text}
       </div>
     </motion.div>
@@ -44,98 +45,216 @@ function UserMessage({ text }) {
   );
 }
 
-function QuickReply({ text, onClick }) {
+function QuickReply({ text, onClick, disabled }) {
   return (
-    <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={onClick}
-      style={{ background: "white", border: "1.5px solid #7c5cbf", color: "#5a3fa8", borderRadius: 20, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Heebo', sans-serif" }}>
+    <motion.button
+      whileHover={!disabled ? { scale: 1.03 } : {}}
+      whileTap={!disabled ? { scale: 0.97 } : {}}
+      onClick={!disabled ? onClick : undefined}
+      style={{
+        background: disabled ? "#f0ecff" : "white",
+        border: "1.5px solid #7c5cbf",
+        color: disabled ? "#b0a0d4" : "#5a3fa8",
+        borderRadius: 20,
+        padding: "7px 14px",
+        fontSize: 12,
+        fontWeight: 700,
+        cursor: disabled ? "default" : "pointer",
+        fontFamily: "'Heebo', sans-serif",
+        opacity: disabled ? 0.6 : 1,
+      }}>
       {text}
     </motion.button>
   );
 }
 
-// siteData comes from the parent (WebsiteAnalyzer already scanned it)
+function CTACard({ onOpenCTA }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      style={{
+        background: "linear-gradient(135deg, #f3f0ff, #ede8ff)",
+        border: "1.5px solid #c9bcf5",
+        borderRadius: 14,
+        padding: "14px 16px",
+        marginTop: 8,
+        textAlign: "center",
+      }}
+    >
+      <div style={{ fontSize: 20, marginBottom: 6 }}>🚀</div>
+      <div style={{ fontSize: 13, fontWeight: 800, color: "#2d1b69", marginBottom: 4 }}>
+        רוצה לראות הדגמה מלאה?
+      </div>
+      <div style={{ fontSize: 12, color: "#7c5cbf", marginBottom: 12, lineHeight: 1.6 }}>
+        נשמח להציג לך בשיחה קצרה של 15 דקות בדיוק איך זה עובד לעסק שלך
+      </div>
+      <button
+        onClick={onOpenCTA}
+        style={{
+          background: "linear-gradient(135deg, #5a3fa8, #7c5cbf)",
+          color: "white",
+          border: "none",
+          borderRadius: 10,
+          padding: "10px 22px",
+          fontSize: 13,
+          fontWeight: 800,
+          cursor: "pointer",
+          fontFamily: "'Heebo', sans-serif",
+          boxShadow: "0 4px 14px rgba(90,63,168,0.3)",
+          width: "100%",
+        }}
+      >
+        קבע שיחת הדגמה חינם 📅
+      </button>
+    </motion.div>
+  );
+}
+
 export default function DemoChat({ siteData, isScanning, onOpenCTA }) {
   const [msgs, setMsgs] = useState([]);
   const [typing, setTyping] = useState(false);
-  const [step, setStep] = useState(0);
+  const [quickReplies, setQuickReplies] = useState([]);
+  const [showCTA, setShowCTA] = useState(false);
   const [userInput, setUserInput] = useState("");
   const [initialized, setInitialized] = useState(false);
+  const [inputDisabled, setInputDisabled] = useState(false);
   const chatRef = useRef(null);
-  const bottomRef = useRef(null);
+  const msgCountRef = useRef(0);
 
-  // Scroll only inside the chat box — never scroll the page
   useEffect(() => {
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
-  }, [msgs, typing]);
+  }, [msgs, typing, showCTA]);
 
-  // When siteData arrives (after scan), start the conversation
   useEffect(() => {
     if (siteData && !initialized) {
       setInitialized(true);
       setMsgs([]);
-      setStep(0);
+      setQuickReplies([]);
+      setShowCTA(false);
+      setInputDisabled(false);
+      msgCountRef.current = 0;
       runOpening(siteData);
     }
-    // Reset if siteData cleared
     if (!siteData) {
       setInitialized(false);
       setMsgs([]);
-      setStep(0);
+      setQuickReplies([]);
+      setShowCTA(false);
+      setInputDisabled(false);
+      msgCountRef.current = 0;
     }
   }, [siteData]);
 
-  const delay = (ms) => new Promise(r => setTimeout(r, ms));
+  const wait = (ms) => new Promise(r => setTimeout(r, ms));
 
   const addBot = async (text, waitMs = 900) => {
     setTyping(true);
-    await delay(waitMs);
+    setQuickReplies([]);
+    await wait(waitMs);
     setTyping(false);
     setMsgs(prev => [...prev, { type: "bot", text }]);
   };
 
-  const addUser = (text) => setMsgs(prev => [...prev, { type: "user", text }]);
-
-  const runOpening = async (data) => {
-    await addBot(data.opening_message || `היי! 👋 ברוכים הבאים ל${data.business_type || "העסק"}! כיצד אפשר לעזור?`, 900);
-    setStep(1);
+  const addUser = (text) => {
+    setMsgs(prev => [...prev, { type: "user", text }]);
   };
 
-  const handleQuickReply = async (replyText, nextStep) => {
-    addUser(replyText);
-    setStep(0);
-    if (nextStep === "interested") {
-      const followUp = siteData?.follow_up_message;
-      if (followUp) {
-        await addBot(followUp, 1100);
+  const runOpening = async (data) => {
+    const greeting = data.opening_message || `היי! 👋 ברוכים הבאים ל${data.business_name || data.business_type}! במה אפשר לעזור?`;
+    await addBot(greeting, 800);
+    setQuickReplies([
+      { text: data.quick_reply_1 || "אשמח לשמוע עוד 🙋", action: "qr1" },
+      { text: data.quick_reply_2 || "מחירים ושירותים 💸", action: "qr2" },
+    ]);
+  };
+
+  const handleSend = useCallback(async () => {
+    const text = userInput.trim();
+    if (!text || typing || inputDisabled) return;
+    setUserInput("");
+    addUser(text);
+    msgCountRef.current += 1;
+    await handleUserMessage(text);
+  }, [userInput, typing, inputDisabled, siteData]);
+
+  const handleQuickReply = async (reply) => {
+    setQuickReplies([]);
+    addUser(reply.text);
+    msgCountRef.current += 1;
+    await handleUserMessage(reply.text, reply.action);
+  };
+
+  const handleUserMessage = async (text, action) => {
+    // After 4 exchanges → show CTA
+    if (msgCountRef.current >= 4) {
+      await addBot("נשמע שיש לך שאלות מעמיקות יותר 😊\nלהדגמה מלאה ומותאמת לעסק שלך — הכי טוב לדבר עם נציג שלנו.", 1000);
+      setShowCTA(true);
+      setInputDisabled(true);
+      return;
+    }
+
+    // Use LLM to generate a smart reply based on siteData context
+    try {
+      const res = await base44.integrations.Core.InvokeLLM({
+        prompt: `אתה בוט WhatsApp חכם של העסק הבא:
+שם: ${siteData?.business_name || siteData?.business_type}
+סוג עסק: ${siteData?.business_type}
+מידע על העסק: ${siteData?.info_message || ""}
+
+ענה על ההודעה הבאה של לקוח בצורה טבעית, ידידותית ומקצועית בעברית.
+ההודעה: "${text}"
+
+כללים:
+- ענה רק לגבי העסק הספציפי הזה ושירותיו
+- אל תמציא מחירים שלא ידועים לך
+- אם שואלים על הדגמה/מחיר/פגישה — אמור שנציג יחזור אליהם עם הפרטים
+- 1-2 משפטים בלבד
+- כלול אימוג'י רלוונטי אחד בסוף
+`,
+      });
+
+      const botReply = typeof res === "string" ? res : res?.text || res?.content || "תודה! נציג שלנו יחזור אליך בהקדם 😊";
+
+      await addBot(botReply, 900 + Math.random() * 400);
+
+      // After 2nd user message, offer CTA options
+      if (msgCountRef.current === 2) {
+        setQuickReplies([
+          { text: "קבע הדגמה חינם 🚀", action: "demo" },
+          { text: "עוד שאלה", action: "more" },
+        ]);
+      } else if (msgCountRef.current >= 3) {
+        setQuickReplies([
+          { text: "קבע הדגמה חינם 🚀", action: "demo" },
+        ]);
       }
-      await addBot("השאר פרטים ונציג שלנו יחזור אליך בהקדם 📞", 1200);
-      setStep(2);
-    } else if (nextStep === "info") {
-      const info = siteData?.info_message;
-      if (info) {
-        await addBot(info, 1100);
+
+      // If it's the demo action
+      if (action === "demo") {
+        await addBot("מעולה! 🎉 אשמח לחבר אותך עם נציג שלנו להדגמה מותאמת אישית.", 800);
+        setShowCTA(true);
+        setInputDisabled(true);
+        return;
       }
-      await addBot("רוצה לקבל פרטים נוספים או לתאם שיחה? 😊", 1200);
-      setStep(2);
-    } else if (nextStep === "book") {
-      await addBot("מעולה! 🚀 אעביר אותך לקביעת הפגישה:", 800);
-      setStep(3);
-      setTimeout(() => onOpenCTA?.(), 800);
-    } else if (nextStep === "phone") {
-      const closing = siteData?.closing_message;
-      if (closing) {
-        await addBot(closing, 1000);
-      } else {
-        await addBot("תודה! נחזור אליך בהקדם. 💡", 1000);
+
+    } catch {
+      // Fallback if LLM fails
+      const fallbacks = [
+        "תודה על השאלה! נציג שלנו יוכל לתת לך מידע מדויק יותר 😊",
+        `שאלה מעולה! ב${siteData?.business_name || "העסק"} נשמח לענות על כל שאלה בשיחה אישית 📞`,
+        "בטח! אשמח לתאם שיחה עם נציג שיסביר לך הכל בפרטים 🙌",
+      ];
+      await addBot(fallbacks[msgCountRef.current % fallbacks.length], 1000);
+      if (msgCountRef.current >= 2) {
+        setQuickReplies([{ text: "קבע הדגמה חינם 🚀", action: "demo" }]);
       }
-      setStep(3);
     }
   };
 
   const isIdle = !siteData && !isScanning;
-  const statusText = isScanning ? "סורק את האתר שלך..." : siteData ? "מחובר · מותאם אישית" : "ממתין לכתובת אתר...";
 
   return (
     <div style={{ background: "white", borderRadius: 20, border: "1px solid #ede8ff", overflow: "hidden", boxShadow: "0 8px 32px rgba(90,63,168,0.1)" }}>
@@ -146,10 +265,12 @@ export default function DemoChat({ siteData, isScanning, onOpenCTA }) {
           <div style={{ position: "absolute", bottom: 1, right: 1, width: 10, height: 10, borderRadius: "50%", background: isScanning ? "#ffd166" : siteData ? "#4dff91" : "#bbb", border: "2px solid white" }} />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: "white", letterSpacing: "0.01em" }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "white" }}>
             {siteData?.business_name || siteData?.business_type || "WhatsApp Bot"}
           </div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", marginTop: 1 }}>{statusText}</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", marginTop: 1 }}>
+            {isScanning ? "סורק את האתר שלך..." : siteData ? "מחובר · מותאם אישית" : "ממתין לכתובת אתר..."}
+          </div>
         </div>
         <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.1)", borderRadius: 20, padding: "4px 10px" }}>
           <MessageCircle style={{ width: 10, height: 10 }} /> הדגמה חיה
@@ -157,14 +278,14 @@ export default function DemoChat({ siteData, isScanning, onOpenCTA }) {
       </div>
 
       {/* Chat area */}
-      <div ref={chatRef} style={{ minHeight: 180, maxHeight: 300, overflowY: "auto", padding: "14px 14px", background: "#f8f6ff", display: "flex", flexDirection: "column" }}>
+      <div ref={chatRef} style={{ minHeight: 200, maxHeight: 340, overflowY: "auto", padding: "14px", background: "#f8f6ff", display: "flex", flexDirection: "column" }}>
 
         {isIdle && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             style={{ textAlign: "center", padding: "34px 16px", margin: "auto 0" }}>
             <div style={{ width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg, #ede8ff, #ddd5f5)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", fontSize: 26 }}>💬</div>
             <p style={{ fontSize: 14, fontWeight: 800, color: "#3d2e6b", marginBottom: 5 }}>הכנס כתובת אתר למעלה</p>
-            <p style={{ fontSize: 12, color: "#9b7fd4", lineHeight: 1.6 }}>הבוט יסרוק את העסק שלך ויתאים<br/>את עצמו אוטומטית</p>
+            <p style={{ fontSize: 12, color: "#9b7fd4", lineHeight: 1.6 }}>הבוט יסרוק את העסק שלך ויתאים<br />את עצמו אוטומטית</p>
           </motion.div>
         )}
 
@@ -172,8 +293,7 @@ export default function DemoChat({ siteData, isScanning, onOpenCTA }) {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             style={{ textAlign: "center", padding: "34px 16px", margin: "auto 0" }}>
             <div style={{ width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg, #ede8ff, #ddd5f5)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
-              <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
-                style={{ fontSize: 26 }}>🔍</motion.div>
+              <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }} style={{ fontSize: 26 }}>🔍</motion.div>
             </div>
             <p style={{ fontSize: 14, fontWeight: 800, color: "#3d2e6b", marginBottom: 5 }}>בונה בוט מותאם לעסק שלך...</p>
             <p style={{ fontSize: 12, color: "#9b7fd4" }}>זה לוקח כמה שניות</p>
@@ -186,40 +306,42 @@ export default function DemoChat({ siteData, isScanning, onOpenCTA }) {
 
         {typing && <TypingBubble />}
 
-        {!typing && step === 1 && (
-          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-            style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
-            {siteData?.quick_reply_1 && (
-              <QuickReply text={siteData.quick_reply_1} onClick={() => handleQuickReply(siteData.quick_reply_1, "interested")} />
-            )}
-            {siteData?.quick_reply_2 && (
-              <QuickReply text={siteData.quick_reply_2} onClick={() => handleQuickReply(siteData.quick_reply_2, "info")} />
-            )}
-            {!siteData?.quick_reply_1 && <QuickReply text="אשמח לשמוע עוד 🙋" onClick={() => handleQuickReply("אשמח לשמוע עוד 🙋", "interested")} />}
-            {!siteData?.quick_reply_2 && <QuickReply text="פרטים נוספים" onClick={() => handleQuickReply("פרטים נוספים", "info")} />}
-          </motion.div>
+        {!typing && quickReplies.length > 0 && (
+          <AnimatePresence>
+            <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+              style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
+              {quickReplies.map((qr) => (
+                <QuickReply
+                  key={qr.text}
+                  text={qr.text}
+                  onClick={() => handleQuickReply(qr)}
+                />
+              ))}
+            </motion.div>
+          </AnimatePresence>
         )}
-        {!typing && step === 2 && (
-          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-            style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
-            <QuickReply text="כן, קבע הדגמה! 🚀" onClick={() => handleQuickReply("כן, קבע הדגמה! 🚀", "book")} />
-            <QuickReply text="השאר פרטים" onClick={() => handleQuickReply("השאר פרטים להתקשרות", "phone")} />
-          </motion.div>
-        )}
+
+        {showCTA && <CTACard onOpenCTA={onOpenCTA} />}
 
         <div />
       </div>
 
-      {/* Input bar — only shown when conversation is active */}
-      {siteData && step !== 3 && (
+      {/* Input bar */}
+      {siteData && !inputDisabled && (
         <div style={{ padding: "10px 14px", borderTop: "1px solid #ede8ff", display: "flex", gap: 8, background: "white", alignItems: "center" }}>
-          <input type="text" placeholder="כתוב הודעה..." value={userInput}
+          <input
+            type="text"
+            placeholder="כתוב הודעה..."
+            value={userInput}
             onChange={e => setUserInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleSend()}
             style={{ flex: 1, border: "1.5px solid #ede8ff", borderRadius: 24, padding: "9px 16px", fontSize: 13, color: "#2d1b69", background: "#f8f6ff", outline: "none", fontFamily: "'Heebo', sans-serif" }}
             onFocus={e => e.target.style.borderColor = "#7c5cbf"}
             onBlur={e => e.target.style.borderColor = "#ede8ff"}
           />
-          <button style={{ background: "linear-gradient(135deg, #5a3fa8, #7c5cbf)", color: "white", border: "none", borderRadius: "50%", width: 38, height: 38, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 2px 8px rgba(90,63,168,0.35)" }}>
+          <button
+            onClick={handleSend}
+            style={{ background: "linear-gradient(135deg, #5a3fa8, #7c5cbf)", color: "white", border: "none", borderRadius: "50%", width: 38, height: 38, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 2px 8px rgba(90,63,168,0.35)" }}>
             <Send style={{ width: 14, height: 14 }} />
           </button>
         </div>
