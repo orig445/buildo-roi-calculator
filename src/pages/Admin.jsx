@@ -28,7 +28,7 @@ export default function Admin() {
       {/* Header */}
       <div style={{ background: "var(--forest)", borderBottom: "1px solid var(--gold)", padding: "18px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <img src="https://media.base44.com/images/public/user_683dc40f7f28b76cbf2cfd30/67ecd3deb_1.png" alt="Bildo" style={{ height: 36, filter: "brightness(1.3)" }} />
+          <img src="https://media.base44.com/images/public/6a02f33e91d5cbd1f45f106b/b6a902f52_Gemini_Generated_Image_b0y91hb0y91hb0y9.png" alt="Bildo" style={{ height: 40, filter: "brightness(1.3) invert(1)" }} />
           <div>
             <div className="font-label" style={{ fontSize: 8, color: "var(--gold-light)", letterSpacing: "0.18em" }}>ADMIN PANEL</div>
             <div className="font-display" style={{ fontSize: 18, color: "var(--gold-light)", fontWeight: 700 }}>ניהול לידים</div>
