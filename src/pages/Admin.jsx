@@ -80,7 +80,7 @@ export default function Admin() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "var(--cream-dark)", borderBottom: "1px solid var(--gold-border)" }}>
-                  {["שם", "טלפון", "אימייל", "חברה", "הפסד חודשי", "פוטנציאל", "הודעות/חודש", "הצטרף"].map((h) => (
+                  {["שם", "טלפון", "אימייל", "חברה", "מקור", "הפסד חודשי", "פוטנציאל", "הודעות/חודש", "הצטרף"].map((h) => (
                     <th key={h} className="font-label" style={{ fontSize: 8, letterSpacing: "0.12em", color: "var(--ink-light)", padding: "12px 16px", textAlign: "right", fontWeight: 600 }}>{h}</th>
                   ))}
                 </tr>
@@ -118,6 +118,19 @@ export default function Admin() {
                           <Building2 style={{ width: 12, height: 12, color: "var(--ink-light)" }} />{lead.company}
                         </span>
                       ) : <span style={{ color: "var(--ink-light)", fontSize: 12 }}>—</span>}
+                    </td>
+                    <td style={{ padding: "13px 16px" }}>
+                      {lead.source ? (
+                        <span style={{
+                          display: "inline-flex", alignItems: "center", gap: 4,
+                          fontSize: 10, fontWeight: 700, padding: "3px 9px", borderRadius: 20,
+                          background: lead.source === "v2" ? "rgba(90,63,168,0.1)" : "rgba(26,51,37,0.1)",
+                          color: lead.source === "v2" ? "#5a3fa8" : "#1a3325",
+                          border: `1px solid ${lead.source === "v2" ? "rgba(90,63,168,0.25)" : "rgba(26,51,37,0.2)"}`,
+                        }}>
+                          {lead.source === "v2" ? "🟣 /v2" : "🟢 דף הבית"}
+                        </span>
+                      ) : <span style={{ color: "var(--ink-light)", fontSize: 11 }}>—</span>}
                     </td>
                     <td style={{ padding: "13px 16px", color: "var(--rust)", fontWeight: 700, fontSize: 13 }}>
                       {lead.calculated_loss ? fmt(lead.calculated_loss) : "—"}

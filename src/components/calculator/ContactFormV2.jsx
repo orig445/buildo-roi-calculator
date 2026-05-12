@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { X, Clock, CheckCircle, CalendarCheck } from "lucide-react";
 
-export default function ContactFormV2({ isOpen, onClose, calculatorData }) {
+export default function ContactFormV2({ isOpen, onClose, calculatorData, source = "home" }) {
   const buildSlots = () => {
     const slots = [];
     const now = new Date();
@@ -38,6 +38,7 @@ export default function ContactFormV2({ isOpen, onClose, calculatorData }) {
         calculated_loss: calculatorData.monthlyLoss,
         calculated_gain: calculatorData.potentialGain,
         notes: form.db_size ? `מאגר לקוחות: ${form.db_size}` : undefined,
+        source,
       }),
       base44.functions.invoke("createCalendarEvent", {
         name: form.name,

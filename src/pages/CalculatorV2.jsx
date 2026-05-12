@@ -340,6 +340,7 @@ export default function CalculatorV2() {
         isOpen={showForm}
         onClose={() => setShowForm(false)}
         calculatorData={{ messages, customers, dealValue, monthlyLoss: r.monthMissed, potentialGain: r.monthGain }}
+        source="v2"
       />
 
       <style>{`
