@@ -35,6 +35,13 @@ export default function CalculatorV2() {
   const [siteData, setSiteData] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
   const chatSectionRef = useRef(null);
+  const analyzerRef = useRef(null);
+
+  const scrollToAnalyzer = useCallback(() => {
+    if (analyzerRef.current) {
+      analyzerRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, []);
 
   const scrollToChat = useCallback(() => {
     if (chatSectionRef.current) {
@@ -109,7 +116,7 @@ export default function CalculatorV2() {
               כשלקוח שולח הודעה ולא מקבל מענה מהיר — הוא הולך למתחרה.{" "}
               <strong style={{ color: "white" }}>בוא נראה בדיוק כמה זה שווה לך.</strong>
             </p>
-            <button onClick={handleCTA} className="cta-btn cta-btn-white" style={{ padding: "13px 32px", fontSize: 15 }}>
+            <button onClick={scrollToAnalyzer} className="cta-btn cta-btn-white" style={{ padding: "13px 32px", fontSize: 15 }}>
               חשב את הפוטנציאל שלי 🚀
             </button>
           </motion.div>
@@ -121,7 +128,7 @@ export default function CalculatorV2() {
 
         {/* ANALYZER */}
         <FadeIn delay={0}>
-          <div className="soft-card" style={{ padding: "20px 22px", marginBottom: 20 }}>
+          <div ref={analyzerRef} className="soft-card" style={{ padding: "20px 22px", marginBottom: 20 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
               <Sparkles style={{ width: 16, height: 16, color: "#7c5cbf" }} />
               <span style={{ fontSize: 13, fontWeight: 700, color: "#7c5cbf" }}>מלא אוטומטית לפי האתר שלך</span>
