@@ -60,10 +60,14 @@ export default function DemoChat({ siteData, isScanning, onOpenCTA }) {
   const [step, setStep] = useState(0);
   const [userInput, setUserInput] = useState("");
   const [initialized, setInitialized] = useState(false);
+  const chatRef = useRef(null);
   const bottomRef = useRef(null);
 
+  // Scroll only inside the chat box — never scroll the page
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
   }, [msgs, typing]);
 
   // When siteData arrives (after scan), start the conversation
@@ -125,38 +129,41 @@ export default function DemoChat({ siteData, isScanning, onOpenCTA }) {
   return (
     <div style={{ background: "white", borderRadius: 20, border: "1px solid #ede8ff", overflow: "hidden", boxShadow: "0 8px 32px rgba(90,63,168,0.1)" }}>
       {/* Header */}
-      <div style={{ background: "linear-gradient(135deg, #5a3fa8, #7c5cbf)", padding: "14px 18px", display: "flex", alignItems: "center", gap: 12 }}>
-        <img src={BILDO_AVATAR} alt="בילדו" style={{ width: 40, height: 40, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", objectFit: "cover", flexShrink: 0 }} />
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 800, color: "white" }}>בילדו · WhatsApp Bot</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "rgba(255,255,255,0.75)" }}>
-            <div style={{ width: 7, height: 7, borderRadius: "50%", background: isScanning ? "#ffd166" : siteData ? "#4dff91" : "#aaa" }} />
-            {statusText}
-          </div>
+      <div style={{ background: "linear-gradient(135deg, #4a3292, #7c5cbf)", padding: "14px 18px", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 2px 12px rgba(74,50,146,0.25)" }}>
+        <div style={{ position: "relative", flexShrink: 0 }}>
+          <img src={BILDO_AVATAR} alt="בילדו" style={{ width: 42, height: 42, borderRadius: "50%", border: "2.5px solid rgba(255,255,255,0.4)", objectFit: "cover" }} />
+          <div style={{ position: "absolute", bottom: 1, right: 1, width: 10, height: 10, borderRadius: "50%", background: isScanning ? "#ffd166" : siteData ? "#4dff91" : "#bbb", border: "2px solid white" }} />
         </div>
-        <div style={{ marginRight: "auto", fontSize: 10, color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", gap: 4 }}>
-          <MessageCircle style={{ width: 11, height: 11 }} /> הדגמה חיה
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "white", letterSpacing: "0.01em" }}>בילדו · WhatsApp Bot</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", marginTop: 1 }}>{statusText}</div>
+        </div>
+        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.1)", borderRadius: 20, padding: "4px 10px" }}>
+          <MessageCircle style={{ width: 10, height: 10 }} /> הדגמה חיה
         </div>
       </div>
 
       {/* Chat area */}
-      <div style={{ minHeight: 180, maxHeight: 300, overflowY: "auto", padding: "14px 14px", background: "#f8f6ff", display: "flex", flexDirection: "column" }}>
+      <div ref={chatRef} style={{ minHeight: 180, maxHeight: 300, overflowY: "auto", padding: "14px 14px", background: "#f8f6ff", display: "flex", flexDirection: "column" }}>
 
         {isIdle && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            style={{ textAlign: "center", padding: "30px 10px", color: "#9b7fd4" }}>
-            <div style={{ fontSize: 28, marginBottom: 8 }}>💬</div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: "#5a3fa8", marginBottom: 4 }}>הכנס כתובת אתר למעלה</p>
-            <p style={{ fontSize: 12, color: "#9b7fd4" }}>הבוט יתאים את עצמו לעסק שלך אוטומטית</p>
+            style={{ textAlign: "center", padding: "34px 16px", margin: "auto 0" }}>
+            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg, #ede8ff, #ddd5f5)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", fontSize: 26 }}>💬</div>
+            <p style={{ fontSize: 14, fontWeight: 800, color: "#3d2e6b", marginBottom: 5 }}>הכנס כתובת אתר למעלה</p>
+            <p style={{ fontSize: 12, color: "#9b7fd4", lineHeight: 1.6 }}>הבוט יסרוק את העסק שלך ויתאים<br/>את עצמו אוטומטית</p>
           </motion.div>
         )}
 
         {isScanning && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            style={{ textAlign: "center", padding: "28px 10px", color: "#8b7ab8" }}>
-            <div style={{ fontSize: 26, marginBottom: 10 }}>🔍</div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: "#5a3fa8" }}>בונה בוט מותאם לעסק שלך...</p>
-            <p style={{ fontSize: 11, marginTop: 4, color: "#9b7fd4" }}>זה לוקח כמה שניות</p>
+            style={{ textAlign: "center", padding: "34px 16px", margin: "auto 0" }}>
+            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg, #ede8ff, #ddd5f5)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
+              <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+                style={{ fontSize: 26 }}>🔍</motion.div>
+            </div>
+            <p style={{ fontSize: 14, fontWeight: 800, color: "#3d2e6b", marginBottom: 5 }}>בונה בוט מותאם לעסק שלך...</p>
+            <p style={{ fontSize: 12, color: "#9b7fd4" }}>זה לוקח כמה שניות</p>
           </motion.div>
         )}
 
@@ -181,16 +188,19 @@ export default function DemoChat({ siteData, isScanning, onOpenCTA }) {
           </motion.div>
         )}
 
-        <div ref={bottomRef} />
+        <div />
       </div>
 
       {/* Input bar — only shown when conversation is active */}
       {siteData && step !== 3 && (
-        <div style={{ padding: "10px 12px", borderTop: "1px solid #ede8ff", display: "flex", gap: 8, background: "white" }}>
+        <div style={{ padding: "10px 14px", borderTop: "1px solid #ede8ff", display: "flex", gap: 8, background: "white", alignItems: "center" }}>
           <input type="text" placeholder="כתוב הודעה..." value={userInput}
             onChange={e => setUserInput(e.target.value)}
-            style={{ flex: 1, border: "1.5px solid #ede8ff", borderRadius: 20, padding: "8px 14px", fontSize: 12, color: "#2d1b69", background: "#f8f6ff", outline: "none", fontFamily: "'Heebo', sans-serif" }} />
-          <button style={{ background: "#5a3fa8", color: "white", border: "none", borderRadius: "50%", width: 34, height: 34, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            style={{ flex: 1, border: "1.5px solid #ede8ff", borderRadius: 24, padding: "9px 16px", fontSize: 13, color: "#2d1b69", background: "#f8f6ff", outline: "none", fontFamily: "'Heebo', sans-serif" }}
+            onFocus={e => e.target.style.borderColor = "#7c5cbf"}
+            onBlur={e => e.target.style.borderColor = "#ede8ff"}
+          />
+          <button style={{ background: "linear-gradient(135deg, #5a3fa8, #7c5cbf)", color: "white", border: "none", borderRadius: "50%", width: 38, height: 38, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 2px 8px rgba(90,63,168,0.35)" }}>
             <Send style={{ width: 14, height: 14 }} />
           </button>
         </div>

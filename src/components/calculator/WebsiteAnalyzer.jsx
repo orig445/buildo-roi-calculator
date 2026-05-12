@@ -39,9 +39,6 @@ export default function WebsiteAnalyzer({ onAnalyzed, onSiteData, onScanningChan
         particleCount: 80, spread: 60, origin: { y: 0.5 },
         colors: ["#7c5cbf", "#b09de0", "#ffd166", "#ffffff"], scalar: 0.9,
       });
-      // prevent page from jumping after state update
-      const savedPos = window.scrollY;
-      requestAnimationFrame(() => window.scrollTo({ top: savedPos, behavior: "instant" }));
     } catch {
       setError("לא הצלחנו לנתח את האתר. נסה להזין כתובת מלאה כגון: example.co.il");
     } finally {
@@ -115,13 +112,15 @@ export default function WebsiteAnalyzer({ onAnalyzed, onSiteData, onScanningChan
             exit={{ opacity: 0, height: 0 }}
             style={{ overflow: "hidden", marginTop: 12 }}
           >
-            <div style={{ background: "#f3f0ff", border: "1px solid #ddd5f5", borderRadius: 12, padding: "12px 14px", display: "flex", gap: 10 }}>
-              <Sparkles style={{ width: 16, height: 16, color: "#7c5cbf", marginTop: 2, flexShrink: 0 }} />
+            <div style={{ background: "linear-gradient(135deg, #f3f0ff, #ede8ff)", border: "1.5px solid #c9bcf5", borderRadius: 14, padding: "14px 16px", display: "flex", gap: 12, alignItems: "flex-start" }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: "#5a3fa8", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Sparkles style={{ width: 16, height: 16, color: "white" }} />
+              </div>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: "#2d1b69", marginBottom: 3 }}>
-                  ✓ זיהינו: {insight.business_type} — הסליידרים עודכנו אוטומטית
+                <p style={{ fontSize: 13, fontWeight: 800, color: "#2d1b69", marginBottom: 4 }}>
+                  ✓ זיהינו: <span style={{ color: "#5a3fa8" }}>{insight.business_type}</span> — הסליידרים עודכנו אוטומטית
                 </p>
-                <p style={{ fontSize: 12, color: "#7c5cbf", lineHeight: 1.6 }}>{insight.insight}</p>
+                <p style={{ fontSize: 12, color: "#5a3fa8", lineHeight: 1.65 }}>{insight.insight}</p>
               </div>
             </div>
           </motion.div>
