@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import ContactForm from "@/components/calculator/ContactForm";
 import TrustBar from "@/components/calculator/TrustBar";
+import WebsiteAnalyzer from "@/components/calculator/WebsiteAnalyzer";
 
 function SliderRow({ label, value, min, max, step, onChange, formatDisplay }) {
   const pct = ((value - min) / (max - min)) * 100;
@@ -94,12 +95,20 @@ export default function Calculator() {
 
         <div className="px-8 py-6">
           {/* Title */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <h1 className="text-2xl font-black text-gray-900 mb-1">
               כמה כסף אתה מפסיד כל חודש?
             </h1>
-            <p className="text-sm text-gray-500">הזז את הסליידרים וגלה את המספרים האמיתיים</p>
+            <p className="text-sm text-gray-500">הכנס את האתר שלך ונמלא הכל אוטומטית</p>
           </div>
+
+          <WebsiteAnalyzer
+            onAnalyzed={({ messages, customers, dealValue }) => {
+              setMessages(messages);
+              setCustomers(customers);
+              setDealValue(dealValue);
+            }}
+          />
 
           {/* Grid: Sliders + Results */}
           <div className="grid md:grid-cols-2 gap-8">
