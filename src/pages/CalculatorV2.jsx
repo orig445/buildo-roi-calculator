@@ -4,6 +4,8 @@ import { ChevronLeft, Sparkles, Users, MessageCircle, Zap } from "lucide-react";
 import ContactFormV2 from "@/components/calculator/ContactFormV2";
 import TrustBar from "@/components/calculator/TrustBar";
 import WebsiteAnalyzer from "@/components/calculator/WebsiteAnalyzer";
+import DemoChat from "@/components/calculator/DemoChat";
+import Testimonials from "@/components/calculator/Testimonials";
 
 const fmt = (n) => `₪${Math.round(n).toLocaleString("he-IL")}`;
 
@@ -283,6 +285,23 @@ export default function CalculatorV2() {
               ))}
             </div>
           </div>
+        </FadeIn>
+
+        {/* DEMO CHAT */}
+        <FadeIn delay={0.05}>
+          <div style={{ marginTop: 36 }}>
+            <div style={{ textAlign: "center", marginBottom: 16 }}>
+              <div style={{ fontSize: 11, color: "#7c5cbf", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>✦ הדגמה חיה</div>
+              <h3 style={{ fontSize: 20, fontWeight: 900, color: "#2d1b69", marginBottom: 6 }}>תראה איך הבוט מדבר עם הלקוחות שלך</h3>
+              <p style={{ fontSize: 13, color: "#8b7ab8", margin: 0 }}>הכנס את כתובת האתר שלך — הבוט יסרוק ויתאים את עצמו לעסק שלך בזמן אמת</p>
+            </div>
+            <DemoChat onOpenCTA={handleCTA} />
+          </div>
+        </FadeIn>
+
+        {/* TESTIMONIALS */}
+        <FadeIn delay={0.05}>
+          <Testimonials />
         </FadeIn>
 
         {/* TRUST */}
