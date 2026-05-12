@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, ChevronLeft } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ContactForm from "@/components/calculator/ContactForm";
 import TrustBar from "@/components/calculator/TrustBar";
@@ -9,48 +9,58 @@ import WebsiteAnalyzer from "@/components/calculator/WebsiteAnalyzer";
 function SliderRow({ label, value, min, max, step, onChange, formatDisplay }) {
   const pct = ((value - min) / (max - min)) * 100;
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       <div className="flex justify-between items-baseline">
-        <span className="text-xs text-[#888] font-mono uppercase tracking-widest">{label}</span>
-        <span className="text-sm font-mono font-bold text-[#ccc]">{formatDisplay(value)}</span>
+        <span className="text-sm text-gray-600 font-medium">{label}</span>
+        <span className="text-base font-bold text-gray-900">{formatDisplay(value)}</span>
       </div>
       <input
         type="range"
         min={min} max={max} step={step} value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full h-1 appearance-none cursor-pointer"
+        className="w-full h-2 appearance-none cursor-pointer rounded-full"
         style={{
-          background: `linear-gradient(to left, #aaa ${pct}%, #333 ${pct}%)`,
+          background: `linear-gradient(to left, #22c55e ${pct}%, #e5e7eb ${pct}%)`,
           WebkitAppearance: 'none',
         }}
       />
       <style>{`
         input[type=range]::-webkit-slider-thumb {
           -webkit-appearance: none;
-          width: 14px; height: 14px;
-          border-radius: 0;
-          background: #ccc;
+          width: 18px; height: 18px;
+          border-radius: 50%;
+          background: #16a34a;
           cursor: pointer;
-          border: 1px solid #666;
+          border: 3px solid #fff;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+        input[type=range]::-moz-range-thumb {
+          width: 18px; height: 18px;
+          border-radius: 50%;
+          background: #16a34a;
+          cursor: pointer;
+          border: 3px solid #fff;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.2);
         }
       `}</style>
     </div>
   );
 }
 
-function Stat({ label, value, color = "text-[#ccc]", size = "text-2xl" }) {
+function StatCard({ label, value, color, sub }) {
   return (
-    <div className="text-center">
+    <div className="text-center py-3">
       <motion.div
         key={value}
         initial={{ opacity: 0, y: 4 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
-        className={`${size} font-mono font-bold ${color} tabular-nums`}
+        transition={{ duration: 0.2 }}
+        className={`text-2xl font-bold tabular-nums ${color}`}
       >
         {value}
       </motion.div>
-      <div className="text-xs text-[#666] font-mono mt-0.5 uppercase tracking-wider">{label}</div>
+      <div className="text-xs text-gray-500 mt-0.5">{label}</div>
+      {sub && <div className="text-xs text-gray-400 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -58,17 +68,17 @@ function Stat({ label, value, color = "text-[#ccc]", size = "text-2xl" }) {
 const fmt = (n) => `₪${Math.round(n).toLocaleString('he-IL')}`;
 
 export default function Calculator() {
-  const [messages, setMessages]     = useState(5000);
-  const [customers, setCustomers]   = useState(200);
-  const [dealValue, setDealValue]   = useState(1500);
-  const [showForm, setShowForm]     = useState(false);
+  const [messages, setMessages]   = useState(5000);
+  const [customers, setCustomers] = useState(200);
+  const [dealValue, setDealValue] = useState(1500);
+  const [showForm, setShowForm]   = useState(false);
 
   const r = useMemo(() => {
-    const lostRate   = 0.18;
-    const liftRate   = 0.25;
-    const lostCust   = Math.round(customers * lostRate);
-    const monthLoss  = lostCust * dealValue;
-    const monthGain  = Math.round(customers * liftRate) * dealValue;
+    const lostRate  = 0.18;
+    const liftRate  = 0.25;
+    const lostCust  = Math.round(customers * lostRate);
+    const monthLoss = lostCust * dealValue;
+    const monthGain = Math.round(customers * liftRate) * dealValue;
     return {
       monthLoss, annualLoss: monthLoss * 12,
       monthGain, annualGain: monthGain * 12,
@@ -78,31 +88,52 @@ export default function Calculator() {
   }, [messages, customers, dealValue]);
 
   return (
-    <div className="min-h-screen bg-[#1a1a1a] flex flex-col items-center justify-center p-4" style={{fontFamily: 'monospace'}}>
-      <div className="w-full max-w-3xl bg-[#111] border border-[#333] overflow-hidden">
+    <div className="min-h-screen bg-gray-50 font-sans" dir="rtl">
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#333] bg-[#0d0d0d]">
+      {/* Top Nav */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+        <div className="max-w-5xl mx-auto px-5 py-3 flex items-center justify-between">
+          <img
+            src="https://media.base44.com/images/public/user_683dc40f7f28b76cbf2cfd30/67ecd3deb_1.png"
+            alt="Bildo"
+            className="h-9"
+          />
           <div className="flex items-center gap-3">
-            <img
-              src="https://media.base44.com/images/public/user_683dc40f7f28b76cbf2cfd30/67ecd3deb_1.png"
-              alt="Bildo"
-              className="w-8 h-8"
-            />
-            <span className="font-mono font-bold text-[#ccc] text-base tracking-widest uppercase">BILDO</span>
+            <span className="hidden sm:block text-sm text-gray-500">WhatsApp Business API</span>
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-sm font-bold px-4 py-2 rounded-md transition-colors"
+            >
+              קבל הדגמה <ChevronLeft className="w-4 h-4" />
+            </button>
           </div>
-          <p className="text-xs text-[#555] font-mono uppercase tracking-widest">WhatsApp Business API // ROI CALC v2.1</p>
         </div>
+      </header>
 
-        <div className="px-6 py-6">
-          {/* Title */}
-          <div className="text-center mb-6 border border-[#2a2a2a] bg-[#0d0d0d] py-4 px-4">
-            <h1 className="text-xl font-mono font-bold text-[#ccc] mb-1 uppercase tracking-widest">
-              כמה כסף אתה מפסיד כל חודש?
-            </h1>
-            <p className="text-xs text-[#555] font-mono uppercase tracking-widest">הכנס את האתר שלך ונמלא הכל אוטומטית</p>
+      {/* Hero */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-5xl mx-auto px-5 py-10 text-center">
+          <div className="inline-block bg-green-50 text-green-700 text-xs font-semibold px-3 py-1 rounded-full mb-4 border border-green-200">
+            מחשבון ROI חינמי
           </div>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-3">
+            כמה כסף אתה מפסיד כל חודש<br/>ללא WhatsApp Business API?
+          </h1>
+          <p className="text-gray-500 text-base max-w-xl mx-auto">
+            הזן את פרטי העסק שלך וגלה את הפוטנציאל האמיתי שמחכה לך
+          </p>
+        </div>
+      </div>
 
+      {/* Main Content */}
+      <div className="max-w-5xl mx-auto px-5 py-8">
+
+        {/* Website Analyzer */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <p className="text-sm font-semibold text-gray-700">מלא אוטומטית לפי האתר שלך</p>
+          </div>
           <WebsiteAnalyzer
             onAnalyzed={({ messages, customers, dealValue }) => {
               setMessages(messages);
@@ -110,13 +141,15 @@ export default function Calculator() {
               setDealValue(dealValue);
             }}
           />
+        </div>
 
-          {/* Grid: Sliders + Results */}
-          <div className="grid md:grid-cols-2 gap-8">
+        {/* Grid */}
+        <div className="grid md:grid-cols-5 gap-6">
 
-            {/* Sliders */}
-            <div className="space-y-6 border border-[#2a2a2a] p-4 bg-[#0d0d0d]">
-              <p className="text-xs text-[#555] font-mono uppercase tracking-widest border-b border-[#2a2a2a] pb-2">// הגדר פרמטרים</p>
+          {/* Sliders — 3 cols */}
+          <div className="md:col-span-3 bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            <h2 className="text-base font-bold text-gray-800 mb-5 pb-3 border-b border-gray-100">הגדר את פרמטרי העסק</h2>
+            <div className="space-y-6">
               <SliderRow
                 label="הודעות וואטסאפ בחודש"
                 value={messages} min={100} max={100000} step={100}
@@ -135,85 +168,93 @@ export default function Calculator() {
                 onChange={setDealValue}
                 formatDisplay={(v) => `₪${v.toLocaleString('he-IL')}`}
               />
-
-              {/* Mini note */}
-              <div className="border border-[#2a2a2a] p-3 text-xs font-mono space-y-1.5 bg-[#111]">
-                <div className="flex justify-between">
-                  <span className="text-[#555]">לקוחות שיוצאים ללא מענה:</span>
-                  <span className="text-[#888]">{r.lostCust} / חודש</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#555]">עלות API משוערת:</span>
-                  <span className="text-[#888]">₪{r.msgCost} / חודש</span>
-                </div>
-              </div>
             </div>
 
-            {/* Results */}
-            <div className="space-y-3">
-              {/* Loss */}
-              <div className="border border-[#3a2020] bg-[#0d0d0d] p-4">
-                <div className="flex items-center gap-1.5 mb-4 border-b border-[#2a2020] pb-2">
-                  <p className="text-xs font-mono text-[#aa4444] uppercase tracking-widest">// מה אתה מפסיד היום</p>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="w-3 h-3 text-[#664444] cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-xs text-right bg-[#222] border-[#444] text-[#ccc]">
-                        <p className="text-xs leading-relaxed font-mono">
-                          מחושב לפי 18% מהלקוחות שלך שלא מקבלים מענה מהיר ועוזבים — נתון מבוסס על מחקרי שוק בתחום שירות הלקוחות בוואטסאפ. ההפסד = לקוחות אבודים × ערך עסקה ממוצע.
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <Stat label="חודשי" value={fmt(r.monthLoss)} color="text-[#cc4444]" />
-                  <Stat label="שנתי" value={fmt(r.annualLoss)} color="text-[#aa3333]" />
-                </div>
+            {/* Mini stats */}
+            <div className="mt-5 pt-4 border-t border-gray-100 grid grid-cols-2 gap-3 text-sm text-gray-500">
+              <div className="flex justify-between">
+                <span>לקוחות אבודים:</span>
+                <span className="font-semibold text-gray-700">{r.lostCust} / חודש</span>
               </div>
-
-              {/* Gain */}
-              <div className="border border-[#2a2a3a] bg-[#0d0d0d] p-4">
-                <div className="flex items-center gap-1.5 mb-4 border-b border-[#222233] pb-2">
-                  <p className="text-xs font-mono text-[#7777cc] uppercase tracking-widest">// עם בילדו</p>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="w-3 h-3 text-[#445566] cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-xs text-right bg-[#222] border-[#444] text-[#ccc]">
-                        <p className="text-xs leading-relaxed font-mono">
-                          מחושב לפי שיפור של 25% בסגירת עסקאות בעזרת מענה אוטומטי מיידי, תזכורות חכמות וקמפיינים ממוקדים. הרווח = לקוחות נוספים × ערך עסקה ממוצע.
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <Stat label="רווח חודשי" value={`+${fmt(r.monthGain)}`} color="text-[#8888dd]" />
-                  <Stat label="רווח שנתי" value={`+${fmt(r.annualGain)}`} color="text-[#6666bb]" />
-                </div>
+              <div className="flex justify-between">
+                <span>עלות API:</span>
+                <span className="font-semibold text-gray-700">₪{r.msgCost} / חודש</span>
               </div>
-
-              {/* CTA */}
-              <button
-                onClick={() => setShowForm(true)}
-                className="w-full py-3 text-sm font-mono font-bold text-[#111] bg-[#aaa] hover:bg-[#ccc] transition-colors uppercase tracking-widest border border-[#888]"
-              >
-                קבל הדגמה חינם →
-              </button>
-              <p className="text-center text-xs text-[#444] font-mono uppercase tracking-widest">ללא התחייבות · תגובה תוך 24 שעות</p>
             </div>
           </div>
+
+          {/* Results — 2 cols */}
+          <div className="md:col-span-2 flex flex-col gap-4">
+
+            {/* Loss Card */}
+            <div className="bg-white rounded-xl border border-red-100 shadow-sm p-5 flex-1">
+              <div className="flex items-center gap-1.5 mb-3">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-400"></div>
+                <span className="text-sm font-bold text-gray-700">מה אתה מפסיד היום</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-help mr-auto" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-right">
+                      <p className="text-xs leading-relaxed">
+                        מחושב לפי 18% מהלקוחות שלך שלא מקבלים מענה מהיר ועוזבים — נתון מבוסס על מחקרי שוק. ההפסד = לקוחות אבודים × ערך עסקה ממוצע.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div className="grid grid-cols-2 divide-x divide-x-reverse divide-gray-100">
+                <StatCard label="חודשי" value={fmt(r.monthLoss)} color="text-red-500" />
+                <StatCard label="שנתי" value={fmt(r.annualLoss)} color="text-red-400" />
+              </div>
+            </div>
+
+            {/* Gain Card */}
+            <div className="bg-white rounded-xl border border-green-100 shadow-sm p-5 flex-1">
+              <div className="flex items-center gap-1.5 mb-3">
+                <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                <span className="text-sm font-bold text-gray-700">הפוטנציאל עם בילדו</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-help mr-auto" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-right">
+                      <p className="text-xs leading-relaxed">
+                        מחושב לפי שיפור של 25% בסגירת עסקאות בעזרת מענה אוטומטי מיידי, תזכורות חכמות וקמפיינים ממוקדים.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div className="grid grid-cols-2 divide-x divide-x-reverse divide-gray-100">
+                <StatCard label="רווח חודשי" value={`+${fmt(r.monthGain)}`} color="text-green-600" />
+                <StatCard label="רווח שנתי" value={`+${fmt(r.annualGain)}`} color="text-green-500" />
+              </div>
+            </div>
+
+            {/* CTA */}
+            <button
+              onClick={() => setShowForm(true)}
+              className="w-full py-3.5 rounded-xl text-sm font-bold text-white bg-green-600 hover:bg-green-700 active:bg-green-800 transition-colors shadow-sm flex items-center justify-center gap-2"
+            >
+              קבל הדגמה חינם <ChevronLeft className="w-4 h-4" />
+            </button>
+            <p className="text-center text-xs text-gray-400">ללא התחייבות · תגובה תוך 24 שעות</p>
+          </div>
+
         </div>
+
+        <TrustBar />
       </div>
 
-      <TrustBar />
-
       {/* Footer */}
-      <p className="text-xs text-[#444] font-mono mt-4 uppercase tracking-widest">© 2026 BILDO · META OFFICIAL PARTNER · WhatsApp Business API</p>
+      <footer className="border-t border-gray-200 bg-white mt-6">
+        <div className="max-w-5xl mx-auto px-5 py-4 text-center text-xs text-gray-400">
+          © 2026 בילדו · שותף רשמי Meta · WhatsApp Business API
+        </div>
+      </footer>
 
       <ContactForm
         isOpen={showForm}
