@@ -38,9 +38,9 @@ export default function WebsiteAnalyzer({ onAnalyzed }) {
 
   return (
     <div>
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Globe className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+      <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ position: "relative", flex: 1 }}>
+          <Globe style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", width: 15, height: 15, color: "var(--ink-light)" }} />
           <input
             type="text"
             placeholder="הכנס את כתובת האתר שלך — mybusiness.co.il"
@@ -48,26 +48,32 @@ export default function WebsiteAnalyzer({ onAnalyzed }) {
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
             disabled={loading}
-            className="w-full pr-10 pl-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-green-400 focus:ring-2 focus:ring-green-100 transition-all bg-gray-50 disabled:opacity-60"
+            className="input-v"
+            style={{ paddingRight: 38, opacity: loading ? 0.6 : 1 }}
           />
         </div>
         <button
           onClick={handleAnalyze}
           disabled={loading || !url.trim()}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-bold transition-colors disabled:opacity-50 whitespace-nowrap"
+          className="btn-stamp"
+          style={{ padding: "9px 18px", fontSize: 11, whiteSpace: "nowrap", flexShrink: 0 }}
         >
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Sparkles className="w-4 h-4" />נתח</>}
+          {loading ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> : <><Sparkles style={{ width: 13, height: 13 }} /> נתח</>}
         </button>
       </div>
 
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+
       {loading && (
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-gray-400 mt-2 text-center">
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          style={{ fontSize: 11, color: "var(--ink-light)", marginTop: 8, textAlign: "center", fontFamily: "'Heebo', sans-serif" }}>
           מנתח את האתר שלך... זה לוקח כמה שניות
         </motion.p>
       )}
 
       {error && (
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-red-500 mt-2 text-center">
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          style={{ fontSize: 11, color: "var(--rust)", marginTop: 8, textAlign: "center" }}>
           {error}
         </motion.p>
       )}
@@ -78,15 +84,18 @@ export default function WebsiteAnalyzer({ onAnalyzed }) {
             initial={{ opacity: 0, y: -6, height: 0 }}
             animate={{ opacity: 1, y: 0, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-3 overflow-hidden"
+            style={{ marginTop: 12, overflow: "hidden" }}
           >
-            <div className="rounded-lg bg-green-50 border border-green-200 p-3 flex gap-2.5">
-              <Sparkles className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
+            <div style={{
+              background: "var(--gold-pale)", border: "1px solid var(--gold-border)",
+              borderRadius: 4, padding: "12px 14px", display: "flex", gap: 10, alignItems: "flex-start"
+            }}>
+              <Sparkles style={{ width: 15, height: 15, color: "var(--gold)", marginTop: 1, flexShrink: 0 }} />
               <div>
-                <p className="text-xs font-bold text-green-800 mb-0.5">
+                <p style={{ fontFamily: "'Fraunces', serif", fontSize: 13, fontWeight: 700, color: "var(--ink)", marginBottom: 3 }}>
                   זיהינו: {insight.business_type} ✓ הסליידרים עודכנו אוטומטית
                 </p>
-                <p className="text-xs text-green-700 leading-relaxed">{insight.insight}</p>
+                <p style={{ fontFamily: "'Heebo', sans-serif", fontSize: 12, color: "var(--ink-mid)", lineHeight: 1.6 }}>{insight.insight}</p>
               </div>
             </div>
           </motion.div>
