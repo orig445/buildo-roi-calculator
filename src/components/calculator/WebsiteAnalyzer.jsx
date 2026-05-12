@@ -39,6 +39,9 @@ export default function WebsiteAnalyzer({ onAnalyzed, onSiteData, onScanningChan
         particleCount: 80, spread: 60, origin: { y: 0.5 },
         colors: ["#7c5cbf", "#b09de0", "#ffd166", "#ffffff"], scalar: 0.9,
       });
+      // prevent page from jumping after state update
+      const savedPos = window.scrollY;
+      requestAnimationFrame(() => window.scrollTo({ top: savedPos, behavior: "instant" }));
     } catch {
       setError("לא הצלחנו לנתח את האתר. נסה להזין כתובת מלאה כגון: example.co.il");
     } finally {

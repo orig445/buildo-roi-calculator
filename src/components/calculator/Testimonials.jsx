@@ -3,28 +3,22 @@ import { Star } from "lucide-react";
 
 const testimonials = [
   {
-    name: "רוני כהן",
-    role: "מנכ\"ל, Ice Class",
-    avatar: "https://media.base44.com/images/public/6a02f33e91d5cbd1f45f106b/2e915d792_2026-05-12-125506.png",
+    logo: "https://media.base44.com/images/public/6a02f33e91d5cbd1f45f106b/2e915d792_2026-05-12-125506.png",
     text: "לפני בילדו היינו מאבדים לפחות 40 לקוחות בחודש שפשוט לא קיבלו מענה. היום הבוט עונה תוך שניות — המכירות עלו ב-30% בתוך חודשיים.",
     metric: "+30% מכירות",
     metricColor: "#1a7a44",
     stars: 5,
   },
   {
-    name: "טל לוי",
-    role: "בעלת עסק, A Head Spa",
-    avatar: "https://media.base44.com/images/public/6a02f33e91d5cbd1f45f106b/e4c804092_684ab79268012-11.jpg",
+    logo: "https://media.base44.com/images/public/6a02f33e91d5cbd1f45f106b/e4c804092_684ab79268012-11.jpg",
     text: "ניסיתי כמה פתרונות אחרים אבל כלום לא היה כמו בילדו. ההגדרה לקחה יום וכבר בשבוע הראשון היה לי 12 תורים חדשים שהגיעו מהוואטסאפ.",
     metric: "12 תורים בשבוע הראשון",
     metricColor: "#5a3fa8",
     stars: 5,
   },
   {
-    name: "דני שפיר",
-    role: "מנהל שיווק, TRIPEX",
-    avatar: "https://media.base44.com/images/public/6a02f33e91d5cbd1f45f106b/1a21d260b_1708561485985.png",
-    text: "שלחנו קמפיין ל-3,000 לקוחות ב-20 דקות. 18% אחוז תגובה — זה פי 3 ממייל. ROI חיובי תוך שבוע.",
+    logo: "https://media.base44.com/images/public/6a02f33e91d5cbd1f45f106b/1a21d260b_1708561485985.png",
+    text: "שלחנו קמפיין ל-3,000 לקוחות ב-20 דקות. 18% תגובה — זה פי 3 ממייל. ROI חיובי תוך שבוע.",
     metric: "18% תגובה לקמפיין",
     metricColor: "#c4962a",
     stars: 5,
@@ -69,13 +63,9 @@ export default function Testimonials() {
               <span style={{ fontSize: 13, fontWeight: 900, color: t.metricColor }}>{t.metric}</span>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 10, borderTop: "1px solid #f0ecff", paddingTop: 12 }}>
-              <img src={t.avatar} alt={t.name}
-                style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", border: "2px solid #ede8ff", flexShrink: 0 }} />
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#2d1b69" }}>{t.name}</div>
-                <div style={{ fontSize: 11, color: "#8b7ab8" }}>{t.role}</div>
-              </div>
+            <div style={{ borderTop: "1px solid #f0ecff", paddingTop: 12, display: "flex", justifyContent: "center" }}>
+              <img src={t.logo} alt="לוגו עסק"
+                style={{ maxHeight: 30, maxWidth: 100, objectFit: "contain", opacity: 0.8 }} />
             </div>
           </motion.div>
         ))}

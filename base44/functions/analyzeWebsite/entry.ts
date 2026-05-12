@@ -11,42 +11,69 @@ Deno.serve(async (req) => {
 
     // Fetch the website content
     let websiteContent = '';
+    let fetchedOk = false;
     try {
       const res = await fetch(url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BildoBot/1.0)' },
-        signal: AbortSignal.timeout(8000),
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BildoBot/1.0; +https://bildo.co.il)' },
+        signal: AbortSignal.timeout(10000),
       });
       const html = await res.text();
-      // Strip HTML tags and truncate
-      websiteContent = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 3000);
+      // Strip scripts/styles, then HTML tags, normalize whitespace
+      const cleaned = html
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 4000);
+      websiteContent = cleaned;
+      fetchedOk = cleaned.length > 100;
     } catch {
       websiteContent = `Website URL: ${url}`;
     }
 
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt: `
-You are analyzing a business website to help estimate their WhatsApp communication volume and business metrics, AND to craft a personalized WhatsApp bot demo conversation for this specific business.
+You are an expert WhatsApp business automation consultant analyzing a real business website to produce ACCURATE estimates.
 
 Website URL: ${url}
-Website content snippet: ${websiteContent}
+Website content: ${websiteContent}
+Content fetched successfully: ${fetchedOk}
 
-Based on the website, provide:
-1. business_type: Business type / industry (in Hebrew, 1-3 words)
-2. insight: A specific insight in Hebrew (1-2 sentences) explaining exactly HOW WhatsApp automation can help THIS specific business
-3. monthly_messages, monthly_customers, avg_deal_value: Realistic estimates for this business
-4. opening_message: A WhatsApp greeting message IN HEBREW from a bot for THIS specific business — personalized to the exact services/products on their website. Sound like a real business bot, not generic. 1-2 sentences max.
-5. follow_up_message: A follow-up message IN HEBREW after the customer shows interest — mention a specific service/product from their site, include urgency or value. 1-2 sentences.
-6. closing_message: A closing message IN HEBREW confirming we'll reach out, mentioning something specific about their business. 1 sentence.
+YOUR TASK:
+1. Identify the exact business type, industry, and scale from the content.
+2. Estimate realistic monthly WhatsApp metrics based on industry benchmarks AND website signals (e.g. number of services, pricing shown, location, team size hints).
+3. Write a personalized Hebrew WhatsApp bot opening message that mentions the specific business name and services found on the site.
 
-Examples of quality opening_message (adapt to the actual business):
-- For a spa: "היי! ✨ ברוכים הבאים ל-[שם עסק]. רוצה לקבוע תור לטיפול פנים או מסאז'? אנחנו פנויים גם הערב!"
-- For a car service: "שלום! 🚗 [שם עסק] - תיקון וטיפול רכב. איך אפשר לעזור לך היום? אנחנו עונים מייד!"
-- For a law firm: "שלום, ברוכים הבאים ל[שם עסק]. לייעוץ ראשוני חינמי בענייני [תחום] — השאר פרטים ונחזור אליך תוך שעה."
+ESTIMATION RULES (use these industry benchmarks as a guide):
+- Beauty/Spa/Hair: customers 80–300/month, deal value ₪150–600, messages = customers × 4
+- Medical/Clinic: customers 100–400/month, deal value ₪200–800, messages = customers × 3
+- Fitness/Gym: customers 50–200/month, deal value ₪200–500, messages = customers × 5
+- Restaurant/Food: customers 200–800/month, deal value ₪80–250, messages = customers × 6
+- Legal/Accounting: customers 20–80/month, deal value ₪1500–8000, messages = customers × 3
+- Real Estate: customers 10–50/month, deal value ₪15000–80000, messages = customers × 5
+- E-commerce/Shop: customers 100–1000/month, deal value ₪150–2000, messages = customers × 4
+- B2B/Services: customers 20–100/month, deal value ₪2000–20000, messages = customers × 3
+- Auto/Garage: customers 50–200/month, deal value ₪300–2000, messages = customers × 4
+- Education/Tutoring: customers 30–150/month, deal value ₪400–2000, messages = customers × 5
+- Default small local: customers 50–200/month, deal value ₪300–1500, messages = customers × 4
 
-Be realistic and conservative. For a small local business: messages 500-3000, customers 50-300, deal value 200-2000.
-For medium business: messages 3000-20000, customers 300-2000, deal value 500-5000.
+SCALE MODIFIERS:
+- If website looks very professional / multiple locations / large team → multiply by 2–4
+- If website looks like a solo practitioner / home business → use lower end
+- If pricing is visible, use that directly for deal value
 
-Return ONLY valid JSON, no markdown, no explanation.
+OUTPUT FIELDS:
+- business_type: short label in Hebrew (2–4 words, e.g. "מספרה ועיצוב שיער")
+- insight: 1–2 Hebrew sentences explaining the specific WhatsApp opportunity for THIS business
+- monthly_messages: integer
+- monthly_customers: integer  
+- avg_deal_value: integer (NIS)
+- opening_message: Hebrew WhatsApp greeting from bot — use actual business name/services from site, friendly & specific, 1–2 sentences, include relevant emoji
+- follow_up_message: Hebrew follow-up after customer shows interest — mention a specific service/product/price from site, add urgency, 1–2 sentences
+- closing_message: Hebrew confirmation message — 1 sentence, mention something specific about the business
+
+Return ONLY valid JSON.
 `,
       response_json_schema: {
         type: "object",
