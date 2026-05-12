@@ -1,10 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { HelpCircle, ChevronLeft } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ContactForm from "@/components/calculator/ContactForm";
 import TrustBar from "@/components/calculator/TrustBar";
 import WebsiteAnalyzer from "@/components/calculator/WebsiteAnalyzer";
+import { trackEvent } from "@/lib/analytics";
 
 function SliderRow({ label, value, min, max, step, onChange, formatDisplay }) {
   const pct = ((value - min) / (max - min)) * 100;
@@ -72,6 +73,27 @@ export default function Calculator() {
   const [customers, setCustomers] = useState(200);
   const [dealValue, setDealValue] = useState(1500);
   const [showForm, setShowForm]   = useState(false);
+  const hasStarted = useRef(false);
+
+  useEffect(() => {
+    trackEvent("page_view", "home", "landing");
+  }, []);
+
+  const handleSliderChange = (setter) => (value) => {
+    if (!hasStarted.current) {
+      hasStarted.current = true;
+      trackEvent("calculator_start", "home", "sliders");
+    }
+    setter(value);
+  };
+
+  const handleCTA = () => {
+    trackEvent("calculator_complete", "home", "cta", {
+      messages, customers, dealValue,
+      monthlyLoss: r.monthLoss, potentialGain: r.monthGain,
+    });
+    setShowForm(true);
+  };
 
   const r = useMemo(() => {
     const lostRate  = 0.18;
@@ -101,7 +123,7 @@ export default function Calculator() {
           <div className="flex items-center gap-3">
             <span className="hidden sm:block text-sm text-gray-500">WhatsApp Business API</span>
             <button
-              onClick={() => setShowForm(true)}
+              onClick={handleCTA}
               className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-sm font-bold px-4 py-2 rounded-md transition-colors"
             >
               קבל הדגמה <ChevronLeft className="w-4 h-4" />
@@ -153,19 +175,19 @@ export default function Calculator() {
               <SliderRow
                 label="הודעות וואטסאפ בחודש"
                 value={messages} min={100} max={100000} step={100}
-                onChange={setMessages}
+                onChange={handleSliderChange(setMessages)}
                 formatDisplay={(v) => v.toLocaleString('he-IL')}
               />
               <SliderRow
                 label="לקוחות / עסקאות בחודש"
                 value={customers} min={10} max={5000} step={10}
-                onChange={setCustomers}
+                onChange={handleSliderChange(setCustomers)}
                 formatDisplay={(v) => v.toLocaleString('he-IL')}
               />
               <SliderRow
                 label="ערך ממוצע לעסקה"
                 value={dealValue} min={100} max={50000} step={100}
-                onChange={setDealValue}
+                onChange={handleSliderChange(setDealValue)}
                 formatDisplay={(v) => `₪${v.toLocaleString('he-IL')}`}
               />
             </div>
@@ -236,7 +258,7 @@ export default function Calculator() {
 
             {/* CTA */}
             <button
-              onClick={() => setShowForm(true)}
+              onClick={handleCTA}
               className="w-full py-3.5 rounded-xl text-sm font-bold text-white bg-green-600 hover:bg-green-700 active:bg-green-800 transition-colors shadow-sm flex items-center justify-center gap-2"
             >
               קבל הדגמה חינם <ChevronLeft className="w-4 h-4" />
@@ -260,6 +282,7 @@ export default function Calculator() {
         isOpen={showForm}
         onClose={() => setShowForm(false)}
         calculatorData={{ messages, customers, dealValue, monthlyLoss: r.monthLoss, potentialGain: r.monthGain }}
+        source="home"
       />
     </div>
   );

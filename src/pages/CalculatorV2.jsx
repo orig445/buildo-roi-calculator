@@ -38,6 +38,7 @@ export default function CalculatorV2() {
   const chatSectionRef = useRef(null);
   const analyzerRef = useRef(null);
   const pageViewTracked = useRef(false);
+  const calcStarted = useRef(false);
 
   useEffect(() => {
     if (!pageViewTracked.current) {
@@ -97,7 +98,18 @@ export default function CalculatorV2() {
 
   const handleCTA = useCallback((source = "unknown") => {
     trackEvent("form_open", "v2", "contact_form", { trigger: source });
+    trackEvent("calculator_complete", "v2", "cta", {
+      trigger: source, messages, customers, dealValue,
+      monthlyLoss: r.monthMissed, potentialGain: r.monthGain,
+    });
     setShowForm(true);
+  }, [messages, customers, dealValue, r]);
+
+  const handleSliderStart = useCallback(() => {
+    if (!calcStarted.current) {
+      calcStarted.current = true;
+      trackEvent("calculator_start", "v2", "sliders");
+    }
   }, []);
 
   return (
@@ -177,7 +189,7 @@ export default function CalculatorV2() {
                   label="הודעות וואטסאפ בחודש"
                   value={messages} min={100} max={20000} step={100}
                   onChange={setMessages}
-                  onDragStart={() => setActiveSlider("messages")}
+                  onDragStart={() => { handleSliderStart(); setActiveSlider("messages"); }}
                   onDragEnd={() => setActiveSlider(null)}
                   isActive={activeSlider === "messages"}
                   display={messages.toLocaleString("he-IL")}
@@ -191,7 +203,7 @@ export default function CalculatorV2() {
                   label="לקוחות פוטנציאליים בחודש"
                   value={customers} min={1} max={1000} step={1}
                   onChange={setCustomers}
-                  onDragStart={() => setActiveSlider("customers")}
+                  onDragStart={() => { handleSliderStart(); setActiveSlider("customers"); }}
                   onDragEnd={() => setActiveSlider(null)}
                   isActive={activeSlider === "customers"}
                   display={`${customers.toLocaleString("he-IL")} ${r.size.emoji}`}
@@ -205,7 +217,7 @@ export default function CalculatorV2() {
                   label="ערך ממוצע לעסקה / לקוח"
                   value={dealValue} min={10} max={50000} step={10}
                   onChange={setDealValue}
-                  onDragStart={() => setActiveSlider("dealValue")}
+                  onDragStart={() => { handleSliderStart(); setActiveSlider("dealValue"); }}
                   onDragEnd={() => setActiveSlider(null)}
                   isActive={activeSlider === "dealValue"}
                   display={`₪${dealValue.toLocaleString("he-IL")}`}
@@ -219,7 +231,7 @@ export default function CalculatorV2() {
                   label="% פניות שמקבלות מענה תוך שעה"
                   value={responseRate} min={5} max={95} step={5}
                   onChange={setResponseRate}
-                  onDragStart={() => setActiveSlider("responseRate")}
+                  onDragStart={() => { handleSliderStart(); setActiveSlider("responseRate"); }}
                   onDragEnd={() => setActiveSlider(null)}
                   isActive={activeSlider === "responseRate"}
                   display={`${responseRate}%`}
