@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
 `.trim();
 
   const subject = `ליד חדש: ${lead.name || "ללא שם"} ${lead.phone ? "· " + lead.phone : ""}`;
-  const to = "orig445@gmail.com";
+  const to = "orig445@gmail.com, nevo@buildoai.com";
 
   // Build RFC 2822 message using base64url encoding
   const encodeSubject = (s) => {
