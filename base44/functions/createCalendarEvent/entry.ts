@@ -17,6 +17,13 @@ Deno.serve(async (req) => {
       startDate.setHours(10, 0, 0, 0);
     }
 
+    // Validate time is within business hours (9:00-18:00 Israel time)
+    const formatter = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Jerusalem', hour: '2-digit', hour12: false });
+    const israelTime = parseInt(formatter.format(startDate), 10);
+    if (israelTime < 9 || israelTime >= 18) {
+      return Response.json({ error: 'התאריך/שעה שנבחרו חוץ משעות העבודה (9:00-18:00 בשעון ישראל)' }, { status: 400 });
+    }
+
     const startTime = startDate.toISOString();
     const endTime = new Date(startDate.getTime() + 60 * 60 * 1000).toISOString(); // 1 hour
 
