@@ -1,0 +1,45 @@
+{
+  "name": "ScannedSite",
+  "type": "object",
+  "properties": {
+    "url": {
+      "type": "string",
+      "description": "\u05db\u05ea\u05d5\u05d1\u05ea \u05d4\u05d0\u05ea\u05e8 \u05e9\u05e0\u05e1\u05e8\u05e7"
+    },
+    "business_name": {
+      "type": "string",
+      "description": "\u05e9\u05dd \u05d4\u05e2\u05e1\u05e7"
+    },
+    "business_type": {
+      "type": "string",
+      "description": "\u05e1\u05d5\u05d2 \u05d4\u05e2\u05e1\u05e7"
+    },
+    "insight": {
+      "type": "string",
+      "description": "\u05ea\u05d5\u05d1\u05e0\u05d4 \u05e2\u05dc \u05d4\u05d6\u05d3\u05de\u05e0\u05d5\u05ea WhatsApp \u05dc\u05e2\u05e1\u05e7"
+    },
+    "monthly_messages": {
+      "type": "number",
+      "description": "\u05d4\u05d5\u05d3\u05e2\u05d5\u05ea \u05d1\u05d7\u05d5\u05d3\u05e9 (\u05de\u05d5\u05e2\u05e8\u05da)"
+    },
+    "monthly_customers": {
+      "type": "number",
+      "description": "\u05dc\u05e7\u05d5\u05d7\u05d5\u05ea \u05d1\u05d7\u05d5\u05d3\u05e9 (\u05de\u05d5\u05e2\u05e8\u05da)"
+    },
+    "avg_deal_value": {
+      "type": "number",
+      "description": "\u05e2\u05e8\u05da \u05de\u05de\u05d5\u05e6\u05e2 \u05dc\u05e2\u05e1\u05e7\u05d4 (\u05e9\"\u05d7)"
+    },
+    "source_page": {
+      "type": "string",
+      "description": "\u05d3\u05e3 \u05d4\u05de\u05e7\u05d5\u05e8",
+      "enum": [
+        "home",
+        "v2"
+      ]
+    }
+  },
+  "required": [
+    "url"
+  ]
+}

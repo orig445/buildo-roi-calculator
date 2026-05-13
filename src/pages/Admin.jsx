@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import { Phone, Mail, Building2, MessageSquare, TrendingDown, TrendingUp, Calendar, Search, RefreshCw, BarChart2, Lock } from "lucide-react";
+import { Phone, Mail, Building2, MessageSquare, TrendingDown, TrendingUp, Calendar, Search, RefreshCw, BarChart2, Lock, Globe } from "lucide-react";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 
 const ALLOWED_EMAILS = ["orig445@gmail.com", "nevo@buildoai.com"];
@@ -38,6 +38,11 @@ export default function Admin() {
   const { data: analyticsEvents = [], refetch: refetchAnalytics } = useQuery({
     queryKey: ["analytics"],
     queryFn: () => base44.entities.AnalyticsEvent.list("-created_date", 2000),
+  });
+
+  const { data: scannedSites = [], refetch: refetchSites } = useQuery({
+    queryKey: ["scannedSites"],
+    queryFn: () => base44.entities.ScannedSite.list("-created_date", 500),
   });
 
   const filtered = leads.filter((l) => {
@@ -83,7 +88,7 @@ export default function Admin() {
             <div className="font-display" style={{ fontSize: 18, color: "var(--gold-light)", fontWeight: 700 }}>ניהול לידים</div>
           </div>
         </div>
-        <button onClick={() => { refetch(); refetchAnalytics(); }} style={{ background: "none", border: "1px solid var(--gold-border)", borderRadius: 3, color: "var(--gold-light)", padding: "6px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+        <button onClick={() => { refetch(); refetchAnalytics(); refetchSites(); }} style={{ background: "none", border: "1px solid var(--gold-border)", borderRadius: 3, color: "var(--gold-light)", padding: "6px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
           <RefreshCw style={{ width: 13, height: 13 }} /> רענן
         </button>
       </div>
@@ -95,6 +100,7 @@ export default function Admin() {
           {[
             { key: "leads", label: "לידים", icon: <MessageSquare style={{ width: 13, height: 13 }} /> },
             { key: "analytics", label: "אנליטיקות", icon: <BarChart2 style={{ width: 13, height: 13 }} /> },
+            { key: "sites", label: `אתרים שנסרקו (${scannedSites.length})`, icon: <Globe style={{ width: 13, height: 13 }} /> },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
               style={{
@@ -113,6 +119,56 @@ export default function Admin() {
 
         {tab === "analytics" && (
           <AnalyticsDashboard events={analyticsEvents} />
+        )}
+
+        {tab === "sites" && (
+          <div>
+            {scannedSites.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "60px 0", color: "var(--ink-light)" }}>אין אתרים שנסרקו עדיין</div>
+            ) : (
+              <div className="card-v" style={{ overflow: "hidden" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ background: "var(--cream-dark)", borderBottom: "1px solid var(--gold-border)" }}>
+                      {["אתר", "שם עסק", "סוג עסק", "לקוחות/חודש", "ערך עסקה", "הודעות/חודש", "תאריך"].map((h) => (
+                        <th key={h} className="font-label" style={{ fontSize: 8, letterSpacing: "0.12em", color: "var(--ink-light)", padding: "12px 16px", textAlign: "right", fontWeight: 600 }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {scannedSites.map((site, i) => (
+                      <motion.tr
+                        key={site.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: i * 0.02 }}
+                        style={{ borderBottom: "1px solid rgba(196,150,42,0.08)", transition: "background 0.15s" }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--cream-mid)"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                      >
+                        <td style={{ padding: "11px 16px" }}>
+                          <a href={site.url} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 5, color: "var(--forest-mid)", fontSize: 12, textDecoration: "none", fontWeight: 500 }}>
+                            <Globe style={{ width: 11, height: 11, flexShrink: 0 }} />
+                            <span style={{ maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{site.url.replace(/^https?:\/\//, "")}</span>
+                          </a>
+                        </td>
+                        <td style={{ padding: "11px 16px", fontWeight: 600, color: "var(--ink)", fontSize: 13 }}>{site.business_name || "—"}</td>
+                        <td style={{ padding: "11px 16px", fontSize: 12, color: "var(--ink-mid)" }}>{site.business_type || "—"}</td>
+                        <td style={{ padding: "11px 16px", fontSize: 12, color: "var(--ink-mid)", textAlign: "center" }}>{site.monthly_customers?.toLocaleString("he-IL") || "—"}</td>
+                        <td style={{ padding: "11px 16px", fontSize: 12, color: "var(--forest-mid)", fontWeight: 700 }}>{site.avg_deal_value ? `₪${site.avg_deal_value.toLocaleString("he-IL")}` : "—"}</td>
+                        <td style={{ padding: "11px 16px", fontSize: 12, color: "var(--ink-mid)", textAlign: "center" }}>{site.monthly_messages?.toLocaleString("he-IL") || "—"}</td>
+                        <td style={{ padding: "11px 16px" }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--ink-light)" }}>
+                            <Calendar style={{ width: 11, height: 11 }} />{fmtDate(site.created_date)}
+                          </span>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         )}
 
         {tab === "leads" && <>

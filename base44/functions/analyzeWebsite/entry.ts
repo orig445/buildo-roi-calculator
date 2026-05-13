@@ -99,6 +99,17 @@ Return ONLY valid JSON.
       }
     });
 
+    // Save scanned site to DB (fire-and-forget)
+    base44.asServiceRole.entities.ScannedSite.create({
+      url,
+      business_name: result.business_name,
+      business_type: result.business_type,
+      insight: result.insight,
+      monthly_messages: result.monthly_messages,
+      monthly_customers: result.monthly_customers,
+      avg_deal_value: result.avg_deal_value,
+    }).catch(() => {});
+
     return Response.json(result);
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
