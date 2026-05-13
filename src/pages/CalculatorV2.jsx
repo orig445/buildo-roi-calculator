@@ -259,7 +259,7 @@ export default function CalculatorV2() {
               {/* Missed revenue */}
               <div className="soft-card" style={{ padding: 20, borderTop: "3px solid #5a3fa8" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                  <span style={{ fontSize: 20 }} className="hidden">😔</span>
+                  
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 800, color: "#2d1b69" }}>הכנסה שאתה מפספס כרגע</div>
                     <div style={{ fontSize: 11, color: "#8b7ab8" }}>לא הפסד — כסף שיכול להיות שלך</div>
@@ -277,7 +277,7 @@ export default function CalculatorV2() {
               {/* Potential gain */}
               <div className="soft-card" style={{ padding: 20, borderTop: "3px solid #2d1b69" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                  <span style={{ fontSize: 20 }} className="hidden">🎯</span>
+                  
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 800, color: "#2d1b69" }}>הפוטנציאל שלך עם בילדו</div>
                     <div style={{ fontSize: 11, color: "#8b7ab8" }}>על בסיס שחזור ~55% מהלקוחות שנשרו</div>
