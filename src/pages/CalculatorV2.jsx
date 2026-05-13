@@ -11,12 +11,12 @@ import { trackEvent } from "@/lib/analytics";
 const fmt = (n) => `₪${Math.round(n).toLocaleString("he-IL")}`;
 
 const BUSINESS_SIZES = [
-  { max: 50,    label: "עסק קטן",    emoji: "🌱" },
-  { max: 200,   label: "עסק בינוני", emoji: "🏪" },
-  { max: 600,   label: "עסק פעיל",   emoji: "🏢" },
-  { max: 2000,  label: "עסק גדול",   emoji: "🏗️" },
-  { max: 99999, label: "תאגיד",      emoji: "🏦" },
-];
+{ max: 50, label: "עסק קטן", emoji: "🌱" },
+{ max: 200, label: "עסק בינוני", emoji: "🏪" },
+{ max: 600, label: "עסק פעיל", emoji: "🏢" },
+{ max: 2000, label: "עסק גדול", emoji: "🏗️" },
+{ max: 99999, label: "תאגיד", emoji: "🏦" }];
+
 const getSize = (c) => BUSINESS_SIZES.find((s) => c <= s.max) || BUSINESS_SIZES[4];
 
 const getResponseLabel = (r) => {
@@ -76,7 +76,7 @@ export default function CalculatorV2() {
 
     // Real API cost: ~0.05 USD per message ≈ ₪0.19, but billing is per conversation (~₪0.4)
     // Approx: (messages / 5) * 0.4 NIS per conversation
-    const monthApiCost = Math.max(Math.round((messages / 5) * 0.4), 200); // min ₪200/month
+    const monthApiCost = Math.max(Math.round(messages / 5 * 0.4), 200); // min ₪200/month
     const platformFee = 500; // typical monthly platform fee
     const totalMonthlyCost = monthApiCost + platformFee;
 
@@ -92,7 +92,7 @@ export default function CalculatorV2() {
       recoveredCust,
       totalMonthlyCost,
       roiMonths: parseFloat(roiMonths),
-      size: getSize(customers),
+      size: getSize(customers)
     };
   }, [messages, customers, dealValue, responseRate]);
 
@@ -100,7 +100,7 @@ export default function CalculatorV2() {
     trackEvent("form_open", "v2", "contact_form", { trigger: source });
     trackEvent("calculator_complete", "v2", "cta", {
       trigger: source, messages, customers, dealValue,
-      monthlyLoss: r.monthMissed, potentialGain: r.monthGain,
+      monthlyLoss: r.monthMissed, potentialGain: r.monthGain
     });
     setShowForm(true);
   }, [messages, customers, dealValue, r]);
@@ -142,7 +142,7 @@ export default function CalculatorV2() {
               כשלקוח שולח הודעה ולא מקבל מענה מהיר — הוא הולך למתחרה.{" "}
               <strong style={{ color: "white" }}>בוא נראה בדיוק כמה זה שווה לך.</strong>
             </p>
-            <button onClick={() => { trackEvent("cta_click", "v2", "hero", { button: "חשב את הפוטנציאל שלי" }); scrollToAnalyzer(); }} className="cta-btn cta-btn-white" style={{ padding: "13px 32px", fontSize: 15 }}>
+            <button onClick={() => {trackEvent("cta_click", "v2", "hero", { button: "חשב את הפוטנציאל שלי" });scrollToAnalyzer();}} className="cta-btn cta-btn-white" style={{ padding: "13px 32px", fontSize: 15 }}>
               חשב את הפוטנציאל שלי 🚀
             </button>
           </motion.div>
@@ -161,15 +161,15 @@ export default function CalculatorV2() {
             </div>
             <WebsiteAnalyzer
               onAnalyzed={({ messages: m, customers: c, dealValue: d }) => {
-                setMessages(m); setCustomers(c); setDealValue(d);
+                setMessages(m);setCustomers(c);setDealValue(d);
                 trackEvent("website_scanned", "v2", "analyzer");
               }}
               onSiteData={setSiteData}
               onScanningChange={(scanning) => {
                 setIsScanning(scanning);
                 if (scanning) trackEvent("scan_started", "v2", "analyzer");
-              }}
-            />
+              }} />
+            
           </div>
         </FadeIn>
 
@@ -189,13 +189,13 @@ export default function CalculatorV2() {
                   label="הודעות וואטסאפ בחודש"
                   value={messages} min={100} max={20000} step={100}
                   onChange={setMessages}
-                  onDragStart={() => { handleSliderStart(); setActiveSlider("messages"); }}
+                  onDragStart={() => {handleSliderStart();setActiveSlider("messages");}}
                   onDragEnd={() => setActiveSlider(null)}
                   isActive={activeSlider === "messages"}
                   display={messages.toLocaleString("he-IL")}
                   hint={messages < 1000 ? "נמוך" : messages < 10000 ? "ממוצע" : "גבוה 🔥"}
-                  hintOk={messages >= 10000}
-                />
+                  hintOk={messages >= 10000} />
+                
                 <div style={{ height: 1, background: "#f0ecff" }} />
                 <SliderRow
                   id="customers"
@@ -203,13 +203,13 @@ export default function CalculatorV2() {
                   label="לקוחות פוטנציאליים בחודש"
                   value={customers} min={1} max={1000} step={1}
                   onChange={setCustomers}
-                  onDragStart={() => { handleSliderStart(); setActiveSlider("customers"); }}
+                  onDragStart={() => {handleSliderStart();setActiveSlider("customers");}}
                   onDragEnd={() => setActiveSlider(null)}
                   isActive={activeSlider === "customers"}
                   display={`${customers.toLocaleString("he-IL")} ${r.size.emoji}`}
                   hint={r.size.label}
-                  hintOk={customers >= 200}
-                />
+                  hintOk={customers >= 200} />
+                
                 <div style={{ height: 1, background: "#f0ecff" }} />
                 <SliderRow
                   id="dealValue"
@@ -217,13 +217,13 @@ export default function CalculatorV2() {
                   label="ערך ממוצע לעסקה / לקוח"
                   value={dealValue} min={10} max={50000} step={10}
                   onChange={setDealValue}
-                  onDragStart={() => { handleSliderStart(); setActiveSlider("dealValue"); }}
+                  onDragStart={() => {handleSliderStart();setActiveSlider("dealValue");}}
                   onDragEnd={() => setActiveSlider(null)}
                   isActive={activeSlider === "dealValue"}
                   display={`₪${dealValue.toLocaleString("he-IL")}`}
                   hint={dealValue < 500 ? "נמוך" : dealValue < 5000 ? "בינוני" : "גבוה 💰"}
-                  hintOk={dealValue >= 1000}
-                />
+                  hintOk={dealValue >= 1000} />
+                
                 <div style={{ height: 1, background: "#f0ecff" }} />
                 <SliderRow
                   id="responseRate"
@@ -231,14 +231,14 @@ export default function CalculatorV2() {
                   label="% פניות שמקבלות מענה תוך שעה"
                   value={responseRate} min={5} max={95} step={5}
                   onChange={setResponseRate}
-                  onDragStart={() => { handleSliderStart(); setActiveSlider("responseRate"); }}
+                  onDragStart={() => {handleSliderStart();setActiveSlider("responseRate");}}
                   onDragEnd={() => setActiveSlider(null)}
                   isActive={activeSlider === "responseRate"}
                   display={`${responseRate}%`}
                   hint={getResponseLabel(responseRate).label}
                   hintColor={getResponseLabel(responseRate).color}
-                  subHint="ממוצע בשוק: 35–50%"
-                />
+                  subHint="ממוצע בשוק: 35–50%" />
+                
               </div>
 
               {/* Mini insight box */}
@@ -259,7 +259,7 @@ export default function CalculatorV2() {
               {/* Missed revenue */}
               <div className="soft-card" style={{ padding: 20, borderTop: "3px solid #5a3fa8" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                  <span style={{ fontSize: 20 }}>😔</span>
+                  
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 800, color: "#2d1b69" }}>הכנסה שאתה מפספס כרגע</div>
                     <div style={{ fontSize: 11, color: "#8b7ab8" }}>לא הפסד — כסף שיכול להיות שלך</div>
@@ -277,7 +277,7 @@ export default function CalculatorV2() {
               {/* Potential gain */}
               <div className="soft-card" style={{ padding: 20, borderTop: "3px solid #2d1b69" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                  <span style={{ fontSize: 20 }}>🎯</span>
+                  
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 800, color: "#2d1b69" }}>הפוטנציאל שלך עם בילדו</div>
                     <div style={{ fontSize: 11, color: "#8b7ab8" }}>על בסיס שחזור ~55% מהלקוחות שנשרו</div>
@@ -291,7 +291,7 @@ export default function CalculatorV2() {
 
               {/* ROI — realistic */}
               <div style={{ background: "linear-gradient(135deg, #5a3fa8, #7c5cbf)", borderRadius: 16, padding: "18px 20px", textAlign: "center" }}>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", marginBottom: 6 }}> כמה מרוויחים ביחס לעלות השירות</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", marginBottom: 6 }}>📊 כמה מרוויחים ביחס לעלות השירות</div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20 }}>
                   <div>
                     <div style={{ fontSize: 40, fontWeight: 900, color: "#ffd166", lineHeight: 1, fontStyle: "italic" }}>
@@ -310,7 +310,7 @@ export default function CalculatorV2() {
                 </div>
               </div>
 
-              <button onClick={() => { trackEvent("cta_click", "v2", "results", { button: "ראה בפועל" }); scrollToChat(); }} className="cta-btn" style={{ width: "100%", padding: "15px", fontSize: 14 }}>
+              <button onClick={() => {trackEvent("cta_click", "v2", "results", { button: "ראה בפועל" });scrollToChat();}} className="cta-btn" style={{ width: "100%", padding: "15px", fontSize: 14 }}>
                 אני רוצה לראות את זה בפועל 🚀
               </button>
               <p style={{ textAlign: "center", fontSize: 11, color: "#8b7ab8" }}>ללא התחייבות · מענה תוך שעות</p>
@@ -336,8 +336,8 @@ export default function CalculatorV2() {
             <button
               onClick={() => handleCTA("demo_chat_cta")}
               className="cta-btn"
-              style={{ padding: "16px 40px", fontSize: 16 }}
-            >
+              style={{ padding: "16px 40px", fontSize: 16 }}>
+              
               🗓️ קבע פגישת הדגמה חינם עכשיו
             </button>
             <p style={{ fontSize: 12, color: "#8b7ab8", marginTop: 10 }}>ללא עלות · ללא התחייבות · מענה תוך שעות</p>
@@ -402,13 +402,13 @@ export default function CalculatorV2() {
           justifyContent: "center",
           boxShadow: "0 4px 20px rgba(37,211,102,0.5)",
           zIndex: 1000,
-          transition: "transform 0.2s, box-shadow 0.2s",
+          transition: "transform 0.2s, box-shadow 0.2s"
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 6px 28px rgba(37,211,102,0.65)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(37,211,102,0.5)"; }}
-      >
+        onMouseEnter={(e) => {e.currentTarget.style.transform = "scale(1.1)";e.currentTarget.style.boxShadow = "0 6px 28px rgba(37,211,102,0.65)";}}
+        onMouseLeave={(e) => {e.currentTarget.style.transform = "scale(1)";e.currentTarget.style.boxShadow = "0 4px 20px rgba(37,211,102,0.5)";}}>
+        
         <svg viewBox="0 0 24 24" fill="white" width="30" height="30" xmlns="http://www.w3.org/2000/svg">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
         </svg>
       </a>
 
@@ -416,8 +416,8 @@ export default function CalculatorV2() {
         isOpen={showForm}
         onClose={() => setShowForm(false)}
         calculatorData={{ messages, customers, dealValue, monthlyLoss: r.monthMissed, potentialGain: r.monthGain }}
-        source="v2"
-      />
+        source="v2" />
+      
 
       <style>{`
         .soft-card {
@@ -494,13 +494,13 @@ export default function CalculatorV2() {
           .how-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
-    </div>
-  );
+    </div>);
+
 }
 
 // Only animates when this specific slider is active
 function SliderRow({ id, icon, label, value, min, max, step, onChange, onDragStart, onDragEnd, isActive, display, hint, hintOk, hintColor, subHint }) {
-  const pct = ((value - min) / (max - min)) * 100;
+  const pct = (value - min) / (max - min) * 100;
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
@@ -512,24 +512,24 @@ function SliderRow({ id, icon, label, value, min, max, step, onChange, onDragSta
           </div>
         </div>
         <div style={{ textAlign: "left", flexShrink: 0, marginRight: 8 }}>
-          {isActive ? (
-            <motion.span
-              key={display}
-              initial={{ scale: 1.15, color: "#5a3fa8" }}
-              animate={{ scale: 1, color: "#5a3fa8" }}
-              transition={{ duration: 0.15 }}
-              style={{ fontSize: 20, fontWeight: 800, display: "block", lineHeight: 1 }}
-            >
+          {isActive ?
+          <motion.span
+            key={display}
+            initial={{ scale: 1.15, color: "#5a3fa8" }}
+            animate={{ scale: 1, color: "#5a3fa8" }}
+            transition={{ duration: 0.15 }}
+            style={{ fontSize: 20, fontWeight: 800, display: "block", lineHeight: 1 }}>
+            
               {display}
-            </motion.span>
-          ) : (
-            <span style={{ fontSize: 20, fontWeight: 800, color: "#5a3fa8", display: "block", lineHeight: 1 }}>{display}</span>
-          )}
-          {hint && (
-            <span style={{ fontSize: 10, color: hintColor || (hintOk ? "#2a7d55" : "#9b7fd4"), fontWeight: 600, display: "block", textAlign: "left", marginTop: 2 }}>
+            </motion.span> :
+
+          <span style={{ fontSize: 20, fontWeight: 800, color: "#5a3fa8", display: "block", lineHeight: 1 }}>{display}</span>
+          }
+          {hint &&
+          <span style={{ fontSize: 10, color: hintColor || (hintOk ? "#2a7d55" : "#9b7fd4"), fontWeight: 600, display: "block", textAlign: "left", marginTop: 2 }}>
               {hint}
             </span>
-          )}
+          }
         </div>
       </div>
       <input
@@ -538,14 +538,14 @@ function SliderRow({ id, icon, label, value, min, max, step, onChange, onDragSta
         onMouseDown={onDragStart} onTouchStart={onDragStart}
         onMouseUp={onDragEnd} onTouchEnd={onDragEnd}
         className="slider-purple"
-        style={{ background: `linear-gradient(to left, #7c5cbf ${pct}%, #ede8ff ${pct}%)` }}
-      />
+        style={{ background: `linear-gradient(to left, #7c5cbf ${pct}%, #ede8ff ${pct}%)` }} />
+      
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#c4b8e0", marginTop: 4 }}>
         <span>{min.toLocaleString("he-IL")}</span>
         <span>{max.toLocaleString("he-IL")}</span>
       </div>
-    </div>
-  );
+    </div>);
+
 }
 
 function ResultNumber({ label, value, color, bg, small }) {
@@ -553,8 +553,8 @@ function ResultNumber({ label, value, color, bg, small }) {
     <div style={{ background: bg, borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
       <div style={{ fontSize: 10, color, fontWeight: 600, marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.05em", opacity: 0.75 }}>{label}</div>
       <div style={{ fontSize: small ? 18 : 22, fontWeight: 900, color, lineHeight: 1 }}>{value}</div>
-    </div>
-  );
+    </div>);
+
 }
 
 function FadeIn({ children, delay = 0 }) {
@@ -563,6 +563,6 @@ function FadeIn({ children, delay = 0 }) {
   return (
     <motion.div ref={ref} initial={{ opacity: 0, y: 18 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay }}>
       {children}
-    </motion.div>
-  );
+    </motion.div>);
+
 }
