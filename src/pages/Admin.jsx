@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import { Phone, Mail, Building2, MessageSquare, TrendingDown, TrendingUp, Calendar, Search, RefreshCw, BarChart2, Lock, Globe } from "lucide-react";
+import { Phone, Mail, Building2, MessageSquare, TrendingDown, TrendingUp, Calendar, Search, RefreshCw, BarChart2, Lock, Globe, Facebook } from "lucide-react";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 
 const ALLOWED_EMAILS = ["orig445@gmail.com", "nevo@buildoai.com"];
@@ -43,6 +43,11 @@ export default function Admin() {
   const { data: scannedSites = [], refetch: refetchSites } = useQuery({
     queryKey: ["scannedSites"],
     queryFn: () => base44.entities.ScannedSite.list("-created_date", 500),
+  });
+
+  const { data: fbLeads = [], refetch: refetchFbLeads } = useQuery({
+    queryKey: ["fbLeads"],
+    queryFn: () => base44.entities.FacebookLead.list("-created_date", 500),
   });
 
   const filtered = leads.filter((l) => {
@@ -88,7 +93,7 @@ export default function Admin() {
             <div className="font-display" style={{ fontSize: 18, color: "var(--gold-light)", fontWeight: 700 }}>ניהול לידים</div>
           </div>
         </div>
-        <button onClick={() => { refetch(); refetchAnalytics(); refetchSites(); }} style={{ background: "none", border: "1px solid var(--gold-border)", borderRadius: 3, color: "var(--gold-light)", padding: "6px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+        <button onClick={() => { refetch(); refetchAnalytics(); refetchSites(); refetchFbLeads(); }} style={{ background: "none", border: "1px solid var(--gold-border)", borderRadius: 3, color: "var(--gold-light)", padding: "6px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
           <RefreshCw style={{ width: 13, height: 13 }} /> רענן
         </button>
       </div>
@@ -101,6 +106,7 @@ export default function Admin() {
             { key: "leads", label: "לידים", icon: <MessageSquare style={{ width: 13, height: 13 }} /> },
             { key: "analytics", label: "אנליטיקות", icon: <BarChart2 style={{ width: 13, height: 13 }} /> },
             { key: "sites", label: `אתרים שנסרקו (${scannedSites.length})`, icon: <Globe style={{ width: 13, height: 13 }} /> },
+            { key: "fb", label: `פייסבוק לידים (${fbLeads.length})`, icon: <Facebook style={{ width: 13, height: 13 }} /> },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
               style={{
@@ -160,6 +166,66 @@ export default function Admin() {
                         <td style={{ padding: "11px 16px" }}>
                           <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--ink-light)" }}>
                             <Calendar style={{ width: 11, height: 11 }} />{fmtDate(site.created_date)}
+                          </span>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "fb" && (
+          <div>
+            {fbLeads.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "60px 0", color: "var(--ink-light)" }}>
+                אין לידים מפייסבוק עדיין — הסנכרון רץ כל 15 דקות
+              </div>
+            ) : (
+              <div className="card-v" style={{ overflow: "hidden" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ background: "var(--cream-dark)", borderBottom: "1px solid var(--gold-border)" }}>
+                      {["שם", "טלפון", "טופס", "קמפיין", "מודעה", "סטטוס", "תאריך"].map((h) => (
+                        <th key={h} className="font-label" style={{ fontSize: 8, letterSpacing: "0.12em", color: "var(--ink-light)", padding: "12px 16px", textAlign: "right", fontWeight: 600 }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {fbLeads.map((lead, i) => (
+                      <motion.tr
+                        key={lead.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: i * 0.02 }}
+                        style={{ borderBottom: "1px solid rgba(196,150,42,0.08)", transition: "background 0.15s" }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--cream-mid)"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                      >
+                        <td style={{ padding: "13px 16px", fontWeight: 600, color: "var(--ink)", fontSize: 13 }}>{lead.full_name || "—"}</td>
+                        <td style={{ padding: "13px 16px" }}>
+                          {lead.phone_number ? (
+                            <a href={`tel:${lead.phone_number}`} style={{ display: "flex", alignItems: "center", gap: 5, color: "var(--forest-mid)", fontSize: 13, textDecoration: "none", fontWeight: 500 }}>
+                              <Phone style={{ width: 12, height: 12 }} />{lead.phone_number}
+                            </a>
+                          ) : "—"}
+                        </td>
+                        <td style={{ padding: "13px 16px", fontSize: 12, color: "var(--ink-mid)" }}>{lead.form_name || "—"}</td>
+                        <td style={{ padding: "13px 16px", fontSize: 12, color: "var(--ink-mid)" }}>{lead.campaign_name || "—"}</td>
+                        <td style={{ padding: "13px 16px", fontSize: 12, color: "var(--ink-mid)" }}>{lead.ad_name || "—"}</td>
+                        <td style={{ padding: "13px 16px" }}>
+                          {lead.lead_status ? (
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, padding: "3px 9px", borderRadius: 20, background: "rgba(90,63,168,0.1)", color: "#5a3fa8", border: "1px solid rgba(90,63,168,0.25)" }}>
+                              {lead.lead_status}
+                            </span>
+                          ) : "—"}
+                        </td>
+                        <td style={{ padding: "13px 16px" }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--ink-light)" }}>
+                            <Calendar style={{ width: 11, height: 11 }} />
+                            {lead.created_time ? new Date(lead.created_time).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" }) : fmtDate(lead.created_date)}
                           </span>
                         </td>
                       </motion.tr>
