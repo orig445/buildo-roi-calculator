@@ -360,7 +360,52 @@ export default function CalculatorV2() {
             <div style={{ textAlign: "center", marginBottom: 16 }}>
               <div style={{ fontSize: 11, color: "#7c5cbf", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>✦ הדגמה חיה</div>
               <h3 style={{ fontSize: 20, fontWeight: 900, color: "#2d1b69", marginBottom: 6 }}>כך הבוט מדבר עם הלקוחות שלך</h3>
-              <p style={{ fontSize: 13, color: "#8b7ab8", margin: 0 }}>הכנס כתובת אתר למעלה — הבוט יתאים את עצמו לעסק שלך אוטומטית</p>
+              {!siteData ? (
+                <div style={{ marginBottom: 16 }}>
+                  <p style={{ fontSize: 13, color: "#8b7ab8", marginBottom: 12 }}>הכנס כתובת האתר שלך — הבוט יתאים את עצמו לעסק שלך אוטומטית</p>
+                  <div style={{ display: "flex", gap: 8, maxWidth: 480, margin: "0 auto" }}>
+                    <div style={{ position: "relative", flex: 1 }}>
+                      <Globe style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: "#8b7ab8" }} />
+                      <input
+                        type="text"
+                        placeholder="mybusiness.co.il"
+                        value={stickyUrl}
+                        onChange={(e) => setStickyUrl(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleStickyAnalyze()}
+                        disabled={stickyLoading}
+                        style={{
+                          width: "100%", paddingRight: 38, paddingLeft: 12, paddingTop: 10, paddingBottom: 10,
+                          border: "1.5px solid #ede8ff", borderRadius: 10, fontSize: 14,
+                          color: "#2d1b69", background: "#f8f6ff", outline: "none",
+                          fontFamily: "'Heebo', sans-serif", boxSizing: "border-box",
+                        }}
+                        onFocus={(e) => { e.target.style.borderColor = "#7c5cbf"; e.target.style.boxShadow = "0 0 0 3px rgba(124,92,191,0.1)"; }}
+                        onBlur={(e) => { e.target.style.borderColor = "#ede8ff"; e.target.style.boxShadow = "none"; }}
+                      />
+                    </div>
+                    <button
+                      onClick={handleStickyAnalyze}
+                      disabled={stickyLoading || !stickyUrl.trim()}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 6,
+                        background: stickyLoading || !stickyUrl.trim() ? "#c4b5e8" : "#5a3fa8",
+                        color: "white", border: "none", borderRadius: 10,
+                        padding: "10px 18px", fontSize: 13, fontWeight: 700,
+                        fontFamily: "'Heebo', sans-serif",
+                        cursor: stickyLoading || !stickyUrl.trim() ? "not-allowed" : "pointer",
+                        whiteSpace: "nowrap", flexShrink: 0,
+                      }}
+                    >
+                      {stickyLoading
+                        ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} />
+                        : <><Sparkles style={{ width: 13, height: 13 }} /> נתח</>
+                      }
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p style={{ fontSize: 13, color: "#8b7ab8", margin: "0 0 12px" }}>הבוט מותאם לעסק שלך אוטומטית ✓</p>
+              )}
             </div>
             <DemoChat siteData={siteData} isScanning={isScanning} onOpenCTA={handleCTA} />
           </div>
