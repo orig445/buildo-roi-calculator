@@ -79,9 +79,9 @@ export default function CalculatorV2() {
     } catch {
 
 
+
       // silent fail
-    } finally {setStickyLoading(false);}
-  };
+    } finally {setStickyLoading(false);}};
 
   const scrollToAnalyzer = useCallback(() => {
     trackEvent("cta_click", "v2", "hero", { button: "קבל הדגמה חינם - הדר" });
