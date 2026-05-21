@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import { Phone, Mail, Building2, MessageSquare, TrendingDown, TrendingUp, Calendar, Search, RefreshCw, BarChart2, Lock, Globe, Facebook } from "lucide-react";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
+import LeadActions from "@/components/admin/LeadActions";
 
 const ALLOWED_EMAILS = ["orig445@gmail.com", "nevo@buildoai.com"];
 
@@ -277,7 +278,7 @@ export default function Admin() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "var(--cream-dark)", borderBottom: "1px solid var(--gold-border)" }}>
-                  {["שם", "טלפון", "אימייל", "חברה", "מקור", "הפסד חודשי", "פוטנציאל", "הודעות/חודש", "הצטרף"].map((h) => (
+                  {["שם", "טלפון", "אימייל", "חברה", "מקור", "הפסד חודשי", "פוטנציאל", "הודעות/חודש", "הצטרף", "שליחה"].map((h) => (
                     <th key={h} className="font-label" style={{ fontSize: 8, letterSpacing: "0.12em", color: "var(--ink-light)", padding: "12px 16px", textAlign: "right", fontWeight: 600 }}>{h}</th>
                   ))}
                 </tr>
@@ -342,6 +343,9 @@ export default function Admin() {
                       <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--ink-light)" }}>
                         <Calendar style={{ width: 11, height: 11 }} />{fmtDate(lead.created_date)}
                       </span>
+                    </td>
+                    <td style={{ padding: "10px 16px" }}>
+                      <LeadActions lead={lead} />
                     </td>
                   </motion.tr>
                 ))}
