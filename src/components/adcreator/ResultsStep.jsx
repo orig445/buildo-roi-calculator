@@ -235,7 +235,7 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
 
   return (
     <div>
-      <LeadModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+      <LeadModal isOpen={modalOpen} onClose={() => setModalOpen(false)} businessInfo={businessInfo} />
 
       <div style={{ textAlign: "center", marginBottom: 28 }}>
         <div style={{ fontSize: 13, color: "#666", fontWeight: 700, marginBottom: 8 }}>שלב 3 מתוך 3</div>

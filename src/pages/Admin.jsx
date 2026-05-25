@@ -51,6 +51,8 @@ export default function Admin() {
     queryFn: () => base44.entities.FacebookLead.list("-created_date", 500),
   });
 
+  const adLeads = leads.filter(l => l.source === "ad_creator");
+
   const filtered = leads.filter((l) => {
     const q = search.toLowerCase();
     return !q || [l.name, l.phone, l.email, l.company].some((f) => f?.toLowerCase().includes(q));
@@ -108,6 +110,7 @@ export default function Admin() {
             { key: "analytics", label: "אנליטיקות", icon: <BarChart2 style={{ width: 13, height: 13 }} /> },
             { key: "sites", label: `אתרים שנסרקו (${scannedSites.length})`, icon: <Globe style={{ width: 13, height: 13 }} /> },
             { key: "fb", label: `פייסבוק לידים (${fbLeads.length})`, icon: <Facebook style={{ width: 13, height: 13 }} /> },
+            { key: "adleads", label: `Ad Creator לידים`, icon: <Mail style={{ width: 13, height: 13 }} /> },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
               style={{
@@ -227,6 +230,64 @@ export default function Admin() {
                           <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--ink-light)" }}>
                             <Calendar style={{ width: 11, height: 11 }} />
                             {lead.created_time ? new Date(lead.created_time).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" }) : fmtDate(lead.created_date)}
+                          </span>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "adleads" && (
+          <div>
+            <div style={{ marginBottom: 16, fontSize: 14, color: "var(--ink-light)" }}>
+              {adLeads.length} לידים מ-Ad Creator
+            </div>
+            {adLeads.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "60px 0", color: "var(--ink-light)" }}>אין לידים מ-Ad Creator עדיין</div>
+            ) : (
+              <div className="card-v" style={{ overflow: "hidden" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ background: "var(--cream-dark)", borderBottom: "1px solid var(--gold-border)" }}>
+                      {["שם העסק", "אימייל", "טלפון", "פרטים", "תאריך"].map((h) => (
+                        <th key={h} className="font-label" style={{ fontSize: 8, letterSpacing: "0.12em", color: "var(--ink-light)", padding: "12px 16px", textAlign: "right", fontWeight: 600 }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {adLeads.map((lead, i) => (
+                      <motion.tr
+                        key={lead.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: i * 0.03 }}
+                        style={{ borderBottom: "1px solid rgba(196,150,42,0.08)", transition: "background 0.15s" }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--cream-mid)"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                      >
+                        <td style={{ padding: "13px 16px", fontWeight: 600, color: "var(--ink)", fontSize: 13 }}>{lead.company || lead.name || "—"}</td>
+                        <td style={{ padding: "13px 16px" }}>
+                          {lead.email ? (
+                            <a href={`mailto:${lead.email}`} style={{ display: "flex", alignItems: "center", gap: 5, color: "var(--gold)", fontSize: 13, textDecoration: "none" }}>
+                              <Mail style={{ width: 12, height: 12 }} />{lead.email}
+                            </a>
+                          ) : "—"}
+                        </td>
+                        <td style={{ padding: "13px 16px" }}>
+                          {lead.phone ? (
+                            <a href={`tel:${lead.phone}`} style={{ display: "flex", alignItems: "center", gap: 5, color: "var(--forest-mid)", fontSize: 13, textDecoration: "none", fontWeight: 500 }}>
+                              <Phone style={{ width: 12, height: 12 }} />{lead.phone}
+                            </a>
+                          ) : "—"}
+                        </td>
+                        <td style={{ padding: "13px 16px", fontSize: 12, color: "var(--ink-mid)" }}>{lead.notes || "—"}</td>
+                        <td style={{ padding: "13px 16px" }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--ink-light)" }}>
+                            <Calendar style={{ width: 11, height: 11 }} />{fmtDate(lead.created_date)}
                           </span>
                         </td>
                       </motion.tr>

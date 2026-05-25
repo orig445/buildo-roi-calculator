@@ -1,16 +1,28 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { base44 } from "@/api/base44Client";
 
-export default function LeadModal({ isOpen, onClose }) {
+export default function LeadModal({ isOpen, onClose, businessInfo }) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !phone) return;
     setSubmitted(true);
+
+    // Save to database
+    await base44.entities.Lead.create({
+      name: businessInfo?.name || "Ad Creator Lead",
+      email,
+      phone,
+      company: businessInfo?.name || "",
+      source: "ad_creator",
+      notes: `סוג עסק: ${businessInfo?.type || ""}`,
+    });
+
     setTimeout(() => {
       window.open("https://buildoai.com/login", "_blank");
       onClose();
