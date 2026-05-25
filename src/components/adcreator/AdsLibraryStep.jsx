@@ -139,7 +139,7 @@ export default function AdsLibraryStep({ businessInfo, onSelected }) {
                 </div>
               )}
 
-              {/* Ad Visual — iframe if real, image if demo */}
+              {/* Ad Visual */}
               <div style={{ height: 200, position: "relative", background: "rgba(0,0,0,0.3)", overflow: "hidden" }}>
                 {ad.ad_snapshot_url ? (
                   <>
@@ -159,8 +159,17 @@ export default function AdsLibraryStep({ businessInfo, onSelected }) {
                       <ExternalLink size={9} /> פתח בפייסבוק
                     </a>
                   </>
+                ) : ad.ad_image_url || ad.demo_image ? (
+                  <img src={ad.ad_image_url || ad.demo_image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                 ) : (
-                  <img src={ad.demo_image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "16px", gap: 8 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 12, background: "linear-gradient(135deg, #7c3aed, #2563eb)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>
+                      {ad.page_name?.charAt(0) || "📢"}
+                    </div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", textAlign: "center", lineHeight: 1.5 }}>
+                      {ad.ad_creative_link_titles?.[0] || ad.page_name}
+                    </div>
+                  </div>
                 )}
               </div>
 

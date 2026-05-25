@@ -26,7 +26,9 @@ export default function WebsiteStep({ onAnalyzed }) {
         audience: data.target_audience || "לקוחות פוטנציאליים",
         usp: data.usp || "",
         logo: data.logo_url || null,
+        logo_url: data.logo_url || null,
         colors: data.brand_colors || [],
+        brand_colors: data.brand_colors || [],
         keywords: data.keywords || [data.business_type || "business"],
       };
       setPreview(info);

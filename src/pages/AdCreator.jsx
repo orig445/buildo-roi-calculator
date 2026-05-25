@@ -73,16 +73,20 @@ export default function AdCreator() {
           {STEPS.map((s, i) => (
             <div key={s.id} style={{ display: "flex", alignItems: "center" }}>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: "50%",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 14, fontWeight: 800,
-                  background: step > s.id ? "linear-gradient(135deg, #a78bfa, #60a5fa)" : step === s.id ? "linear-gradient(135deg, #7c3aed, #2563eb)" : "rgba(255,255,255,0.1)",
-                  border: step === s.id ? "2px solid #a78bfa" : "2px solid transparent",
-                  color: step >= s.id ? "white" : "rgba(255,255,255,0.3)",
-                  transition: "all 0.3s",
-                  boxShadow: step === s.id ? "0 0 20px rgba(167,139,250,0.5)" : "none",
-                }}>
+                <div
+                  onClick={() => s.id < step && step < 4 && setStep(s.id)}
+                  style={{
+                    width: 36, height: 36, borderRadius: "50%",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 14, fontWeight: 800,
+                    background: step > s.id ? "linear-gradient(135deg, #a78bfa, #60a5fa)" : step === s.id ? "linear-gradient(135deg, #7c3aed, #2563eb)" : "rgba(255,255,255,0.1)",
+                    border: step === s.id ? "2px solid #a78bfa" : "2px solid transparent",
+                    color: step >= s.id ? "white" : "rgba(255,255,255,0.3)",
+                    transition: "all 0.3s",
+                    boxShadow: step === s.id ? "0 0 20px rgba(167,139,250,0.5)" : "none",
+                    cursor: s.id < step && step < 4 ? "pointer" : "default",
+                  }}
+                >
                   {step > s.id ? <Check size={16} /> : s.id}
                 </div>
                 <span style={{ fontSize: 10, color: step >= s.id ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.3)", whiteSpace: "nowrap", fontWeight: step === s.id ? 700 : 400 }}>

@@ -73,8 +73,12 @@ Deno.serve(async (req) => {
 
     const ads = result.ads || [];
     const mood = styleImageMood[style] || styleImageMood.direct;
-    const brandColors = businessInfo.brand_colors?.join(', ') || '';
-    const logoUrl = businessInfo.logo_url || null;
+    const brandColors = (businessInfo.colors || businessInfo.brand_colors || []).join(', ');
+    const logoUrl = businessInfo.logo || businessInfo.logo_url || null;
+
+    console.log('businessInfo keys:', Object.keys(businessInfo));
+    console.log('logoUrl:', logoUrl);
+    console.log('brandColors:', brandColors);
 
     // Step 2: Generate an image for each ad in parallel
     const adsWithImages = await Promise.all(
