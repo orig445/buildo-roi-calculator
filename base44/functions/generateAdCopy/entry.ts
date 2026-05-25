@@ -145,7 +145,7 @@ ${adIndex === 0 ? `Also create one Hebrew marketing email template:
 
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
-      model: 'gpt_5_5',
+      model: 'gpt_5_mini',
       response_json_schema,
     });
 
@@ -155,23 +155,7 @@ ${adIndex === 0 ? `Also create one Hebrew marketing email template:
     const rawLogoUrl = businessInfo.logo || businessInfo.logo_url || null;
     const logoUrl = rawLogoUrl && rawLogoUrl.startsWith('http') ? rawLogoUrl : null;
 
-    // Generate the image
-    let imageUrl = null;
-    try {
-      const baseImagePrompt = adFields.imagePrompt || '';
-      const enrichedPrompt = `${baseImagePrompt}${brandColors ? ` Brand color palette reference: ${brandColors}.` : ''} This is for a ${businessInfo.type} business targeting ${businessInfo.audience || 'general consumers'}. The image should immediately communicate: ${businessInfo.usp || businessInfo.product}. Facebook feed aspect ratio 1:1, optimized for mobile scroll-stopping impact. IMPORTANT: Bright, vibrant, colorful photography with saturated colors and energetic lighting - NOT dark, moody, or desaturated. Make it pop and catch attention with vivid colors and happiness. NO TEXT OVERLAY OR WATERMARKS. Ultra-high quality commercial advertising photography.`;
-
-      const imgResult = await base44.asServiceRole.integrations.Core.GenerateImage({
-        prompt: enrichedPrompt,
-        existing_image_urls: logoUrl ? [logoUrl] : undefined,
-      });
-      imageUrl = imgResult?.url || null;
-    } catch (imgErr) {
-      console.error(`Image generation failed for ad ${adIndex}:`, imgErr.message);
-      // Continue without image rather than fail the whole ad
-    }
-
-    const ad = { ...adFields, imageUrl };
+    const ad = { ...adFields, imageUrl: null };
 
     const emailTemplate = adIndex === 0 ? {
       subject: emailSubject || '',
@@ -179,7 +163,27 @@ ${adIndex === 0 ? `Also create one Hebrew marketing email template:
       body: emailBody || '',
     } : null;
 
-    return Response.json({ ad, emailTemplate });
+    // Return ad copy immediately without waiting for image
+    const response = { ad, emailTemplate };
+    
+    // Generate image in background (non-blocking)
+    if (!pregenerateImages) {
+      const baseImagePrompt = adFields.imagePrompt || '';
+      const enrichedPrompt = `${baseImagePrompt}${brandColors ? ` Brand color palette reference: ${brandColors}.` : ''} This is for a ${businessInfo.type} business targeting ${businessInfo.audience || 'general consumers'}. The image should immediately communicate: ${businessInfo.usp || businessInfo.product}. Facebook feed aspect ratio 1:1, optimized for mobile scroll-stopping impact. IMPORTANT: Bright, vibrant, colorful photography with saturated colors and energetic lighting - NOT dark, moody, or desaturated. Make it pop and catch attention with vivid colors and happiness. NO TEXT OVERLAY OR WATERMARKS. Ultra-high quality commercial advertising photography.`;
+
+      base44.asServiceRole.integrations.Core.GenerateImage({
+        prompt: enrichedPrompt,
+        existing_image_urls: logoUrl ? [logoUrl] : undefined,
+      }).then((imgResult) => {
+        if (imgResult?.url) {
+          ad.imageUrl = imgResult.url;
+        }
+      }).catch((imgErr) => {
+        console.error(`Image generation failed for ad ${adIndex}:`, imgErr.message);
+      });
+    }
+
+    return Response.json(response);
   } catch (error) {
     console.error('generateAdCopy error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
