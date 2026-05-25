@@ -140,25 +140,33 @@ export default function AdsLibraryStep({ businessInfo, onSelected }) {
                 </div>
               )}
 
-              {/* Ad Image */}
-              <div style={{ borderRadius: 10, overflow: "hidden", marginBottom: 12, height: 130, background: "rgba(255,255,255,0.06)", position: "relative" }}>
-                {ad.demo_image ? (
+              {/* Ad Image / Preview */}
+              <div style={{ borderRadius: 10, overflow: "hidden", marginBottom: 12, height: 160, background: "rgba(255,255,255,0.06)", position: "relative" }}>
+                {ad.ad_snapshot_url ? (
+                  <>
+                    <iframe
+                      src={ad.ad_snapshot_url}
+                      title="ad preview"
+                      scrolling="no"
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ width: "100%", height: "100%", border: "none", pointerEvents: "none", transform: "scale(1)", transformOrigin: "top left" }}
+                    />
+                    <a
+                      href={ad.ad_snapshot_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ position: "absolute", bottom: 6, left: 6, display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "white", background: "rgba(0,0,0,0.6)", padding: "3px 8px", borderRadius: 20, textDecoration: "none", backdropFilter: "blur(4px)" }}
+                    >
+                      <ExternalLink size={9} /> פתח בפייסבוק
+                    </a>
+                  </>
+                ) : ad.demo_image ? (
                   <img src={ad.demo_image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                 ) : (
                   <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, rgba(124,58,237,0.2), rgba(37,99,235,0.2))" }}>
                     <div style={{ fontSize: 32 }}>📢</div>
                   </div>
-                )}
-                {ad.ad_snapshot_url && (
-                  <a
-                    href={ad.ad_snapshot_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    style={{ position: "absolute", bottom: 6, left: 6, display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "white", background: "rgba(0,0,0,0.6)", padding: "3px 8px", borderRadius: 20, textDecoration: "none", backdropFilter: "blur(4px)" }}
-                  >
-                    <ExternalLink size={9} /> צפה במקור
-                  </a>
                 )}
               </div>
 
