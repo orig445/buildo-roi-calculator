@@ -326,11 +326,11 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
   const [unlocked, setUnlocked] = useState(false);
   const brandColor = getBrandColor(businessInfo);
 
-  const hasAnyAd = ads.some(Boolean);
+  const hasFirstImage = ads[0]?.imageUrl;
   const totalSlots = 3;
 
-  // Show full loading screen only before first ad arrives
-  if (isLoading && !hasAnyAd) {
+  // Show full loading screen until first image arrives
+  if (!hasFirstImage) {
     return (
       <div style={{ textAlign: "center", padding: "80px 0" }}>
         <motion.div
@@ -378,7 +378,7 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
 
       <div style={{ display: "flex", flexDirection: "column", gap: 24, marginBottom: 28 }}>
         {Array.from({ length: totalSlots }).map((_, i) =>
-          ads[i] ? (
+          ads[i]?.imageUrl ? (
             <AdCard
               key={i}
               ad={ads[i]}
@@ -387,9 +387,9 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
               unlocked={unlocked}
               onUnlock={() => setModalOpen(true)}
             />
-          ) : isLoading ? (
+          ) : (
             <AdSkeleton key={i} index={i} brandColor={brandColor} />
-          ) : null
+          )
         )}
       </div>
 
