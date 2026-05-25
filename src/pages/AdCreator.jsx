@@ -20,15 +20,30 @@ export default function AdCreator() {
   const [emailTemplate, setEmailTemplate] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleBusinessAnalyzed = (info) => {
+  const handleBusinessAnalyzed = async (info) => {
     setBusinessInfo(info);
+    // Pre-generate 3 images immediately after website scan
+    try {
+      const res = await base44.functions.invoke("generateAdCopy", {
+        businessInfo: info,
+        pregenerateImages: true,
+      });
+      if (res.data?.pregeneratedImages) {
+        setGeneratedAds([
+          { imageUrl: res.data.pregeneratedImages[0] },
+          { imageUrl: res.data.pregeneratedImages[1] },
+          { imageUrl: res.data.pregeneratedImages[2] },
+        ]);
+      }
+    } catch (e) {
+      console.error("Pre-gen failed:", e);
+    }
     setStep(2);
   };
 
   const handleStyleSelected = async (selectedStyle) => {
     setStyle(selectedStyle);
     setIsGenerating(true);
-    setGeneratedAds([]);
     setStep(3);
 
     try {
@@ -44,6 +59,10 @@ export default function AdCreator() {
           if (ad) {
             setGeneratedAds((prev) => {
               const next = [...prev];
+              // Merge with pre-generated image if exists
+              if (prev[index]?.imageUrl && !ad.imageUrl) {
+                ad.imageUrl = prev[index].imageUrl;
+              }
               next[index] = ad;
               return next;
             });

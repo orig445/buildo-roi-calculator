@@ -3,10 +3,41 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { businessInfo, style, adIndex = 0, totalAds = 3 } = await req.json();
+    const { businessInfo, style, adIndex = 0, totalAds = 3, pregenerateImages = false } = await req.json();
 
     if (!businessInfo) {
       return Response.json({ error: 'חסר businessInfo' }, { status: 400 });
+    }
+
+    // If pre-generating images only (no style selected yet)
+    if (pregenerateImages) {
+      const brandColors = (businessInfo.colors || businessInfo.brand_colors || []).join(', ');
+      const logoUrl = (businessInfo.logo || businessInfo.logo_url || null);
+      const validLogo = logoUrl && logoUrl.startsWith('http') ? logoUrl : null;
+
+      const basePrompt = `Professional commercial photography for ${businessInfo.type} business named ${businessInfo.name}. ${businessInfo.product || businessInfo.usp || ''}. Target audience: ${businessInfo.audience || 'general consumers'}. Facebook ad square 1:1, mobile-optimized, scroll-stopping impact.`;
+      const stylePrompts = [
+        `${basePrompt} Bright warm lifestyle photography, happy smiling people, natural sunlight, vibrant saturated colors, uplifting and trustworthy mood.`,
+        `${basePrompt} Bold professional studio lighting, clean bright background, confident person or product showcase, high contrast, energetic commercial advertising.`,
+        `${basePrompt} Colorful playful scene, vivid neon accents, fun joyful atmosphere, bright cheerful energy, eye-catching humorous vibe.`,
+      ];
+
+      const images = [];
+      for (let i = 0; i < 3; i++) {
+        try {
+          const enrichedPrompt = `${stylePrompts[i]}${brandColors ? ` Brand color palette reference: ${brandColors}.` : ''} IMPORTANT: Bright, vibrant, colorful photography with saturated colors and energetic lighting - NOT dark, moody, or desaturated. Make it pop with vivid colors and happiness. Ultra-high quality 8K commercial advertising photography.`;
+          const imgResult = await base44.asServiceRole.integrations.Core.GenerateImage({
+            prompt: enrichedPrompt,
+            existing_image_urls: validLogo ? [validLogo] : undefined,
+          });
+          images.push(imgResult?.url || null);
+        } catch (imgErr) {
+          console.error(`Pre-gen image ${i} failed:`, imgErr.message);
+          images.push(null);
+        }
+      }
+
+      return Response.json({ pregeneratedImages: images });
     }
 
     const styleInstructions = {
