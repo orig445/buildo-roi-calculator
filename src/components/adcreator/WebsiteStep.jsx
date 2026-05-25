@@ -41,9 +41,9 @@ export default function WebsiteStep({ onAnalyzed }) {
     }
   };
 
-  // Pick dominant color for gradient effects
-  const dominantColor = preview?.colors?.[0] || "#7c3aed";
-  const secondColor = preview?.colors?.[1] || "#2563eb";
+  // Pick dominant color for gradient effects — no purple fallback
+  const dominantColor = preview?.colors?.[0] || "#1a1a2e";
+  const secondColor = preview?.colors?.[1] || "#16213e";
 
   return (
     <div>
@@ -165,13 +165,9 @@ export default function WebsiteStep({ onAnalyzed }) {
                         src={preview.logo}
                         alt="logo"
                         style={{ width: 60, height: 60, borderRadius: 12, objectFit: "contain", background: "white", padding: 6, boxShadow: "0 4px 20px rgba(0,0,0,0.4)" }}
-                        onError={(e) => { e.target.style.display = "none"; }}
+                        onError={(e) => { e.target.parentNode.removeChild(e.target); }}
                       />
-                    ) : (
-                      <div style={{ width: 60, height: 60, borderRadius: 12, background: `linear-gradient(135deg, ${dominantColor}, ${secondColor})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, fontWeight: 900, boxShadow: "0 4px 20px rgba(0,0,0,0.4)" }}>
-                        {preview.name.charAt(0)}
-                      </div>
-                    )}
+                    ) : null}
                   </div>
                   <div style={{ marginBottom: 4 }}>
                     <div style={{ fontSize: 22, fontWeight: 900, color: "white", textShadow: "0 2px 8px rgba(0,0,0,0.6)" }}>{preview.name}</div>
