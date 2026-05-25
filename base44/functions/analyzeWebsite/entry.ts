@@ -76,6 +76,11 @@ OUTPUT FIELDS:
 - closing_message: Hebrew confirmation message — 1 sentence, friendly, mention the business name
 - quick_reply_1: short Hebrew quick-reply button text (4–6 words) — relevant to the main service, e.g. "קביעת תור 📅" or "רוצה לשמוע עוד 🙋"
 - quick_reply_2: short Hebrew quick-reply button text (4–6 words) — secondary action, e.g. "מחירים ושירותים 💸" or "שאלה על מוצר"
+- logo_url: if you can infer the logo URL from the site (e.g. /logo.png, /images/logo.svg based on the URL), provide it. Otherwise empty string.
+- brand_colors: array of up to 3 hex color strings inferred from the site design (e.g. ["#FF5733", "#2C3E50"]). Empty array if unknown.
+- keywords: array of 3–5 English keywords describing the business category, suitable for Facebook Ads Library search (e.g. ["hair salon", "beauty", "hairstylist"])
+- target_audience: 1 sentence describing the typical customer
+- usp: the unique selling proposition or main differentiator of the business, in Hebrew, 1 sentence
 
 Return ONLY valid JSON.
 `,
@@ -94,8 +99,13 @@ Return ONLY valid JSON.
           closing_message: { type: "string" },
           quick_reply_1: { type: "string" },
           quick_reply_2: { type: "string" },
+          logo_url: { type: "string" },
+          brand_colors: { type: "array", items: { type: "string" } },
+          keywords: { type: "array", items: { type: "string" } },
+          target_audience: { type: "string" },
+          usp: { type: "string" },
         },
-        required: ["business_name", "business_type", "insight", "monthly_messages", "monthly_customers", "avg_deal_value", "opening_message", "follow_up_message", "info_message", "closing_message", "quick_reply_1", "quick_reply_2"]
+        required: ["business_name", "business_type", "insight", "monthly_messages", "monthly_customers", "avg_deal_value", "opening_message", "follow_up_message", "info_message", "closing_message", "quick_reply_1", "quick_reply_2", "keywords"]
       }
     });
 
