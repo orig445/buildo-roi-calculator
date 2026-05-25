@@ -79,12 +79,37 @@ Deno.serve(async (req) => {
         .filter(u => !u.includes('pixel') && !u.includes('tracking') && !u.includes('1x1') && !u.includes('icon') && !u.includes('favicon'))
         .slice(0, 12);
 
-      // ── Also try to get logo ──
-      const logoRegex = /<(?:img|link)[^>]+(?:logo|brand|site-logo|header-logo)[^>]+(?:src|href)=["']([^"']+)["'][^>]*>/gi;
+      // ── Extract logo URL — try multiple patterns ──
       let logoUrl = '';
-      const lm = logoRegex.exec(html);
-      if (lm) {
-        try { logoUrl = new URL(lm[1], baseUrl).href; } catch {}
+
+      // 1. og:image meta tag (most reliable)
+      const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+        || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+      if (ogMatch) {
+        try { logoUrl = new URL(ogMatch[1], baseUrl).href; } catch {}
+      }
+
+      // 2. <link rel="icon" or "apple-touch-icon"> — high-res
+      if (!logoUrl) {
+        const iconMatch = html.match(/<link[^>]+rel=["'][^"']*apple-touch-icon[^"']*["'][^>]+href=["']([^"']+)["']/i)
+          || html.match(/<link[^>]+href=["']([^"']+)["'][^>]+rel=["'][^"']*apple-touch-icon[^"']*["']/i);
+        if (iconMatch) {
+          try { logoUrl = new URL(iconMatch[1], baseUrl).href; } catch {}
+        }
+      }
+
+      // 3. <img> with "logo" in class, id, alt, or src
+      if (!logoUrl) {
+        const logoImgMatch = html.match(/<img[^>]+(?:class|id|alt|src)=["'][^"']*logo[^"']*["'][^>]+src=["']([^"']+)["']/i)
+          || html.match(/<img[^>]+src=["']([^"']*logo[^"']*)["']/i);
+        if (logoImgMatch) {
+          try { logoUrl = new URL(logoImgMatch[1], baseUrl).href; } catch {}
+        }
+      }
+
+      // 4. Fallback: first og:image from extractedImages
+      if (!logoUrl && extractedImages.length > 0) {
+        logoUrl = extractedImages[0];
       }
 
       // Strip scripts/styles, then HTML tags, normalize whitespace
