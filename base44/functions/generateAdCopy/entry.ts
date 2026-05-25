@@ -92,25 +92,19 @@ Deno.serve(async (req) => {
     const variantHint = variantHints[adIndex] || variantHints[0];
 
     const prompt = `צור פרסומת פייסבוק בעברית לעסק:
-- שם: ${businessInfo.name}
-- סוג: ${businessInfo.type}
-- מוצר: ${businessInfo.product}
-- קהל יעד: ${businessInfo.audience}
-- ייחודיות: ${businessInfo.usp}
+שם: ${businessInfo.name}
+סוג: ${businessInfo.type}
+מוצר: ${businessInfo.product}
+קהל: ${businessInfo.audience}
+ייחודיות: ${businessInfo.usp}
+סגנון: ${styleInstructions[style] || 'ישיר ועסקי'}
 
-סגנון: ${styleInstructions[style] || styleInstructions.direct}
-${variantHint}
-
-החזר JSON:
-1. headline — כותרת ראשית (עד 40 תווים)
-2. subheadline — כותרת משנה (עד 25 תווים)
-3. body — גוף הפרסומת (2-3 משפטים קצרים)
-4. cta — טקסט כפתור (עד 20 תווים)
-5. imagePrompt — prompt לתמונה באנגלית (50 מילים): "${imgDir.lighting}, ${imgDir.composition}, ${imgDir.mood}, ${imgDir.vibe}, commercial photography, bright vibrant colors, NO TEXT"
-
-${adIndex === 0 ? `6. emailSubject — נושא מייל (60 תווים)
-7. emailPreview — טקסט תצוגה (90 תווים)
-8. emailBody — HTML מייל שיווקי` : ''}`;
+החזר JSON בלבד:
+headline (40 תווים)
+subheadline (25 תווים)
+body (3 משפטים)
+cta (20 תווים)
+${adIndex === 0 ? 'emailSubject, emailPreview, emailBody (HTML)' : ''}`;
 
     const response_json_schema = {
       type: 'object',
@@ -119,13 +113,13 @@ ${adIndex === 0 ? `6. emailSubject — נושא מייל (60 תווים)
         subheadline: { type: 'string' },
         body: { type: 'string' },
         cta: { type: 'string' },
-        imagePrompt: { type: 'string' },
         ...(adIndex === 0 ? {
           emailSubject: { type: 'string' },
           emailPreview: { type: 'string' },
           emailBody: { type: 'string' },
         } : {}),
       },
+      required: ['headline', 'body', 'cta'],
     };
 
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
@@ -136,11 +130,7 @@ ${adIndex === 0 ? `6. emailSubject — נושא מייל (60 תווים)
 
     const { emailSubject, emailPreview, emailBody, ...adFields } = result;
 
-    const brandColors = (businessInfo.colors || businessInfo.brand_colors || []).join(', ');
-    const rawLogoUrl = businessInfo.logo || businessInfo.logo_url || null;
-    const logoUrl = rawLogoUrl && rawLogoUrl.startsWith('http') ? rawLogoUrl : null;
-
-    const ad = { ...adFields, imageUrl: null };
+    const ad = adFields;
 
     const emailTemplate = adIndex === 0 ? {
       subject: emailSubject || '',
@@ -148,27 +138,7 @@ ${adIndex === 0 ? `6. emailSubject — נושא מייל (60 תווים)
       body: emailBody || '',
     } : null;
 
-    // Return ad copy immediately without waiting for image
-    const response = { ad, emailTemplate };
-    
-    // Generate image in background (non-blocking)
-    if (!pregenerateImages) {
-      const baseImagePrompt = adFields.imagePrompt || '';
-      const enrichedPrompt = `${baseImagePrompt}${brandColors ? ` Brand color palette reference: ${brandColors}.` : ''} This is for a ${businessInfo.type} business targeting ${businessInfo.audience || 'general consumers'}. The image should immediately communicate: ${businessInfo.usp || businessInfo.product}. Facebook feed aspect ratio 1:1, optimized for mobile scroll-stopping impact. IMPORTANT: Bright, vibrant, colorful photography with saturated colors and energetic lighting - NOT dark, moody, or desaturated. Make it pop and catch attention with vivid colors and happiness. NO TEXT OVERLAY OR WATERMARKS. Ultra-high quality commercial advertising photography.`;
-
-      base44.asServiceRole.integrations.Core.GenerateImage({
-        prompt: enrichedPrompt,
-        existing_image_urls: logoUrl ? [logoUrl] : undefined,
-      }).then((imgResult) => {
-        if (imgResult?.url) {
-          ad.imageUrl = imgResult.url;
-        }
-      }).catch((imgErr) => {
-        console.error(`Image generation failed for ad ${adIndex}:`, imgErr.message);
-      });
-    }
-
-    return Response.json(response);
+    return Response.json({ ad, emailTemplate });
   } catch (error) {
     console.error('generateAdCopy error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });

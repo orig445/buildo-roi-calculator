@@ -326,11 +326,10 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
   const [unlocked, setUnlocked] = useState(false);
   const brandColor = getBrandColor(businessInfo);
 
-  const hasFirstImage = ads[0]?.imageUrl;
   const totalSlots = 3;
 
-  // Show full loading screen until first image arrives
-  if (!hasFirstImage) {
+  // Show loading only while waiting for copy (not images)
+  if (isLoading) {
     return (
       <div style={{ textAlign: "center", padding: "80px 0" }}>
         <motion.div
@@ -340,14 +339,8 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
         >
           <Loader2 size={48} color={brandColor} />
         </motion.div>
-        <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8, color: "#000" }}>יוצר פרסומות ותמונות...</div>
-        <div style={{ fontSize: 13, color: "#666" }}>כותב קופי, מייצר תמונות מותאמות לעסק שלך</div>
-        <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 20 }}>
-          {[0, 1, 2].map(i => (
-            <motion.div key={i} animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2 }}
-              style={{ width: 8, height: 8, borderRadius: "50%", background: brandColor }} />
-          ))}
-        </div>
+        <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8, color: "#000" }}>יוצר פרסומות...</div>
+        <div style={{ fontSize: 13, color: "#666" }}>כתיבת קופי מותאם אישית</div>
       </div>
     );
   }
@@ -378,7 +371,7 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
 
       <div style={{ display: "flex", flexDirection: "column", gap: 24, marginBottom: 28 }}>
         {Array.from({ length: totalSlots }).map((_, i) =>
-          ads[i]?.imageUrl ? (
+          ads[i] ? (
             <AdCard
               key={i}
               ad={ads[i]}
