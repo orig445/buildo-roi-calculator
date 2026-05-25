@@ -1,10 +1,30 @@
 import { useState } from "react";
-import { Loader2, Copy, Check, ArrowRight, MoreHorizontal, ThumbsUp, MessageCircle, Share2, Mail } from "lucide-react";
+import { Loader2, Copy, Check, ArrowRight, MoreHorizontal, ThumbsUp, MessageCircle, Share2, Mail, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LeadModal from "./LeadModal";
 
-function AdCard({ ad, index, businessInfo, onUnlock }) {
+// Extract primary brand color (first color from businessInfo.colors)
+function getBrandColor(businessInfo) {
+  const colors = businessInfo?.colors || businessInfo?.brand_colors || [];
+  return colors[0] || "#000000";
+}
+
+function downloadImage(url, filename) {
+  fetch(url)
+    .then(res => res.blob())
+    .then(blob => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename || "ad-image.jpg";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+}
+
+function AdCard({ ad, index, businessInfo, onUnlock, unlocked }) {
   const [copied, setCopied] = useState(false);
+  const brandColor = getBrandColor(businessInfo);
+  const isFirst = index === 0;
 
   const copyAll = () => {
     const text = `${ad.headline}\n${ad.subheadline}\n\n${ad.body}\n\n${ad.cta}`;
@@ -33,7 +53,7 @@ function AdCard({ ad, index, businessInfo, onUnlock }) {
         {/* Page header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#000", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: 16 }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: brandColor, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: 16 }}>
               {pageInitial}
             </div>
             <div>
@@ -49,29 +69,77 @@ function AdCard({ ad, index, businessInfo, onUnlock }) {
           {ad.body?.slice(0, 120)}{ad.body?.length > 120 ? "..." : ""}
         </div>
 
-        {/* Ad Image — blurred with unlock overlay */}
-        <div style={{ position: "relative", cursor: "pointer" }} onClick={onUnlock}>
-          {ad.imageUrl ? (
-            <img src={ad.imageUrl} alt="ad" style={{ width: "100%", height: 220, objectFit: "cover", display: "block", filter: "blur(8px)" }} />
-          ) : (
-            <div style={{ width: "100%", height: 220, background: "#e0e0e0" }} />
-          )}
-          {/* Lock overlay */}
-          <div style={{
-            position: "absolute", inset: 0,
-            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-            background: "rgba(0,0,0,0.45)",
-            gap: 8,
-          }}>
-            <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              </svg>
-            </div>
-            <div style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>לחץ לצפייה בתמונה</div>
+        {/* Ad Image */}
+        {isFirst ? (
+          // First ad: show image clearly, download button on hover
+          <div style={{ position: "relative" }}>
+            {ad.imageUrl ? (
+              <>
+                <img src={ad.imageUrl} alt="ad" style={{ width: "100%", height: 260, objectFit: "cover", display: "block" }} />
+                {/* Download overlay */}
+                {unlocked ? (
+                  <div style={{
+                    position: "absolute", bottom: 12, left: "50%", transform: "translateX(-50%)",
+                  }}>
+                    <button
+                      onClick={() => downloadImage(ad.imageUrl, `ad-${pageName}.jpg`)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 6,
+                        background: brandColor, color: "#fff", border: "none",
+                        borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 800,
+                        cursor: "pointer", fontFamily: "'Heebo', sans-serif",
+                        boxShadow: "0 4px 14px rgba(0,0,0,0.3)",
+                      }}
+                    >
+                      <Download size={14} /> הורד תמונה
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{
+                    position: "absolute", bottom: 12, left: "50%", transform: "translateX(-50%)",
+                  }}>
+                    <button
+                      onClick={onUnlock}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 6,
+                        background: brandColor, color: "#fff", border: "none",
+                        borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 800,
+                        cursor: "pointer", fontFamily: "'Heebo', sans-serif",
+                        boxShadow: "0 4px 14px rgba(0,0,0,0.3)",
+                      }}
+                    >
+                      <Download size={14} /> הורד תמונה
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{ width: "100%", height: 260, background: "#e0e0e0" }} />
+            )}
           </div>
-        </div>
+        ) : (
+          // Other ads: blurred with lock
+          <div style={{ position: "relative", cursor: "pointer" }} onClick={onUnlock}>
+            {ad.imageUrl ? (
+              <img src={ad.imageUrl} alt="ad" style={{ width: "100%", height: 220, objectFit: "cover", display: "block", filter: "blur(8px)" }} />
+            ) : (
+              <div style={{ width: "100%", height: 220, background: "#e0e0e0" }} />
+            )}
+            <div style={{
+              position: "absolute", inset: 0,
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+              background: "rgba(0,0,0,0.45)", gap: 8,
+            }}>
+              <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+              </div>
+              <div style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>לחץ לצפייה בתמונה</div>
+            </div>
+          </div>
+        )}
 
         {/* Headline bar */}
         <div style={{ background: "#f0f2f5", padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -80,7 +148,7 @@ function AdCard({ ad, index, businessInfo, onUnlock }) {
             <div style={{ fontSize: 14, fontWeight: 800, color: "#050505" }}>{ad.headline}</div>
             {ad.subheadline && <div style={{ fontSize: 12, color: "#65676b" }}>{ad.subheadline}</div>}
           </div>
-          <div style={{ background: "#000", borderRadius: 6, padding: "7px 14px", fontSize: 13, fontWeight: 700, color: "#fff", whiteSpace: "nowrap", marginRight: 10, flexShrink: 0 }}>
+          <div style={{ background: brandColor, borderRadius: 6, padding: "7px 14px", fontSize: 13, fontWeight: 700, color: "#fff", whiteSpace: "nowrap", marginRight: 10, flexShrink: 0 }}>
             {ad.cta}
           </div>
         </div>
@@ -101,9 +169,9 @@ function AdCard({ ad, index, businessInfo, onUnlock }) {
 
       {/* RIGHT: Copy panel */}
       <div style={{ background: "#f9f9f9", border: "1px solid #e0e0e0", borderRadius: 12, overflow: "hidden" }}>
-        <div style={{ background: "#000", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ background: brandColor, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ fontSize: 11, color: "#fff", fontWeight: 700 }}>גרסה {index + 1}</div>
-          <button onClick={copyAll} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 6, padding: "5px 12px", color: "#fff", cursor: "pointer", fontSize: 11, fontFamily: "'Heebo', sans-serif" }}>
+          <button onClick={copyAll} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.2)", border: "none", borderRadius: 6, padding: "5px 12px", color: "#fff", cursor: "pointer", fontSize: 11, fontFamily: "'Heebo', sans-serif" }}>
             {copied ? <><Check size={11} color="#4ade80" /> הועתק!</> : <><Copy size={11} /> העתק הכל</>}
           </button>
         </div>
@@ -120,13 +188,13 @@ function AdCard({ ad, index, businessInfo, onUnlock }) {
           )}
           <div>
             <div style={{ fontSize: 10, color: "#999", marginBottom: 4 }}>גוף הפרסומת</div>
-            <div style={{ fontSize: 12, color: "#444", lineHeight: 1.7, background: "#fff", borderRadius: 8, padding: "10px 12px", borderRight: "3px solid #000" }}>
+            <div style={{ fontSize: 12, color: "#444", lineHeight: 1.7, background: "#fff", borderRadius: 8, padding: "10px 12px", borderRight: `3px solid ${brandColor}` }}>
               {ad.body}
             </div>
           </div>
           <div>
             <div style={{ fontSize: 10, color: "#999", marginBottom: 6 }}>CTA</div>
-            <div style={{ display: "inline-flex", background: "#000", color: "#fff", borderRadius: 8, padding: "7px 16px", fontSize: 13, fontWeight: 800 }}>
+            <div style={{ display: "inline-flex", background: brandColor, color: "#fff", borderRadius: 8, padding: "7px 16px", fontSize: 13, fontWeight: 800 }}>
               {ad.cta}
             </div>
           </div>
@@ -136,7 +204,7 @@ function AdCard({ ad, index, businessInfo, onUnlock }) {
   );
 }
 
-function EmailTemplate({ emailTemplate, onUnlock }) {
+function EmailTemplate({ emailTemplate, onUnlock, brandColor }) {
   const [copied, setCopied] = useState(false);
   const [tab, setTab] = useState("preview");
 
@@ -146,14 +214,14 @@ function EmailTemplate({ emailTemplate, onUnlock }) {
       animate={{ opacity: 1, y: 0 }}
       style={{ background: "#f9f9f9", border: "1px solid #e0e0e0", borderRadius: 16, overflow: "hidden", marginBottom: 24 }}
     >
-      <div style={{ background: "#000", padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ background: brandColor, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Mail size={16} color="#fff" />
           <span style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>תבנית מייל שיווקי</span>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           {["preview", "html"].map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{ background: tab === t ? "#fff" : "transparent", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 6, padding: "4px 12px", color: tab === t ? "#000" : "rgba(255,255,255,0.7)", fontSize: 11, cursor: "pointer", fontFamily: "'Heebo', sans-serif" }}>
+            <button key={t} onClick={() => setTab(t)} style={{ background: tab === t ? "#fff" : "transparent", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 6, padding: "4px 12px", color: tab === t ? brandColor : "rgba(255,255,255,0.7)", fontSize: 11, cursor: "pointer", fontFamily: "'Heebo', sans-serif" }}>
               {t === "preview" ? "תצוגה מקדימה" : "HTML"}
             </button>
           ))}
@@ -172,7 +240,6 @@ function EmailTemplate({ emailTemplate, onUnlock }) {
           </div>
         </div>
 
-        {/* Blurred preview with lock */}
         <div style={{ position: "relative", cursor: "pointer" }} onClick={onUnlock}>
           <div style={{ filter: "blur(5px)", pointerEvents: "none" }}>
             {tab === "preview" && emailTemplate.body ? (
@@ -190,7 +257,7 @@ function EmailTemplate({ emailTemplate, onUnlock }) {
             display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
             background: "rgba(255,255,255,0.5)", gap: 8, borderRadius: 10,
           }}>
-            <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 44, height: 44, borderRadius: "50%", background: brandColor, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -206,6 +273,8 @@ function EmailTemplate({ emailTemplate, onUnlock }) {
 
 export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplate }) {
   const [modalOpen, setModalOpen] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
+  const brandColor = getBrandColor(businessInfo);
 
   if (isLoading) {
     return (
@@ -215,7 +284,7 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           style={{ display: "inline-block", marginBottom: 20 }}
         >
-          <Loader2 size={48} color="#000" />
+          <Loader2 size={48} color={brandColor} />
         </motion.div>
         <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8, color: "#000" }}>יוצר פרסומות ותמונות...</div>
         <div style={{ fontSize: 13, color: "#666" }}>כותב קופי, מייצר תמונות מותאמות לעסק שלך</div>
@@ -225,7 +294,7 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
               key={i}
               animate={{ scale: [1, 1.3, 1] }}
               transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2 }}
-              style={{ width: 8, height: 8, borderRadius: "50%", background: "#000" }}
+              style={{ width: 8, height: 8, borderRadius: "50%", background: brandColor }}
             />
           ))}
         </div>
@@ -235,7 +304,19 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
 
   return (
     <div>
-      <LeadModal isOpen={modalOpen} onClose={() => setModalOpen(false)} businessInfo={businessInfo} />
+      <LeadModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        businessInfo={businessInfo}
+        onSuccess={() => {
+          setUnlocked(true);
+          setModalOpen(false);
+          // trigger download of first ad image
+          if (ads[0]?.imageUrl) {
+            downloadImage(ads[0].imageUrl, `ad-${businessInfo?.name || "image"}.jpg`);
+          }
+        }}
+      />
 
       <div style={{ textAlign: "center", marginBottom: 28 }}>
         <div style={{ fontSize: 13, color: "#666", fontWeight: 700, marginBottom: 8 }}>שלב 3 מתוך 3</div>
@@ -246,19 +327,32 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 24, marginBottom: 28 }}>
-        {ads.map((ad, i) => <AdCard key={i} ad={ad} index={i} businessInfo={businessInfo} onUnlock={() => setModalOpen(true)} />)}
+        {ads.map((ad, i) => (
+          <AdCard
+            key={i}
+            ad={ad}
+            index={i}
+            businessInfo={businessInfo}
+            unlocked={unlocked}
+            onUnlock={() => setModalOpen(true)}
+          />
+        ))}
       </div>
 
-      {emailTemplate && <EmailTemplate emailTemplate={emailTemplate} onUnlock={() => setModalOpen(true)} />}
+      {emailTemplate && (
+        <EmailTemplate
+          emailTemplate={emailTemplate}
+          onUnlock={() => setModalOpen(true)}
+          brandColor={brandColor}
+        />
+      )}
 
       {/* CTA */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        style={{
-          background: "#000", borderRadius: 20, padding: "28px 24px", textAlign: "center",
-        }}
+        style={{ background: "#000", borderRadius: 20, padding: "28px 24px", textAlign: "center" }}
       >
         <h3 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8, color: "#fff" }}>רוצה לקבל את הפרסומות האלה כתמונות מוכנות?</h3>
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.7, marginBottom: 20 }}>
@@ -271,7 +365,7 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
           rel="noopener noreferrer"
           style={{
             display: "inline-flex", alignItems: "center", gap: 8,
-            background: "#fff", color: "#000", textDecoration: "none",
+            background: brandColor, color: "#fff", textDecoration: "none",
             borderRadius: 12, padding: "13px 28px", fontSize: 15, fontWeight: 800,
             fontFamily: "'Heebo', sans-serif",
           }}
