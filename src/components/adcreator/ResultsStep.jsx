@@ -70,76 +70,59 @@ function AdCard({ ad, index, businessInfo, onUnlock, unlocked }) {
         </div>
 
         {/* Ad Image */}
-        {isFirst ? (
-          // First ad: show image clearly, download button on hover
-          <div style={{ position: "relative" }}>
-            {ad.imageUrl ? (
-              <>
-                <img src={ad.imageUrl} alt="ad" style={{ width: "100%", height: 260, objectFit: "cover", display: "block" }} />
-                {/* Download overlay */}
-                {unlocked ? (
-                  <div style={{
-                    position: "absolute", bottom: 12, left: "50%", transform: "translateX(-50%)",
-                  }}>
-                    <button
-                      onClick={() => downloadImage(ad.imageUrl, `ad-${pageName}.jpg`)}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 6,
-                        background: brandColor, color: "#fff", border: "none",
-                        borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 800,
-                        cursor: "pointer", fontFamily: "'Heebo', sans-serif",
-                        boxShadow: "0 4px 14px rgba(0,0,0,0.3)",
-                      }}
-                    >
-                      <Download size={14} /> הורד תמונה
-                    </button>
-                  </div>
-                ) : (
-                  <div style={{
-                    position: "absolute", bottom: 12, left: "50%", transform: "translateX(-50%)",
-                  }}>
-                    <button
-                      onClick={onUnlock}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 6,
-                        background: brandColor, color: "#fff", border: "none",
-                        borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 800,
-                        cursor: "pointer", fontFamily: "'Heebo', sans-serif",
-                        boxShadow: "0 4px 14px rgba(0,0,0,0.3)",
-                      }}
-                    >
-                      <Download size={14} /> הורד תמונה
-                    </button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div style={{ width: "100%", height: 260, background: "#e0e0e0" }} />
-            )}
-          </div>
-        ) : (
-          // Other ads: blurred with lock
-          <div style={{ position: "relative", cursor: "pointer" }} onClick={onUnlock}>
-            {ad.imageUrl ? (
-              <img src={ad.imageUrl} alt="ad" style={{ width: "100%", height: 220, objectFit: "cover", display: "block", filter: "blur(8px)" }} />
-            ) : (
-              <div style={{ width: "100%", height: 220, background: "#e0e0e0" }} />
-            )}
-            <div style={{
-              position: "absolute", inset: 0,
-              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-              background: "rgba(0,0,0,0.45)", gap: 8,
-            }}>
-              <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-              </div>
-              <div style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>לחץ לצפייה בתמונה</div>
+        <div style={{ position: "relative", background: "#f5f5f5", borderRadius: 8, overflow: "hidden" }}>
+          {ad.imageUrl ? (
+            <>
+              <img src={ad.imageUrl} alt="ad" style={{ width: "100%", height: isFirst ? 260 : 220, objectFit: "cover", display: "block", filter: isFirst ? "none" : "blur(8px)" }} />
+              {isFirst && unlocked && (
+                <div style={{ position: "absolute", bottom: 12, left: "50%", transform: "translateX(-50%)" }}>
+                  <button
+                    onClick={() => downloadImage(ad.imageUrl, `ad-${pageName}.jpg`)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 6,
+                      background: brandColor, color: "#fff", border: "none",
+                      borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 800,
+                      cursor: "pointer", fontFamily: "'Heebo', sans-serif",
+                      boxShadow: "0 4px 14px rgba(0,0,0,0.3)",
+                    }}
+                  >
+                    <Download size={14} /> הורד תמונה
+                  </button>
+                </div>
+              )}
+              {(!isFirst || !unlocked) && (
+                <div
+                  onClick={!isFirst ? onUnlock : undefined}
+                  style={{
+                    position: "absolute", inset: 0,
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    background: !isFirst ? "rgba(0,0,0,0.45)" : "transparent", gap: 8,
+                    cursor: !isFirst ? "pointer" : "default",
+                  }}
+                >
+                  {!isFirst && (
+                    <>
+                      <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                      </div>
+                      <div style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>לחץ לצפייה בתמונה</div>
+                    </>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <div style={{ width: "100%", height: isFirst ? 260 : 220, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+              <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}>
+                <Loader2 size={28} color={brandColor} />
+              </motion.div>
+              <div style={{ fontSize: 12, color: "#999" }}>מייצר תמונה...</div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Headline bar */}
         <div style={{ background: "#f0f2f5", padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
