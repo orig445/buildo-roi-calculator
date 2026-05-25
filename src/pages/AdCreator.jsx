@@ -3,13 +3,11 @@ import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Globe, Sparkles, ChevronLeft, Check, ExternalLink, Copy, ArrowRight } from "lucide-react";
 import WebsiteStep from "@/components/adcreator/WebsiteStep";
-import StyleStep from "@/components/adcreator/StyleStep";
 import ResultsStep from "@/components/adcreator/ResultsStep";
 
 const STEPS = [
   { id: 1, label: "ניתוח האתר" },
-  { id: 2, label: "בחר סגנון" },
-  { id: 3, label: "הפרסומת שלך" },
+  { id: 2, label: "יוצר פרסומות" },
 ];
 
 export default function AdCreator() {
@@ -20,37 +18,17 @@ export default function AdCreator() {
   const [emailTemplate, setEmailTemplate] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleBusinessAnalyzed = (info) => {
+  const handleBusinessAnalyzed = async (info) => {
     setBusinessInfo(info);
-    // Pre-generate 3 images in background (non-blocking)
-    base44.functions.invoke("generateAdCopy", {
-      businessInfo: info,
-      pregenerateImages: true,
-    }).then((res) => {
-      if (res.data?.pregeneratedImages) {
-        setGeneratedAds([
-          { imageUrl: res.data.pregeneratedImages[0] },
-          { imageUrl: res.data.pregeneratedImages[1] },
-          { imageUrl: res.data.pregeneratedImages[2] },
-        ]);
-      }
-    }).catch((e) => {
-      console.error("Pre-gen failed:", e);
-    });
-    setStep(2);
-  };
-
-  const handleStyleSelected = async (selectedStyle) => {
-    setStyle(selectedStyle);
     setIsGenerating(true);
-    setStep(3);
+    setStep(2);
 
+    // Fire all 3 ad generations in parallel immediately
     try {
-      // Fire all 3 ad generations in parallel — each resolves independently
       const promises = [0, 1, 2].map((index) =>
         base44.functions.invoke("generateAdCopy", {
-          businessInfo,
-          style: selectedStyle,
+          businessInfo: info,
+          style: "direct", // default professional style
           adIndex: index,
           totalAds: 3,
         }).then((res) => {
@@ -58,10 +36,6 @@ export default function AdCreator() {
           if (ad) {
             setGeneratedAds((prev) => {
               const next = [...prev];
-              // Merge with pre-generated image if exists
-              if (prev[index]?.imageUrl && !ad.imageUrl) {
-                ad.imageUrl = prev[index].imageUrl;
-              }
               next[index] = ad;
               return next;
             });
@@ -134,8 +108,7 @@ export default function AdCreator() {
             transition={{ duration: 0.35 }}
           >
             {step === 1 && <WebsiteStep onAnalyzed={handleBusinessAnalyzed} />}
-            {step === 2 && <StyleStep businessInfo={businessInfo} onSelected={handleStyleSelected} />}
-            {step === 3 && <ResultsStep ads={generatedAds} isLoading={isGenerating} businessInfo={businessInfo} emailTemplate={emailTemplate} />}
+            {step === 2 && <ResultsStep ads={generatedAds} isLoading={isGenerating} businessInfo={businessInfo} emailTemplate={emailTemplate} />}
           </motion.div>
         </AnimatePresence>
       </div>
