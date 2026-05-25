@@ -117,15 +117,22 @@ ${adIndex === 0 ? `Also create one Hebrew marketing email template:
     const logoUrl = rawLogoUrl && rawLogoUrl.startsWith('http') ? rawLogoUrl : null;
 
     // Generate the image
-    const baseImagePrompt = adFields.imagePrompt || '';
-    const enrichedPrompt = `${baseImagePrompt}${brandColors ? ` Brand color palette reference: ${brandColors}.` : ''} This is for a ${businessInfo.type} business targeting ${businessInfo.audience || 'general consumers'}. The image should immediately communicate: ${businessInfo.usp || businessInfo.product}. Facebook feed aspect ratio 1:1, optimized for mobile scroll-stopping impact. IMPORTANT: Bright, vibrant, colorful photography with saturated colors and energetic lighting - NOT dark, moody, or desaturated. Make it pop and catch attention with vivid colors and happiness. Ultra-high quality commercial advertising photography.`;
+    let imageUrl = null;
+    try {
+      const baseImagePrompt = adFields.imagePrompt || '';
+      const enrichedPrompt = `${baseImagePrompt}${brandColors ? ` Brand color palette reference: ${brandColors}.` : ''} This is for a ${businessInfo.type} business targeting ${businessInfo.audience || 'general consumers'}. The image should immediately communicate: ${businessInfo.usp || businessInfo.product}. Facebook feed aspect ratio 1:1, optimized for mobile scroll-stopping impact. IMPORTANT: Bright, vibrant, colorful photography with saturated colors and energetic lighting - NOT dark, moody, or desaturated. Make it pop and catch attention with vivid colors and happiness. Ultra-high quality commercial advertising photography.`;
 
-    const imgResult = await base44.asServiceRole.integrations.Core.GenerateImage({
-      prompt: enrichedPrompt,
-      existing_image_urls: logoUrl ? [logoUrl] : undefined,
-    });
+      const imgResult = await base44.asServiceRole.integrations.Core.GenerateImage({
+        prompt: enrichedPrompt,
+        existing_image_urls: logoUrl ? [logoUrl] : undefined,
+      });
+      imageUrl = imgResult?.url || null;
+    } catch (imgErr) {
+      console.error(`Image generation failed for ad ${adIndex}:`, imgErr.message);
+      // Continue without image rather than fail the whole ad
+    }
 
-    const ad = { ...adFields, imageUrl: imgResult.url || null };
+    const ad = { ...adFields, imageUrl };
 
     const emailTemplate = adIndex === 0 ? {
       subject: emailSubject || '',
