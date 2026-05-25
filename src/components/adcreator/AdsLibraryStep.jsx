@@ -3,38 +3,40 @@ import { base44 } from "@/api/base44Client";
 import { Loader2, ExternalLink, Check, RefreshCw, Search, Globe, Users, Eye, DollarSign, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 
-// Tries to load image, falls back to placeholder
-function AdVisual({ ad }) {
+// Visual keywords → Unsplash search terms for realistic ad visuals
+const TOPIC_IMAGES = [
+  "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=600&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=600&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&h=400&fit=crop",
+];
+
+function isRealImageUrl(url) {
+  if (!url) return false;
+  // reject fake/hallucinated URLs
+  if (url.includes('access_token=ACT')) return false;
+  if (url.includes('XXXXXXX')) return false;
+  if (url.includes('_def&oe=') || url.includes('_ghi&oe=')) return false;
+  return url.startsWith('http');
+}
+
+function AdVisual({ ad, index }) {
   const [imgError, setImgError] = useState(false);
-  const imageUrl = ad.ad_image_url || ad.demo_image;
 
-  if (ad.ad_snapshot_url && !ad.ad_snapshot_url.includes('access_token=ACT')) {
-    return (
-      <div style={{ height: 200, position: "relative", background: "rgba(0,0,0,0.3)", overflow: "hidden" }}>
-        <iframe
-          src={ad.ad_snapshot_url}
-          title="ad preview"
-          scrolling="no"
-          style={{ width: "160%", height: "160%", border: "none", pointerEvents: "none", transform: "scale(0.625)", transformOrigin: "top left" }}
-        />
-        <a
-          href={ad.ad_snapshot_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ position: "absolute", bottom: 8, left: 8, display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "white", background: "rgba(0,0,0,0.65)", padding: "4px 10px", borderRadius: 20, textDecoration: "none", backdropFilter: "blur(4px)", zIndex: 5 }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <ExternalLink size={9} /> פתח
-        </a>
-      </div>
-    );
-  }
+  // Use real image URL if available and valid
+  const realImage = isRealImageUrl(ad.ad_image_url) ? ad.ad_image_url
+    : isRealImageUrl(ad.demo_image) ? ad.demo_image
+    : null;
 
-  if (imageUrl && !imgError) {
+  if (realImage && !imgError) {
     return (
       <div style={{ height: 200, overflow: "hidden" }}>
         <img
-          src={imageUrl}
+          src={realImage}
           alt=""
           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
           onError={() => setImgError(true)}
@@ -43,24 +45,28 @@ function AdVisual({ ad }) {
     );
   }
 
-  // Text-based card — show the ad copy nicely instead of a blank placeholder
+  // Fallback: use a real Unsplash image based on index + ad copy overlay
+  const fallbackImg = TOPIC_IMAGES[index % TOPIC_IMAGES.length];
   return (
-    <div style={{
-      height: 200, display: "flex", flexDirection: "column", justifyContent: "center",
-      padding: "20px 18px", background: "linear-gradient(135deg, rgba(124,58,237,0.25), rgba(37,99,235,0.25))",
-      gap: 10,
-    }}>
-      <div style={{ fontSize: 11, color: "#a78bfa", fontWeight: 700 }}>{ad.page_name}</div>
-      {ad.ad_creative_link_titles?.[0] && (
-        <div style={{ fontSize: 15, fontWeight: 900, lineHeight: 1.35, color: "white" }}>
-          {ad.ad_creative_link_titles[0]}
-        </div>
-      )}
-      {ad.ad_creative_bodies?.[0] && (
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-          {ad.ad_creative_bodies[0]}
-        </div>
-      )}
+    <div style={{ height: 200, position: "relative", overflow: "hidden" }}>
+      <img
+        src={fallbackImg}
+        alt=""
+        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "brightness(0.55)" }}
+      />
+      {/* Ad copy overlay */}
+      <div style={{
+        position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+        justifyContent: "flex-end", padding: "16px 14px",
+        background: "linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 60%)"
+      }}>
+        <div style={{ fontSize: 11, color: "#a78bfa", fontWeight: 700, marginBottom: 4 }}>{ad.page_name}</div>
+        {ad.ad_creative_link_titles?.[0] && (
+          <div style={{ fontSize: 14, fontWeight: 900, lineHeight: 1.3, color: "white", textShadow: "0 1px 4px rgba(0,0,0,0.6)" }}>
+            {ad.ad_creative_link_titles[0]}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -202,7 +208,7 @@ export default function AdsLibraryStep({ businessInfo, onSelected }) {
               )}
 
               {/* Ad Visual */}
-              <AdVisual ad={ad} />
+              <AdVisual ad={ad} index={i} />
 
               {/* Ad Info */}
               <div style={{ padding: "14px 14px 12px" }}>
