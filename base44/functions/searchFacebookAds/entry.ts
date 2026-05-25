@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
       ad_reached_countries: JSON.stringify([country, 'US', 'GB']),
       ad_active_status: 'ALL',
       limit: String(limit),
-      fields: 'id,ad_creation_time,ad_creative_bodies,ad_creative_link_captions,ad_creative_link_descriptions,ad_creative_link_titles,ad_snapshot_url,page_name,page_id,impressions,spend,currency,ad_delivery_stop_time,languages',
+      fields: 'id,ad_creation_time,ad_creative_bodies,ad_creative_link_captions,ad_creative_link_descriptions,ad_creative_link_titles,ad_snapshot_url,page_name,page_id,impressions,spend,currency,ad_delivery_stop_time,ad_delivery_start_time,languages,publisher_platforms,estimated_audience_size,region_distribution,demographic_distribution',
       access_token: token,
     });
 
