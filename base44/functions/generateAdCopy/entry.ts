@@ -3,10 +3,10 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { businessInfo, selectedAd, style } = await req.json();
+    const { businessInfo, style } = await req.json();
 
-    if (!businessInfo || !selectedAd) {
-      return Response.json({ error: 'חסר businessInfo או selectedAd' }, { status: 400 });
+    if (!businessInfo) {
+      return Response.json({ error: 'חסר businessInfo' }, { status: 400 });
     }
 
     const styleInstructions = {
@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
       urgency: 'bold red and orange, dynamic, energetic, urgent, striking',
     };
 
-    // Step 1: Generate copy for 3 ad variants
+    // Step 1: Generate copy for 3 ad variants + email template
     const prompt = `אתה מומחה פרסום דיגיטלי ברמה עולמית.
 
 מידע על העסק:
@@ -35,18 +35,19 @@ Deno.serve(async (req) => {
 - קהל יעד: ${businessInfo.audience}
 - יתרון ייחודי: ${businessInfo.usp}
 
-פרסומת מנצחת לדוגמה:
-- כותרת: ${selectedAd.title || ''}
-- גוף: ${selectedAd.body || ''}
-
 סגנון: ${styleInstructions[style] || styleInstructions.direct}
 
 צור 3 גרסאות פרסומת בעברית. כל גרסה תכיל:
-1. כותרת ראשית (עד 40 תווים)
-2. כותרת משנה (עד 25 תווים)
-3. גוף הפרסומת (2-4 שורות, מקסימום 150 תווים)
-4. קריאה לפעולה (CTA) - עד 20 תווים
-5. imagePrompt - תיאור באנגלית לתמונת פרסומת מקצועית לפייסבוק עבור עסק זה`;
+1. headline - כותרת ראשית (עד 40 תווים)
+2. subheadline - כותרת משנה (עד 25 תווים)
+3. body - גוף הפרסומת (2-4 שורות, מקסימום 150 תווים)
+4. cta - קריאה לפעולה (עד 20 תווים)
+5. imagePrompt - תיאור באנגלית לתמונת פרסומת מקצועית לפייסבוק עבור עסק זה
+
+בנוסף, צור תבנית מייל שיווקי אחת בעברית:
+- emailSubject: שורת נושא (עד 60 תווים)
+- emailPreview: טקסט preview (עד 90 תווים)
+- emailBody: גוף המייל ב-HTML עם עיצוב בסיסי, 3-4 פסקאות, כולל כפתור CTA`;
 
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
@@ -67,11 +68,19 @@ Deno.serve(async (req) => {
               },
             },
           },
+          emailSubject: { type: 'string' },
+          emailPreview: { type: 'string' },
+          emailBody: { type: 'string' },
         },
       },
     });
 
     const ads = result.ads || [];
+    const emailTemplate = {
+      subject: result.emailSubject || '',
+      preview: result.emailPreview || '',
+      body: result.emailBody || '',
+    };
     const mood = styleImageMood[style] || styleImageMood.direct;
     const brandColors = (businessInfo.colors || businessInfo.brand_colors || []).join(', ');
     const logoUrl = businessInfo.logo || businessInfo.logo_url || null;
@@ -94,7 +103,7 @@ Deno.serve(async (req) => {
       })
     );
 
-    return Response.json({ ads: adsWithImages });
+    return Response.json({ ads: adsWithImages, emailTemplate });
   } catch (error) {
     console.error('generateAdCopy error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });

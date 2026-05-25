@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Copy, Check, ArrowRight, MoreHorizontal, ThumbsUp, MessageCircle, Share2 } from "lucide-react";
+import { Loader2, Copy, Check, ArrowRight, MoreHorizontal, ThumbsUp, MessageCircle, Share2, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 
@@ -113,7 +113,83 @@ function AdCard({ ad, index, businessInfo }) {
   );
 }
 
-export default function ResultsStep({ ads, isLoading, businessInfo }) {
+function EmailTemplate({ emailTemplate }) {
+  const [copied, setCopied] = useState(false);
+  const [tab, setTab] = useState("preview");
+
+  const copySubject = () => {
+    navigator.clipboard.writeText(emailTemplate.subject);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(167,139,250,0.3)", borderRadius: 16, overflow: "hidden", marginBottom: 24 }}
+    >
+      {/* Header */}
+      <div style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.3), rgba(37,99,235,0.3))", padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Mail size={16} color="#a78bfa" />
+          <span style={{ fontSize: 13, fontWeight: 800, color: "#a78bfa" }}>תבנית מייל שיווקי</span>
+        </div>
+        <div style={{ display: "flex", gap: 6 }}>
+          {["preview", "html"].map(t => (
+            <button key={t} onClick={() => setTab(t)} style={{ background: tab === t ? "rgba(167,139,250,0.3)" : "transparent", border: "1px solid rgba(167,139,250,0.3)", borderRadius: 6, padding: "4px 12px", color: tab === t ? "white" : "rgba(255,255,255,0.5)", fontSize: 11, cursor: "pointer", fontFamily: "'Heebo', sans-serif" }}>
+              {t === "preview" ? "תצוגה מקדימה" : "HTML"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ padding: 18 }}>
+        {/* Subject line */}
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>נושא המייל</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: "8px 12px" }}>
+            <span style={{ fontSize: 13, fontWeight: 700 }}>{emailTemplate.subject}</span>
+            <button onClick={copySubject} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}>
+              {copied ? <><Check size={11} color="#4ade80" /> הועתק</> : <><Copy size={11} /> העתק</>}
+            </button>
+          </div>
+        </div>
+
+        {emailTemplate.preview && (
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>טקסט preview</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontStyle: "italic", background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "8px 12px" }}>{emailTemplate.preview}</div>
+          </div>
+        )}
+
+        {tab === "preview" && emailTemplate.body ? (
+          <div style={{ background: "white", borderRadius: 10, overflow: "hidden" }}>
+            <iframe
+              srcDoc={emailTemplate.body}
+              style={{ width: "100%", height: 420, border: "none", display: "block" }}
+              title="email preview"
+            />
+          </div>
+        ) : (
+          <div style={{ position: "relative" }}>
+            <pre style={{ background: "rgba(0,0,0,0.4)", borderRadius: 8, padding: 14, fontSize: 11, color: "#a78bfa", overflow: "auto", maxHeight: 300, margin: 0, lineHeight: 1.6 }}>
+              {emailTemplate.body}
+            </pre>
+            <button
+              onClick={() => { navigator.clipboard.writeText(emailTemplate.body); }}
+              style={{ position: "absolute", top: 8, left: 8, background: "rgba(167,139,250,0.2)", border: "1px solid rgba(167,139,250,0.3)", borderRadius: 6, padding: "4px 10px", color: "white", fontSize: 11, cursor: "pointer", fontFamily: "'Heebo', sans-serif" }}
+            >
+              <Copy size={10} /> העתק HTML
+            </button>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplate }) {
   const [showSignup, setShowSignup] = useState(false);
 
   if (isLoading) {
@@ -155,6 +231,8 @@ export default function ResultsStep({ ads, isLoading, businessInfo }) {
       <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 28 }}>
         {ads.map((ad, i) => <AdCard key={i} ad={ad} index={i} businessInfo={businessInfo} />)}
       </div>
+
+      {emailTemplate && <EmailTemplate emailTemplate={emailTemplate} />}
 
       {/* CTA to sign up */}
       <AnimatePresence>

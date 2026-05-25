@@ -17,6 +17,7 @@ export default function AdCreator() {
   const [businessInfo, setBusinessInfo] = useState(null);
   const [style, setStyle] = useState(null);
   const [generatedAds, setGeneratedAds] = useState([]);
+  const [emailTemplate, setEmailTemplate] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleBusinessAnalyzed = (info) => {
@@ -34,6 +35,7 @@ export default function AdCreator() {
         style: selectedStyle,
       });
       setGeneratedAds(res.data.ads || []);
+      setEmailTemplate(res.data.emailTemplate || null);
     } catch (e) {
       console.error(e);
     } finally {
@@ -102,7 +104,7 @@ export default function AdCreator() {
           >
             {step === 1 && <WebsiteStep onAnalyzed={handleBusinessAnalyzed} />}
             {step === 2 && <StyleStep businessInfo={businessInfo} onSelected={handleStyleSelected} />}
-            {step === 3 && <ResultsStep ads={generatedAds} isLoading={isGenerating} businessInfo={businessInfo} />}
+            {step === 3 && <ResultsStep ads={generatedAds} isLoading={isGenerating} businessInfo={businessInfo} emailTemplate={emailTemplate} />}
           </motion.div>
         </AnimatePresence>
       </div>
