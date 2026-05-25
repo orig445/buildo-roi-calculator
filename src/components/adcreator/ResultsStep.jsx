@@ -414,7 +414,7 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
           ינהלו את הוואטסאפ שלך ויגדילו את המכירות אוטומטית.
         </p>
         <a
-          href="https://buildoai.com/login"
+          href="https://buildoai.com/worker-onboarding"
           target="_blank"
           rel="noopener noreferrer"
           style={{
