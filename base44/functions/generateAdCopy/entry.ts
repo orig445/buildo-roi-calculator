@@ -19,34 +19,34 @@ Deno.serve(async (req) => {
 
     const styleImageDirection = {
       emotional: {
-        lighting: 'golden hour soft diffused light, warm tones, gentle bokeh background',
-        composition: 'close-up human face showing genuine joy or relief, rule of thirds, shallow depth of field',
-        mood: 'warm, emotionally resonant, authentic, cinematic',
-        vibe: 'lifestyle documentary photography, real people, candid moments, trust and connection',
+        lighting: 'warm golden sunlight, soft diffused glow, vibrant background',
+        composition: 'happy smiling person in bright outdoor setting, natural light, inviting composition',
+        mood: 'warm, joyful, inspiring, connected',
+        vibe: 'bright uplifting lifestyle photography, real happy people, trust and warmth, saturated colors',
       },
       direct: {
-        lighting: 'studio-quality bright even lighting, crisp shadows, professional',
-        composition: 'bold product hero shot or confident person, centered composition, strong visual hierarchy',
-        mood: 'clean, confident, modern, high-impact',
-        vibe: 'commercial advertising photography, premium product display, business clarity',
+        lighting: 'bright professional studio lighting, clean white or colorful background, high contrast',
+        composition: 'bold confident person or product showcase, clean bright setting, direct eye contact',
+        mood: 'bold, confident, modern, energetic',
+        vibe: 'bright commercial advertising, vibrant backgrounds, product focus, clear call-to-action energy',
       },
       humorous: {
-        lighting: 'bright pop-art inspired lighting, vivid saturated colors, dynamic',
-        composition: 'unexpected creative angle, exaggerated expressions, playful props',
-        mood: 'playful, colorful, vibrant, fun, eye-catching',
-        vibe: 'editorial humor, visual pun, bold graphic elements, cheerful energy',
+        lighting: 'bright vivid colorful lighting, neon accents, fun energetic background',
+        composition: 'playful funny scene with bright colors, unexpected fun angles, happy people laughing',
+        mood: 'fun, colorful, vibrant, joyful, eye-catching',
+        vibe: 'bright cheerful humor photography, bold neon colors, fun props, playful energy',
       },
       luxury: {
-        lighting: 'dramatic chiaroscuro lighting, deep shadows, subtle rim light, moody atmosphere',
-        composition: 'architectural symmetry, negative space, minimalist elegance, cinematic wide angle',
-        mood: 'ultra-premium, sophisticated, exclusive, timeless',
-        vibe: 'Vogue-level fashion photography, dark rich backgrounds, gold and black palette, aspirational',
+        lighting: 'bright elegant lighting with gold accents, sophisticated colorful background',
+        composition: 'elegant person or premium product on bright sophisticated background, luxury feel',
+        mood: 'elegant, premium, sophisticated, aspirational',
+        vibe: 'bright premium luxury photography, elegant colors, gold accents, sophisticated but vibrant',
       },
       urgency: {
-        lighting: 'dramatic high-contrast lighting, intense highlights, urgent red/orange tones',
-        composition: 'diagonal lines, motion blur, person in action, explosive energy',
-        mood: 'dynamic, powerful, high-energy, immediate action',
-        vibe: 'sports advertising energy, breaking news urgency, visceral impact, must-act-now feeling',
+        lighting: 'bright energetic lighting with vibrant red/orange accents, dynamic background',
+        composition: 'energetic person in action on bright colorful background, motion and excitement',
+        mood: 'energetic, urgent, exciting, powerful',
+        vibe: 'bright energetic advertising, vibrant neon colors, dynamic motion, action-packed',
       },
     };
 
@@ -106,7 +106,7 @@ ${adIndex === 0 ? `Also create one Hebrew marketing email template:
 
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
-      model: 'claude_sonnet_4_6',
+      model: 'gpt_5_5',
       response_json_schema,
     });
 
@@ -118,7 +118,7 @@ ${adIndex === 0 ? `Also create one Hebrew marketing email template:
 
     // Generate the image
     const baseImagePrompt = adFields.imagePrompt || '';
-    const enrichedPrompt = `${baseImagePrompt}${brandColors ? ` Brand color palette reference: ${brandColors}.` : ''} This is for a ${businessInfo.type} business targeting ${businessInfo.audience || 'general consumers'}. The image should immediately communicate: ${businessInfo.usp || businessInfo.product}. Facebook feed aspect ratio 1:1, optimized for mobile scroll-stopping impact. Ultra-realistic commercial photography quality.`;
+    const enrichedPrompt = `${baseImagePrompt}${brandColors ? ` Brand color palette reference: ${brandColors}.` : ''} This is for a ${businessInfo.type} business targeting ${businessInfo.audience || 'general consumers'}. The image should immediately communicate: ${businessInfo.usp || businessInfo.product}. Facebook feed aspect ratio 1:1, optimized for mobile scroll-stopping impact. IMPORTANT: Bright, vibrant, colorful photography with saturated colors and energetic lighting - NOT dark, moody, or desaturated. Make it pop and catch attention with vivid colors and happiness. Ultra-high quality commercial advertising photography.`;
 
     const imgResult = await base44.asServiceRole.integrations.Core.GenerateImage({
       prompt: enrichedPrompt,
