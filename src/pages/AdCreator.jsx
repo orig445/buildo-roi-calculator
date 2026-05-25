@@ -44,50 +44,44 @@ export default function AdCreator() {
   };
 
   return (
-    <div dir="rtl" style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)", fontFamily: "'Heebo', sans-serif", color: "white" }}>
+    <div dir="rtl" style={{ minHeight: "100vh", background: "#fff", fontFamily: "'Heebo', sans-serif", color: "#000" }}>
       
       {/* Header */}
-      <header style={{ background: "rgba(255,255,255,0.05)", borderBottom: "1px solid rgba(255,255,255,0.1)", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", backdropFilter: "blur(10px)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <img src="https://media.base44.com/images/public/6a02f33e91d5cbd1f45f106b/b6a902f52_Gemini_Generated_Image_b0y91hb0y91hb0y9.png" alt="Bildo" style={{ height: 36, filter: "brightness(1.2)" }} />
-          <div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", letterSpacing: "0.15em", textTransform: "uppercase" }}>BETA</div>
-            <div style={{ fontSize: 18, fontWeight: 800, background: "linear-gradient(90deg, #a78bfa, #60a5fa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              Ad Creator AI
-            </div>
-          </div>
+      <header style={{ background: "#fff", borderBottom: "1px solid #e0e0e0", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <img src="https://media.base44.com/images/public/6a02f33e91d5cbd1f45f106b/b6a902f52_Gemini_Generated_Image_b0y91hb0y91hb0y9.png" alt="Bildo" style={{ height: 32 }} />
+          <div style={{ fontSize: 16, fontWeight: 800, color: "#000" }}>Ad Creator AI</div>
         </div>
-        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>מופעל על ידי GPT-5.5</div>
+        <div style={{ fontSize: 11, color: "#999", display: "none" }}></div>
       </header>
 
       {/* Stepper */}
-      <div style={{ maxWidth: 800, margin: "0 auto", padding: "28px 20px 0" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, marginBottom: 36 }}>
+      <div style={{ maxWidth: 800, margin: "0 auto", padding: "24px 16px 0" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, marginBottom: 32 }}>
           {STEPS.map((s, i) => (
             <div key={s.id} style={{ display: "flex", alignItems: "center" }}>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
                 <div
                   onClick={() => s.id < step && step < 4 && setStep(s.id)}
                   style={{
-                    width: 36, height: 36, borderRadius: "50%",
+                    width: 34, height: 34, borderRadius: "50%",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 14, fontWeight: 800,
-                    background: step > s.id ? "linear-gradient(135deg, #a78bfa, #60a5fa)" : step === s.id ? "linear-gradient(135deg, #7c3aed, #2563eb)" : "rgba(255,255,255,0.1)",
-                    border: step === s.id ? "2px solid #a78bfa" : "2px solid transparent",
-                    color: step >= s.id ? "white" : "rgba(255,255,255,0.3)",
+                    fontSize: 13, fontWeight: 800,
+                    background: step > s.id ? "#000" : step === s.id ? "#000" : "#f0f0f0",
+                    border: step === s.id ? "2px solid #000" : "2px solid transparent",
+                    color: step >= s.id ? "#fff" : "#999",
                     transition: "all 0.3s",
-                    boxShadow: step === s.id ? "0 0 20px rgba(167,139,250,0.5)" : "none",
-                    cursor: s.id < step && step < 4 ? "pointer" : "default",
+                    cursor: s.id < step ? "pointer" : "default",
                   }}
                 >
-                  {step > s.id ? <Check size={16} /> : s.id}
+                  {step > s.id ? <Check size={14} /> : s.id}
                 </div>
-                <span style={{ fontSize: 10, color: step >= s.id ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.3)", whiteSpace: "nowrap", fontWeight: step === s.id ? 700 : 400 }}>
+                <span style={{ fontSize: 10, color: step >= s.id ? "#000" : "#bbb", whiteSpace: "nowrap", fontWeight: step === s.id ? 700 : 400 }}>
                   {s.label}
                 </span>
               </div>
               {i < STEPS.length - 1 && (
-                <div style={{ width: 60, height: 2, background: step > s.id ? "linear-gradient(90deg, #a78bfa, #60a5fa)" : "rgba(255,255,255,0.1)", margin: "0 6px", marginBottom: 20, transition: "background 0.3s" }} />
+                <div style={{ width: 48, height: 2, background: step > s.id ? "#000" : "#e0e0e0", margin: "0 6px", marginBottom: 20, transition: "background 0.3s" }} />
               )}
             </div>
           ))}

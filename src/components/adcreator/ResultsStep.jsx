@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Loader2, Copy, Check, ArrowRight, MoreHorizontal, ThumbsUp, MessageCircle, Share2, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import LeadModal from "./LeadModal";
 
-
-
-function AdCard({ ad, index, businessInfo }) {
+function AdCard({ ad, index, businessInfo, onUnlock }) {
   const [copied, setCopied] = useState(false);
 
   const copyAll = () => {
@@ -22,19 +21,24 @@ function AdCard({ ad, index, businessInfo }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.15 }}
-      style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" }}
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+        gap: 16,
+        alignItems: "start",
+      }}
     >
       {/* LEFT: Facebook Ad Mockup */}
-      <div style={{ background: "#fff", borderRadius: 12, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.3)", color: "#000" }}>
+      <div style={{ position: "relative", background: "#fff", borderRadius: 12, overflow: "hidden", boxShadow: "0 2px 16px rgba(0,0,0,0.15)", color: "#000" }}>
         {/* Page header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg, #7c3aed, #2563eb)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: 16 }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#000", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: 16 }}>
               {pageInitial}
             </div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#000" }}>{pageName}</div>
-              <div style={{ fontSize: 11, color: "#65676b" }}>ממומן · 🌐</div>
+              <div style={{ fontSize: 11, color: "#65676b" }}>ממומן</div>
             </div>
           </div>
           <MoreHorizontal size={18} color="#65676b" />
@@ -45,14 +49,29 @@ function AdCard({ ad, index, businessInfo }) {
           {ad.body?.slice(0, 120)}{ad.body?.length > 120 ? "..." : ""}
         </div>
 
-        {/* Ad Image — AI Generated */}
-        {ad.imageUrl ? (
-          <img src={ad.imageUrl} alt="ad" style={{ width: "100%", height: 220, objectFit: "cover", display: "block" }} />
-        ) : (
-          <div style={{ width: "100%", height: 220, background: "linear-gradient(135deg, #e8e8e8, #d0d0d0)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Loader2 size={28} color="#999" style={{ animation: "spin 1s linear infinite" }} />
+        {/* Ad Image — blurred with unlock overlay */}
+        <div style={{ position: "relative", cursor: "pointer" }} onClick={onUnlock}>
+          {ad.imageUrl ? (
+            <img src={ad.imageUrl} alt="ad" style={{ width: "100%", height: 220, objectFit: "cover", display: "block", filter: "blur(8px)" }} />
+          ) : (
+            <div style={{ width: "100%", height: 220, background: "#e0e0e0" }} />
+          )}
+          {/* Lock overlay */}
+          <div style={{
+            position: "absolute", inset: 0,
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+            background: "rgba(0,0,0,0.45)",
+            gap: 8,
+          }}>
+            <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <div style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>לחץ לצפייה בתמונה</div>
           </div>
-        )}
+        </div>
 
         {/* Headline bar */}
         <div style={{ background: "#f0f2f5", padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -61,14 +80,18 @@ function AdCard({ ad, index, businessInfo }) {
             <div style={{ fontSize: 14, fontWeight: 800, color: "#050505" }}>{ad.headline}</div>
             {ad.subheadline && <div style={{ fontSize: 12, color: "#65676b" }}>{ad.subheadline}</div>}
           </div>
-          <div style={{ background: "#e4e6eb", borderRadius: 6, padding: "7px 14px", fontSize: 13, fontWeight: 700, color: "#050505", whiteSpace: "nowrap", marginRight: 10, flexShrink: 0 }}>
+          <div style={{ background: "#000", borderRadius: 6, padding: "7px 14px", fontSize: 13, fontWeight: 700, color: "#fff", whiteSpace: "nowrap", marginRight: 10, flexShrink: 0 }}>
             {ad.cta}
           </div>
         </div>
 
         {/* Reactions bar */}
         <div style={{ padding: "8px 14px", borderTop: "1px solid #e4e6eb", display: "flex", gap: 4 }}>
-          {[<><ThumbsUp size={14} /> אהבתי</>, <><MessageCircle size={14} /> תגובה</>, <><Share2 size={14} /> שיתוף</>].map((item, i) => (
+          {[
+            <><ThumbsUp size={14} /> אהבתי</>,
+            <><MessageCircle size={14} /> תגובה</>,
+            <><Share2 size={14} /> שיתוף</>
+          ].map((item, i) => (
             <button key={i} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "none", border: "none", color: "#65676b", fontSize: 13, fontWeight: 600, padding: "6px 0", borderRadius: 6, cursor: "pointer", fontFamily: "inherit" }}>
               {item}
             </button>
@@ -77,33 +100,33 @@ function AdCard({ ad, index, businessInfo }) {
       </div>
 
       {/* RIGHT: Copy panel */}
-      <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(167,139,250,0.25)", borderRadius: 12, overflow: "hidden" }}>
-        <div style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.3), rgba(37,99,235,0.3))", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ fontSize: 11, color: "#a78bfa", fontWeight: 700 }}>גרסה {index + 1}</div>
-          <button onClick={copyAll} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 6, padding: "5px 12px", color: "rgba(255,255,255,0.7)", cursor: "pointer", fontSize: 11, fontFamily: "'Heebo', sans-serif" }}>
+      <div style={{ background: "#f9f9f9", border: "1px solid #e0e0e0", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ background: "#000", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ fontSize: 11, color: "#fff", fontWeight: 700 }}>גרסה {index + 1}</div>
+          <button onClick={copyAll} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 6, padding: "5px 12px", color: "#fff", cursor: "pointer", fontSize: 11, fontFamily: "'Heebo', sans-serif" }}>
             {copied ? <><Check size={11} color="#4ade80" /> הועתק!</> : <><Copy size={11} /> העתק הכל</>}
           </button>
         </div>
         <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
           <div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>כותרת ראשית</div>
-            <div style={{ fontSize: 15, fontWeight: 900 }}>{ad.headline}</div>
+            <div style={{ fontSize: 10, color: "#999", marginBottom: 4 }}>כותרת ראשית</div>
+            <div style={{ fontSize: 15, fontWeight: 900, color: "#000" }}>{ad.headline}</div>
           </div>
           {ad.subheadline && (
             <div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>כותרת משנה</div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#a78bfa" }}>{ad.subheadline}</div>
+              <div style={{ fontSize: 10, color: "#999", marginBottom: 4 }}>כותרת משנה</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#333" }}>{ad.subheadline}</div>
             </div>
           )}
           <div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>גוף הפרסומת</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", lineHeight: 1.7, background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "10px 12px", borderRight: "3px solid #a78bfa" }}>
+            <div style={{ fontSize: 10, color: "#999", marginBottom: 4 }}>גוף הפרסומת</div>
+            <div style={{ fontSize: 12, color: "#444", lineHeight: 1.7, background: "#fff", borderRadius: 8, padding: "10px 12px", borderRight: "3px solid #000" }}>
               {ad.body}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>CTA</div>
-            <div style={{ display: "inline-flex", background: "linear-gradient(135deg, #7c3aed, #2563eb)", borderRadius: 8, padding: "7px 16px", fontSize: 13, fontWeight: 800 }}>
+            <div style={{ fontSize: 10, color: "#999", marginBottom: 6 }}>CTA</div>
+            <div style={{ display: "inline-flex", background: "#000", color: "#fff", borderRadius: 8, padding: "7px 16px", fontSize: 13, fontWeight: 800 }}>
               {ad.cta}
             </div>
           </div>
@@ -113,31 +136,24 @@ function AdCard({ ad, index, businessInfo }) {
   );
 }
 
-function EmailTemplate({ emailTemplate }) {
+function EmailTemplate({ emailTemplate, onUnlock }) {
   const [copied, setCopied] = useState(false);
   const [tab, setTab] = useState("preview");
-
-  const copySubject = () => {
-    navigator.clipboard.writeText(emailTemplate.subject);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(167,139,250,0.3)", borderRadius: 16, overflow: "hidden", marginBottom: 24 }}
+      style={{ background: "#f9f9f9", border: "1px solid #e0e0e0", borderRadius: 16, overflow: "hidden", marginBottom: 24 }}
     >
-      {/* Header */}
-      <div style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.3), rgba(37,99,235,0.3))", padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ background: "#000", padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Mail size={16} color="#a78bfa" />
-          <span style={{ fontSize: 13, fontWeight: 800, color: "#a78bfa" }}>תבנית מייל שיווקי</span>
+          <Mail size={16} color="#fff" />
+          <span style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>תבנית מייל שיווקי</span>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           {["preview", "html"].map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{ background: tab === t ? "rgba(167,139,250,0.3)" : "transparent", border: "1px solid rgba(167,139,250,0.3)", borderRadius: 6, padding: "4px 12px", color: tab === t ? "white" : "rgba(255,255,255,0.5)", fontSize: 11, cursor: "pointer", fontFamily: "'Heebo', sans-serif" }}>
+            <button key={t} onClick={() => setTab(t)} style={{ background: tab === t ? "#fff" : "transparent", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 6, padding: "4px 12px", color: tab === t ? "#000" : "rgba(255,255,255,0.7)", fontSize: 11, cursor: "pointer", fontFamily: "'Heebo', sans-serif" }}>
               {t === "preview" ? "תצוגה מקדימה" : "HTML"}
             </button>
           ))}
@@ -145,52 +161,51 @@ function EmailTemplate({ emailTemplate }) {
       </div>
 
       <div style={{ padding: 18 }}>
-        {/* Subject line */}
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>נושא המייל</div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: "8px 12px" }}>
-            <span style={{ fontSize: 13, fontWeight: 700 }}>{emailTemplate.subject}</span>
-            <button onClick={copySubject} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}>
-              {copied ? <><Check size={11} color="#4ade80" /> הועתק</> : <><Copy size={11} /> העתק</>}
+          <div style={{ fontSize: 10, color: "#999", marginBottom: 4 }}>נושא המייל</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff", borderRadius: 8, padding: "8px 12px", border: "1px solid #e0e0e0" }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#000" }}>{emailTemplate.subject}</span>
+            <button onClick={() => { navigator.clipboard.writeText(emailTemplate.subject); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+              style={{ background: "none", border: "none", color: "#666", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}>
+              {copied ? <><Check size={11} color="#22c55e" /> הועתק</> : <><Copy size={11} /> העתק</>}
             </button>
           </div>
         </div>
 
-        {emailTemplate.preview && (
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>טקסט preview</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontStyle: "italic", background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "8px 12px" }}>{emailTemplate.preview}</div>
+        {/* Blurred preview with lock */}
+        <div style={{ position: "relative", cursor: "pointer" }} onClick={onUnlock}>
+          <div style={{ filter: "blur(5px)", pointerEvents: "none" }}>
+            {tab === "preview" && emailTemplate.body ? (
+              <div style={{ background: "white", borderRadius: 10, overflow: "hidden" }}>
+                <iframe srcDoc={emailTemplate.body} style={{ width: "100%", height: 300, border: "none", display: "block" }} title="email preview" />
+              </div>
+            ) : (
+              <pre style={{ background: "#1a1a1a", borderRadius: 8, padding: 14, fontSize: 11, color: "#ccc", overflow: "auto", maxHeight: 300, margin: 0, lineHeight: 1.6 }}>
+                {emailTemplate.body}
+              </pre>
+            )}
           </div>
-        )}
-
-        {tab === "preview" && emailTemplate.body ? (
-          <div style={{ background: "white", borderRadius: 10, overflow: "hidden" }}>
-            <iframe
-              srcDoc={emailTemplate.body}
-              style={{ width: "100%", height: 420, border: "none", display: "block" }}
-              title="email preview"
-            />
+          <div style={{
+            position: "absolute", inset: 0,
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+            background: "rgba(255,255,255,0.5)", gap: 8, borderRadius: 10,
+          }}>
+            <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <div style={{ color: "#000", fontSize: 13, fontWeight: 700 }}>לחץ לצפייה בתבנית המייל</div>
           </div>
-        ) : (
-          <div style={{ position: "relative" }}>
-            <pre style={{ background: "rgba(0,0,0,0.4)", borderRadius: 8, padding: 14, fontSize: 11, color: "#a78bfa", overflow: "auto", maxHeight: 300, margin: 0, lineHeight: 1.6 }}>
-              {emailTemplate.body}
-            </pre>
-            <button
-              onClick={() => { navigator.clipboard.writeText(emailTemplate.body); }}
-              style={{ position: "absolute", top: 8, left: 8, background: "rgba(167,139,250,0.2)", border: "1px solid rgba(167,139,250,0.3)", borderRadius: 6, padding: "4px 10px", color: "white", fontSize: 11, cursor: "pointer", fontFamily: "'Heebo', sans-serif" }}
-            >
-              <Copy size={10} /> העתק HTML
-            </button>
-          </div>
-        )}
+        </div>
       </div>
     </motion.div>
   );
 }
 
 export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplate }) {
-  const [showSignup, setShowSignup] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -200,17 +215,17 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           style={{ display: "inline-block", marginBottom: 20 }}
         >
-          <Loader2 size={48} color="#a78bfa" />
+          <Loader2 size={48} color="#000" />
         </motion.div>
-        <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>GPT-5.5 יוצר פרסומות + תמונות AI...</div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>כותב קופי, מייצר תמונות מותאמות לעסק שלך</div>
+        <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8, color: "#000" }}>יוצר פרסומות ותמונות...</div>
+        <div style={{ fontSize: 13, color: "#666" }}>כותב קופי, מייצר תמונות מותאמות לעסק שלך</div>
         <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 20 }}>
           {[0, 1, 2].map(i => (
             <motion.div
               key={i}
               animate={{ scale: [1, 1.3, 1] }}
               transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2 }}
-              style={{ width: 8, height: 8, borderRadius: "50%", background: "#a78bfa" }}
+              style={{ width: 8, height: 8, borderRadius: "50%", background: "#000" }}
             />
           ))}
         </div>
@@ -220,58 +235,51 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
 
   return (
     <div>
+      <LeadModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+
       <div style={{ textAlign: "center", marginBottom: 28 }}>
-        <div style={{ fontSize: 13, color: "#a78bfa", fontWeight: 700, marginBottom: 8 }}>שלב 4 מתוך 4</div>
-        <h2 style={{ fontSize: 26, fontWeight: 900, marginBottom: 8 }}>✨ הפרסומות שלך מוכנות!</h2>
-        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}>
-          GPT-5.5 יצר {ads.length} גרסאות מותאמות אישית לעסק שלך
+        <div style={{ fontSize: 13, color: "#666", fontWeight: 700, marginBottom: 8 }}>שלב 3 מתוך 3</div>
+        <h2 style={{ fontSize: 26, fontWeight: 900, marginBottom: 8, color: "#000" }}>הפרסומות שלך מוכנות</h2>
+        <p style={{ fontSize: 13, color: "#666" }}>
+          {ads.length} גרסאות מותאמות אישית לעסק שלך
         </p>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 28 }}>
-        {ads.map((ad, i) => <AdCard key={i} ad={ad} index={i} businessInfo={businessInfo} />)}
+      <div style={{ display: "flex", flexDirection: "column", gap: 24, marginBottom: 28 }}>
+        {ads.map((ad, i) => <AdCard key={i} ad={ad} index={i} businessInfo={businessInfo} onUnlock={() => setModalOpen(true)} />)}
       </div>
 
-      {emailTemplate && <EmailTemplate emailTemplate={emailTemplate} />}
+      {emailTemplate && <EmailTemplate emailTemplate={emailTemplate} onUnlock={() => setModalOpen(true)} />}
 
-      {/* CTA to sign up */}
-      <AnimatePresence>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+      {/* CTA */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        style={{
+          background: "#000", borderRadius: 20, padding: "28px 24px", textAlign: "center",
+        }}
+      >
+        <h3 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8, color: "#fff" }}>רוצה לקבל את הפרסומות האלה כתמונות מוכנות?</h3>
+        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.7, marginBottom: 20 }}>
+          הצטרף לבילדו וקבל גישה לעובדים דיגיטליים שיצרו פרסומות,<br />
+          ינהלו את הוואטסאפ שלך ויגדילו את המכירות אוטומטית.
+        </p>
+        <a
+          href="https://buildoai.com/login"
+          target="_blank"
+          rel="noopener noreferrer"
           style={{
-            background: "linear-gradient(135deg, rgba(124,58,237,0.3), rgba(37,99,235,0.3))",
-            border: "1px solid rgba(167,139,250,0.4)",
-            borderRadius: 20, padding: "28px 24px", textAlign: "center",
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: "#fff", color: "#000", textDecoration: "none",
+            borderRadius: 12, padding: "13px 28px", fontSize: 15, fontWeight: 800,
+            fontFamily: "'Heebo', sans-serif",
           }}
         >
-          <div style={{ fontSize: 32, marginBottom: 10 }}>🚀</div>
-          <h3 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8 }}>רוצה לקבל את הפרסומות האלה כתמונות מוכנות?</h3>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.7, marginBottom: 20 }}>
-            הצטרף לבילדו וקבל גישה ל<strong style={{ color: "#a78bfa" }}>עובדים דיגיטליים</strong> שיצרו פרסומות,<br />
-            ינהלו את הוואטסאפ שלך ויגדילו את המכירות אוטומטית.
-          </p>
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-            <a
-              href="https://wa.me/972532861565"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 8,
-                background: "linear-gradient(135deg, #7c3aed, #2563eb)",
-                color: "white", textDecoration: "none",
-                borderRadius: 12, padding: "13px 28px", fontSize: 15, fontWeight: 800,
-                fontFamily: "'Heebo', sans-serif",
-                boxShadow: "0 4px 24px rgba(124,58,237,0.5)",
-              }}
-            >
-              🔒 הצטרף לבילדו עכשיו <ArrowRight size={16} />
-            </a>
-          </div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 12 }}>ללא כרטיס אשראי · ניסיון חינם · מענה תוך שעות</div>
-        </motion.div>
-      </AnimatePresence>
+          הצטרף לבילדו עכשיו <ArrowRight size={16} />
+        </a>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 12 }}>ללא כרטיס אשראי · ניסיון חינם · מענה תוך שעות</div>
+      </motion.div>
     </div>
   );
 }
