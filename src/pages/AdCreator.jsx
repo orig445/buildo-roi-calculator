@@ -22,21 +22,6 @@ export default function AdCreator() {
 
   const handleBusinessAnalyzed = (info) => {
     setBusinessInfo(info);
-    // Pre-generate 3 images in background (non-blocking)
-    base44.functions.invoke("generateAdCopy", {
-      businessInfo: info,
-      pregenerateImages: true,
-    }).then((res) => {
-      if (res.data?.pregeneratedImages) {
-        setGeneratedAds([
-          { imageUrl: res.data.pregeneratedImages[0] },
-          { imageUrl: res.data.pregeneratedImages[1] },
-          { imageUrl: res.data.pregeneratedImages[2] },
-        ]);
-      }
-    }).catch((e) => {
-      console.error("Pre-gen failed:", e);
-    });
     setStep(2);
   };
 
@@ -58,10 +43,6 @@ export default function AdCreator() {
           if (ad) {
             setGeneratedAds((prev) => {
               const next = [...prev];
-              // Merge with pre-generated image if exists
-              if (prev[index]?.imageUrl && !ad.imageUrl) {
-                ad.imageUrl = prev[index].imageUrl;
-              }
               next[index] = ad;
               return next;
             });
