@@ -20,14 +20,13 @@ export default function AdCreator() {
   const [emailTemplate, setEmailTemplate] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleBusinessAnalyzed = async (info) => {
+  const handleBusinessAnalyzed = (info) => {
     setBusinessInfo(info);
-    // Pre-generate 3 images immediately after website scan
-    try {
-      const res = await base44.functions.invoke("generateAdCopy", {
-        businessInfo: info,
-        pregenerateImages: true,
-      });
+    // Pre-generate 3 images in background (non-blocking)
+    base44.functions.invoke("generateAdCopy", {
+      businessInfo: info,
+      pregenerateImages: true,
+    }).then((res) => {
       if (res.data?.pregeneratedImages) {
         setGeneratedAds([
           { imageUrl: res.data.pregeneratedImages[0] },
@@ -35,9 +34,9 @@ export default function AdCreator() {
           { imageUrl: res.data.pregeneratedImages[2] },
         ]);
       }
-    } catch (e) {
+    }).catch((e) => {
       console.error("Pre-gen failed:", e);
-    }
+    });
     setStep(2);
   };
 
