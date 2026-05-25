@@ -1,8 +1,14 @@
 import { useState } from "react";
-import { Loader2, Copy, Check, ArrowRight } from "lucide-react";
+import { Loader2, Copy, Check, ArrowRight, MoreHorizontal, ThumbsUp, MessageCircle, Share2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-function AdCard({ ad, index }) {
+const AD_IMAGES = [
+  "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=340&fit=crop",
+  "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=340&fit=crop",
+  "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=600&h=340&fit=crop",
+];
+
+function AdCard({ ad, index, businessInfo }) {
   const [copied, setCopied] = useState(false);
 
   const copyAll = () => {
@@ -12,66 +18,95 @@ function AdCard({ ad, index }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const imgUrl = AD_IMAGES[index % AD_IMAGES.length];
+  const pageName = businessInfo?.name || "העסק שלך";
+  const pageInitial = pageName.charAt(0);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.15 }}
-      style={{
-        background: "rgba(255,255,255,0.05)",
-        border: "1px solid rgba(167,139,250,0.25)",
-        borderRadius: 18, overflow: "hidden",
-      }}
+      style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" }}
     >
-      {/* Card Header */}
-      <div style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.3), rgba(37,99,235,0.3))", padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ fontSize: 11, color: "#a78bfa", fontWeight: 700, letterSpacing: "0.1em" }}>גרסה {index + 1}</div>
-        <button
-          onClick={copyAll}
-          style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 6, padding: "5px 12px", color: "rgba(255,255,255,0.7)", cursor: "pointer", fontSize: 11, fontFamily: "'Heebo', sans-serif" }}
-        >
-          {copied ? <><Check size={11} color="#4ade80" /> הועתק!</> : <><Copy size={11} /> העתק הכל</>}
-        </button>
-      </div>
-
-      <div style={{ padding: "20px 20px" }}>
-        {/* Headline */}
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, letterSpacing: "0.1em" }}>כותרת ראשית</div>
-          <div style={{ fontSize: 20, fontWeight: 900, lineHeight: 1.3 }}>{ad.headline}</div>
+      {/* LEFT: Facebook Ad Mockup */}
+      <div style={{ background: "#fff", borderRadius: 12, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.3)", color: "#000" }}>
+        {/* Page header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg, #7c3aed, #2563eb)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: 16 }}>
+              {pageInitial}
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#000" }}>{pageName}</div>
+              <div style={{ fontSize: 11, color: "#65676b" }}>ממומן · 🌐</div>
+            </div>
+          </div>
+          <MoreHorizontal size={18} color="#65676b" />
         </div>
 
-        {/* Subheadline */}
-        {ad.subheadline && (
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, letterSpacing: "0.1em" }}>כותרת משנה</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#a78bfa" }}>{ad.subheadline}</div>
-          </div>
-        )}
-
-        {/* Body */}
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, letterSpacing: "0.1em" }}>גוף הפרסומת</div>
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", lineHeight: 1.8, background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "12px 14px", borderRight: "3px solid #a78bfa" }}>
-            {ad.body}
-          </div>
+        {/* Body text */}
+        <div style={{ padding: "0 14px 10px", fontSize: 14, color: "#050505", lineHeight: 1.6, direction: "rtl" }}>
+          {ad.body?.slice(0, 120)}{ad.body?.length > 120 ? "..." : ""}
         </div>
 
-        {/* CTA */}
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 6, letterSpacing: "0.1em" }}>כפתור קריאה לפעולה</div>
-          <div style={{ display: "inline-flex", background: "linear-gradient(135deg, #7c3aed, #2563eb)", borderRadius: 8, padding: "8px 18px", fontSize: 13, fontWeight: 800 }}>
+        {/* Ad Image */}
+        <img src={imgUrl} alt="ad" style={{ width: "100%", height: 220, objectFit: "cover", display: "block" }} />
+
+        {/* Headline bar */}
+        <div style={{ background: "#f0f2f5", padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ direction: "rtl" }}>
+            <div style={{ fontSize: 12, color: "#65676b", marginBottom: 2 }}>{businessInfo?.url?.replace(/^https?:\/\//, "") || "yoursite.com"}</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#050505" }}>{ad.headline}</div>
+            {ad.subheadline && <div style={{ fontSize: 12, color: "#65676b" }}>{ad.subheadline}</div>}
+          </div>
+          <div style={{ background: "#e4e6eb", borderRadius: 6, padding: "7px 14px", fontSize: 13, fontWeight: 700, color: "#050505", whiteSpace: "nowrap", marginRight: 10, flexShrink: 0 }}>
             {ad.cta}
           </div>
         </div>
 
-        {/* Image description */}
-        {ad.imageDescription && (
-          <div style={{ background: "rgba(167,139,250,0.08)", border: "1px solid rgba(167,139,250,0.2)", borderRadius: 8, padding: "10px 14px" }}>
-            <div style={{ fontSize: 10, color: "#a78bfa", fontWeight: 700, marginBottom: 4 }}>🖼️ תמונה מומלצת</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>{ad.imageDescription}</div>
+        {/* Reactions bar */}
+        <div style={{ padding: "8px 14px", borderTop: "1px solid #e4e6eb", display: "flex", gap: 4 }}>
+          {[<><ThumbsUp size={14} /> אהבתי</>, <><MessageCircle size={14} /> תגובה</>, <><Share2 size={14} /> שיתוף</>].map((item, i) => (
+            <button key={i} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "none", border: "none", color: "#65676b", fontSize: 13, fontWeight: 600, padding: "6px 0", borderRadius: 6, cursor: "pointer", fontFamily: "inherit" }}>
+              {item}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* RIGHT: Copy panel */}
+      <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(167,139,250,0.25)", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.3), rgba(37,99,235,0.3))", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ fontSize: 11, color: "#a78bfa", fontWeight: 700 }}>גרסה {index + 1}</div>
+          <button onClick={copyAll} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 6, padding: "5px 12px", color: "rgba(255,255,255,0.7)", cursor: "pointer", fontSize: 11, fontFamily: "'Heebo', sans-serif" }}>
+            {copied ? <><Check size={11} color="#4ade80" /> הועתק!</> : <><Copy size={11} /> העתק הכל</>}
+          </button>
+        </div>
+        <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>כותרת ראשית</div>
+            <div style={{ fontSize: 15, fontWeight: 900 }}>{ad.headline}</div>
           </div>
-        )}
+          {ad.subheadline && (
+            <div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>כותרת משנה</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#a78bfa" }}>{ad.subheadline}</div>
+            </div>
+          )}
+          <div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>גוף הפרסומת</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", lineHeight: 1.7, background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "10px 12px", borderRight: "3px solid #a78bfa" }}>
+              {ad.body}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>CTA</div>
+            <div style={{ display: "inline-flex", background: "linear-gradient(135deg, #7c3aed, #2563eb)", borderRadius: 8, padding: "7px 16px", fontSize: 13, fontWeight: 800 }}>
+              {ad.cta}
+            </div>
+          </div>
+        </div>
       </div>
     </motion.div>
   );
@@ -117,7 +152,7 @@ export default function ResultsStep({ ads, isLoading, businessInfo }) {
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 28 }}>
-        {ads.map((ad, i) => <AdCard key={i} ad={ad} index={i} />)}
+        {ads.map((ad, i) => <AdCard key={i} ad={ad} index={i} businessInfo={businessInfo} />)}
       </div>
 
       {/* CTA to sign up */}
