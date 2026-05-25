@@ -2,11 +2,7 @@ import { useState } from "react";
 import { Loader2, Copy, Check, ArrowRight, MoreHorizontal, ThumbsUp, MessageCircle, Share2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const AD_IMAGES = [
-  "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=340&fit=crop",
-  "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=340&fit=crop",
-  "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=600&h=340&fit=crop",
-];
+
 
 function AdCard({ ad, index, businessInfo }) {
   const [copied, setCopied] = useState(false);
@@ -18,7 +14,6 @@ function AdCard({ ad, index, businessInfo }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const imgUrl = AD_IMAGES[index % AD_IMAGES.length];
   const pageName = businessInfo?.name || "העסק שלך";
   const pageInitial = pageName.charAt(0);
 
@@ -50,8 +45,14 @@ function AdCard({ ad, index, businessInfo }) {
           {ad.body?.slice(0, 120)}{ad.body?.length > 120 ? "..." : ""}
         </div>
 
-        {/* Ad Image */}
-        <img src={imgUrl} alt="ad" style={{ width: "100%", height: 220, objectFit: "cover", display: "block" }} />
+        {/* Ad Image — AI Generated */}
+        {ad.imageUrl ? (
+          <img src={ad.imageUrl} alt="ad" style={{ width: "100%", height: 220, objectFit: "cover", display: "block" }} />
+        ) : (
+          <div style={{ width: "100%", height: 220, background: "linear-gradient(135deg, #e8e8e8, #d0d0d0)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Loader2 size={28} color="#999" style={{ animation: "spin 1s linear infinite" }} />
+          </div>
+        )}
 
         {/* Headline bar */}
         <div style={{ background: "#f0f2f5", padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -125,8 +126,8 @@ export default function ResultsStep({ ads, isLoading, businessInfo }) {
         >
           <Loader2 size={48} color="#a78bfa" />
         </motion.div>
-        <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>GPT-5.5 כותב את הפרסומות שלך...</div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>מנתח את הפרסומות המנצחות ומתאים לעסק שלך</div>
+        <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>GPT-5.5 יוצר פרסומות + תמונות AI...</div>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>כותב קופי, מייצר תמונות מותאמות לעסק שלך</div>
         <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 20 }}>
           {[0, 1, 2].map(i => (
             <motion.div
