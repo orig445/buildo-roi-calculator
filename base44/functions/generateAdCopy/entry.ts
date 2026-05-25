@@ -25,7 +25,6 @@ Deno.serve(async (req) => {
       urgency: 'bold red and orange, dynamic, energetic, urgent, striking',
     };
 
-    // Step 1: Generate copy for 3 ad variants + email template
     const prompt = `אתה מומחה פרסום דיגיטלי ברמה עולמית.
 
 מידע על העסק:
@@ -51,7 +50,6 @@ Deno.serve(async (req) => {
 
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
-      model: 'gpt_5_5',
       response_json_schema: {
         type: 'object',
         properties: {
@@ -75,32 +73,30 @@ Deno.serve(async (req) => {
       },
     });
 
+    console.log('LLM result ads count:', (result.ads || []).length);
+
     const ads = result.ads || [];
     const emailTemplate = {
       subject: result.emailSubject || '',
       preview: result.emailPreview || '',
       body: result.emailBody || '',
     };
+
     const mood = styleImageMood[style] || styleImageMood.direct;
     const brandColors = (businessInfo.colors || businessInfo.brand_colors || []).join(', ');
     const rawLogoUrl = businessInfo.logo || businessInfo.logo_url || null;
-    // Only use absolute URLs — relative paths like "/images/logo.svg" will break GenerateImage
     const logoUrl = rawLogoUrl && rawLogoUrl.startsWith('http') ? rawLogoUrl : null;
 
-    console.log('businessInfo keys:', Object.keys(businessInfo));
-    console.log('logoUrl:', logoUrl);
-    console.log('brandColors:', brandColors);
+    console.log('logoUrl:', logoUrl, 'brandColors:', brandColors);
 
-    // Step 2: Generate an image for each ad in parallel
+    // Generate images in parallel
     const adsWithImages = await Promise.all(
       ads.map(async (ad) => {
-        const imgPrompt = `Professional Facebook advertisement image for a ${businessInfo.type} business called "${businessInfo.name}". ${ad.imagePrompt}. Style: ${mood}. ${brandColors ? `Brand colors: ${brandColors}.` : ''} High quality marketing photo, no text overlay, photorealistic, 1200x628 aspect ratio feel.`;
-        
+        const imgPrompt = `Professional Facebook advertisement image for a ${businessInfo.type} business called "${businessInfo.name}". ${ad.imagePrompt}. Style: ${mood}. ${brandColors ? `Brand colors: ${brandColors}.` : ''} High quality marketing photo, no text overlay, photorealistic.`;
         const imgResult = await base44.asServiceRole.integrations.Core.GenerateImage({
           prompt: imgPrompt,
           existing_image_urls: logoUrl ? [logoUrl] : undefined,
         });
-
         return { ...ad, imageUrl: imgResult.url || null };
       })
     );
