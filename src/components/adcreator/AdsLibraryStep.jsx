@@ -3,6 +3,68 @@ import { base44 } from "@/api/base44Client";
 import { Loader2, ExternalLink, Check, RefreshCw, Search, Globe, Users, Eye, DollarSign, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 
+// Tries to load image, falls back to placeholder
+function AdVisual({ ad }) {
+  const [imgError, setImgError] = useState(false);
+  const imageUrl = ad.ad_image_url || ad.demo_image;
+
+  if (ad.ad_snapshot_url && !ad.ad_snapshot_url.includes('access_token=ACT')) {
+    return (
+      <div style={{ height: 200, position: "relative", background: "rgba(0,0,0,0.3)", overflow: "hidden" }}>
+        <iframe
+          src={ad.ad_snapshot_url}
+          title="ad preview"
+          scrolling="no"
+          style={{ width: "160%", height: "160%", border: "none", pointerEvents: "none", transform: "scale(0.625)", transformOrigin: "top left" }}
+        />
+        <a
+          href={ad.ad_snapshot_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ position: "absolute", bottom: 8, left: 8, display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "white", background: "rgba(0,0,0,0.65)", padding: "4px 10px", borderRadius: 20, textDecoration: "none", backdropFilter: "blur(4px)", zIndex: 5 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <ExternalLink size={9} /> פתח
+        </a>
+      </div>
+    );
+  }
+
+  if (imageUrl && !imgError) {
+    return (
+      <div style={{ height: 200, overflow: "hidden" }}>
+        <img
+          src={imageUrl}
+          alt=""
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          onError={() => setImgError(true)}
+        />
+      </div>
+    );
+  }
+
+  // Text-based card — show the ad copy nicely instead of a blank placeholder
+  return (
+    <div style={{
+      height: 200, display: "flex", flexDirection: "column", justifyContent: "center",
+      padding: "20px 18px", background: "linear-gradient(135deg, rgba(124,58,237,0.25), rgba(37,99,235,0.25))",
+      gap: 10,
+    }}>
+      <div style={{ fontSize: 11, color: "#a78bfa", fontWeight: 700 }}>{ad.page_name}</div>
+      {ad.ad_creative_link_titles?.[0] && (
+        <div style={{ fontSize: 15, fontWeight: 900, lineHeight: 1.35, color: "white" }}>
+          {ad.ad_creative_link_titles[0]}
+        </div>
+      )}
+      {ad.ad_creative_bodies?.[0] && (
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+          {ad.ad_creative_bodies[0]}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdsLibraryStep({ businessInfo, onSelected }) {
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -140,38 +202,7 @@ export default function AdsLibraryStep({ businessInfo, onSelected }) {
               )}
 
               {/* Ad Visual */}
-              <div style={{ height: 200, position: "relative", background: "rgba(0,0,0,0.3)", overflow: "hidden" }}>
-                {ad.ad_snapshot_url ? (
-                  <>
-                    <iframe
-                      src={ad.ad_snapshot_url}
-                      title="ad preview"
-                      scrolling="no"
-                      style={{ width: "160%", height: "160%", border: "none", pointerEvents: "none", transform: "scale(0.625)", transformOrigin: "top left" }}
-                    />
-                    <a
-                      href={ad.ad_snapshot_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      style={{ position: "absolute", bottom: 8, left: 8, display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "white", background: "rgba(0,0,0,0.65)", padding: "4px 10px", borderRadius: 20, textDecoration: "none", backdropFilter: "blur(4px)", zIndex: 5 }}
-                    >
-                      <ExternalLink size={9} /> פתח בפייסבוק
-                    </a>
-                  </>
-                ) : ad.ad_image_url || ad.demo_image ? (
-                  <img src={ad.ad_image_url || ad.demo_image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                ) : (
-                  <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "16px", gap: 8 }}>
-                    <div style={{ width: 48, height: 48, borderRadius: 12, background: "linear-gradient(135deg, #7c3aed, #2563eb)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>
-                      {ad.page_name?.charAt(0) || "📢"}
-                    </div>
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", textAlign: "center", lineHeight: 1.5 }}>
-                      {ad.ad_creative_link_titles?.[0] || ad.page_name}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <AdVisual ad={ad} />
 
               {/* Ad Info */}
               <div style={{ padding: "14px 14px 12px" }}>

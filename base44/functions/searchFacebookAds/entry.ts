@@ -42,19 +42,20 @@ Deno.serve(async (req) => {
     const adsLibraryUrl = `https://www.facebook.com/ads/library/?active_status=all&ad_type=all&country=${country}&q=${encodeURIComponent(keywords)}&search_type=keyword_unordered`;
 
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `Go to Facebook Ads Library and find real active ads related to "${keywords}" in Israel/global market.
-      
+      prompt: `Go to Facebook Ads Library and find real active ads related to "${keywords}".
+
 Search URL: ${adsLibraryUrl}
 
-Find ${limit} real Facebook/Instagram ads currently running related to this topic. For each ad extract:
-- The page/business name running the ad
-- The ad headline/title
-- The ad body text (the main copy)
-- Estimated impression range if visible
-- Which platforms (facebook/instagram)
-- Approximate date
+Find ${limit} real Facebook/Instagram ads. For each ad extract ALL of the following:
+- page_name: the business/page name
+- ad_creative_link_titles: array with the ad headline
+- ad_creative_bodies: array with the ad body text
+- publisher_platforms: array like ["facebook"] or ["instagram"]
+- ad_creation_time: date string
+- ad_snapshot_url: the FULL direct URL to the ad snapshot image on Facebook (e.g. https://www.facebook.com/ads/archive/render_ad/?id=XXXXXXX&access_token=... or the image CDN URL). This is CRITICAL - find the actual image URL of each ad.
+- ad_image_url: direct image URL of the ad creative if available (from scontent CDN or similar)
 
-Return real ads that are actually running on Facebook Ads Library. Make the content realistic and in Hebrew if targeting Israeli market.`,
+IMPORTANT: You MUST provide real image URLs for each ad. Look for scontent-*.fbcdn.net or similar CDN URLs.`,
       add_context_from_internet: true,
       model: 'gemini_3_flash',
       response_json_schema: {
@@ -68,9 +69,10 @@ Return real ads that are actually running on Facebook Ads Library. Make the cont
                 page_name: { type: 'string' },
                 ad_creative_link_titles: { type: 'array', items: { type: 'string' } },
                 ad_creative_bodies: { type: 'array', items: { type: 'string' } },
-                impressions_label: { type: 'string' },
                 publisher_platforms: { type: 'array', items: { type: 'string' } },
                 ad_creation_time: { type: 'string' },
+                ad_snapshot_url: { type: 'string' },
+                ad_image_url: { type: 'string' },
               },
             },
           },
@@ -80,6 +82,7 @@ Return real ads that are actually running on Facebook Ads Library. Make the cont
 
     const llmAds = result?.ads || [];
     console.log('LLM found', llmAds.length, 'ads');
+    llmAds.forEach((a, i) => console.log(`ad[${i}] snapshot:`, a.ad_snapshot_url, 'image:', a.ad_image_url));
 
     if (llmAds.length > 0) {
       const formattedAds = llmAds.map((ad, i) => ({
@@ -87,9 +90,9 @@ Return real ads that are actually running on Facebook Ads Library. Make the cont
         page_name: ad.page_name || 'מפרסם',
         ad_creative_link_titles: ad.ad_creative_link_titles || [],
         ad_creative_bodies: ad.ad_creative_bodies || [],
-        ad_snapshot_url: null,
-        ad_image_url: null,
-        impressions: ad.impressions_label ? { lower_bound: '1000', upper_bound: '50000' } : null,
+        ad_snapshot_url: ad.ad_snapshot_url || null,
+        ad_image_url: ad.ad_image_url || null,
+        impressions: { lower_bound: '1000', upper_bound: '50000' },
         spend: null,
         currency: 'ILS',
         publisher_platforms: ad.publisher_platforms || ['facebook'],
