@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
       const images = [];
       for (let i = 0; i < 3; i++) {
         try {
-          const enrichedPrompt = `${stylePrompts[i]}${brandColors ? ` Brand color palette reference: ${brandColors}.` : ''} IMPORTANT: Bright, vibrant, colorful photography with saturated colors and energetic lighting - NOT dark, moody, or desaturated. Make it pop with vivid colors and happiness. Ultra-high quality 8K commercial advertising photography.`;
+          const enrichedPrompt = `${stylePrompts[i]}${brandColors ? ` Brand color palette reference: ${brandColors}.` : ''} IMPORTANT: Bright, vibrant, colorful photography with saturated colors and energetic lighting - NOT dark, moody, or desaturated. Make it pop with vivid colors and happiness. NO TEXT OVERLAY OR WATERMARKS. Ultra-high quality 8K commercial advertising photography.`;
           const imgResult = await base44.asServiceRole.integrations.Core.GenerateImage({
             prompt: enrichedPrompt,
             existing_image_urls: validLogo ? [validLogo] : undefined,
@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
     ];
     const variantHint = variantHints[adIndex] || variantHints[0];
 
-    const prompt = `You are a world-class creative director and Facebook advertising expert who has managed $100M+ in ad spend.
+    const prompt = `You are a world-class creative director and Facebook advertising expert who has managed $100M+ in ad spend. You write PERFECT, NATURAL Hebrew with correct grammar, spelling, and tone.
 
 Business Details:
 - Name: ${businessInfo.name}
@@ -104,20 +104,28 @@ Ad Style: ${styleInstructions[style] || styleInstructions.direct}
 
 VARIANT FOCUS (ad ${adIndex + 1} of ${totalAds}): ${variantHint}
 
-Create ONE high-converting Facebook ad variant in Hebrew. Follow proven direct-response advertising principles (AIDA, PAS, or Hook-Story-Offer).
+Create ONE high-converting Facebook ad variant in PERFECT HEBREW. Follow proven direct-response advertising principles (AIDA, PAS, or Hook-Story-Offer).
+
+CRITICAL INSTRUCTIONS FOR HEBREW:
+- Write NATIVE, NATURAL Hebrew that flows beautifully
+- Use proper Hebrew grammar, punctuation and vowelization where needed
+- Avoid awkward translations or unnatural phrasing
+- Headlines should be punchy and memorable in Hebrew
+- Copy should sound like a real person speaking Hebrew, not a translation
+- No emoji in Hebrew text
 
 Return:
-1. headline — Main headline (max 40 chars). Must create curiosity, promise benefit, or trigger emotion. Use power words.
-2. subheadline — Supporting line (max 25 chars). Amplify the headline or add social proof.
-3. body — Ad body copy (2-3 short punchy sentences, max 150 chars). Tell a micro-story or use PAS (Problem-Agitate-Solve).
-4. cta — Call to action button text (max 20 chars). Action-oriented, specific, creates urgency.
+1. headline — Main headline (max 40 Hebrew chars). Create curiosity, promise benefit, or trigger emotion.
+2. subheadline — Supporting line (max 25 Hebrew chars). Amplify the headline or add social proof.
+3. body — Ad body copy (2-3 short punchy sentences, max 150 Hebrew chars). Tell a micro-story or use PAS.
+4. cta — Call to action button text (max 20 Hebrew chars). Action-oriented, specific, creates urgency.
 5. imagePrompt — A highly detailed image generation prompt in English (minimum 80 words):
-"[Main subject with specific details]. [Scene/environment]. [Lighting: ${imgDir.lighting}]. [Composition: ${imgDir.composition}]. [Mood: ${imgDir.mood}]. [Style: ${imgDir.vibe}]. Shot on Phase One IQ4 camera, 85mm lens, ultra-sharp 8K resolution, award-winning commercial advertising photography. No text, no watermarks, no logos. Photorealistic."
+"[Main subject with specific details]. [Scene/environment]. [Lighting: ${imgDir.lighting}]. [Composition: ${imgDir.composition}]. [Mood: ${imgDir.mood}]. [Style: ${imgDir.vibe}]. Shot on Phase One IQ4 camera, 85mm lens, ultra-sharp 8K resolution, award-winning commercial advertising photography. NO TEXT OVERLAY, no watermarks, no logos, clean visual. Photorealistic."
 
 ${adIndex === 0 ? `Also create one Hebrew marketing email template:
-- emailSubject: Subject line (max 60 chars)
-- emailPreview: Preview text (max 90 chars)
-- emailBody: Full HTML email with clean inline CSS, 3-4 sections, compelling copy, and a prominent CTA button` : ''}`;
+- emailSubject: Subject line (max 60 Hebrew chars) - natural Hebrew
+- emailPreview: Preview text (max 90 Hebrew chars) - natural Hebrew
+- emailBody: Full HTML email with clean inline CSS, 3-4 sections, compelling copy in natural Hebrew, and a prominent CTA button` : ''}`;
 
     const response_json_schema = {
       type: 'object',
@@ -151,7 +159,7 @@ ${adIndex === 0 ? `Also create one Hebrew marketing email template:
     let imageUrl = null;
     try {
       const baseImagePrompt = adFields.imagePrompt || '';
-      const enrichedPrompt = `${baseImagePrompt}${brandColors ? ` Brand color palette reference: ${brandColors}.` : ''} This is for a ${businessInfo.type} business targeting ${businessInfo.audience || 'general consumers'}. The image should immediately communicate: ${businessInfo.usp || businessInfo.product}. Facebook feed aspect ratio 1:1, optimized for mobile scroll-stopping impact. IMPORTANT: Bright, vibrant, colorful photography with saturated colors and energetic lighting - NOT dark, moody, or desaturated. Make it pop and catch attention with vivid colors and happiness. Ultra-high quality commercial advertising photography.`;
+      const enrichedPrompt = `${baseImagePrompt}${brandColors ? ` Brand color palette reference: ${brandColors}.` : ''} This is for a ${businessInfo.type} business targeting ${businessInfo.audience || 'general consumers'}. The image should immediately communicate: ${businessInfo.usp || businessInfo.product}. Facebook feed aspect ratio 1:1, optimized for mobile scroll-stopping impact. IMPORTANT: Bright, vibrant, colorful photography with saturated colors and energetic lighting - NOT dark, moody, or desaturated. Make it pop and catch attention with vivid colors and happiness. NO TEXT OVERLAY OR WATERMARKS. Ultra-high quality commercial advertising photography.`;
 
       const imgResult = await base44.asServiceRole.integrations.Core.GenerateImage({
         prompt: enrichedPrompt,
