@@ -15,7 +15,7 @@ export default function StyleStep({ businessInfo, onSelected }) {
   return (
     <div>
       <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <div style={{ fontSize: 13, color: "#a78bfa", fontWeight: 700, marginBottom: 8 }}>שלב 3 מתוך 4</div>
+        <div style={{ fontSize: 13, color: "#a78bfa", fontWeight: 700, marginBottom: 8 }}>שלב 2 מתוך 3</div>
         <h2 style={{ fontSize: 26, fontWeight: 900, marginBottom: 8 }}>באיזה סגנון לכתוב?</h2>
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}>
           ה-AI יכתוב 3 גרסאות פרסומת בסגנון שתבחר עבור {businessInfo?.name || "העסק שלך"}

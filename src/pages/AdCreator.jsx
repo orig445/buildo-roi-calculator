@@ -3,21 +3,18 @@ import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Globe, Sparkles, ChevronLeft, Check, ExternalLink, Copy, ArrowRight } from "lucide-react";
 import WebsiteStep from "@/components/adcreator/WebsiteStep";
-import AdsLibraryStep from "@/components/adcreator/AdsLibraryStep";
 import StyleStep from "@/components/adcreator/StyleStep";
 import ResultsStep from "@/components/adcreator/ResultsStep";
 
 const STEPS = [
   { id: 1, label: "ניתוח האתר" },
-  { id: 2, label: "פרסומות מנצחות" },
-  { id: 3, label: "בחר סגנון" },
-  { id: 4, label: "הפרסומת שלך" },
+  { id: 2, label: "בחר סגנון" },
+  { id: 3, label: "הפרסומת שלך" },
 ];
 
 export default function AdCreator() {
   const [step, setStep] = useState(1);
   const [businessInfo, setBusinessInfo] = useState(null);
-  const [selectedAd, setSelectedAd] = useState(null);
   const [style, setStyle] = useState(null);
   const [generatedAds, setGeneratedAds] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -27,19 +24,13 @@ export default function AdCreator() {
     setStep(2);
   };
 
-  const handleAdSelected = (ad) => {
-    setSelectedAd(ad);
-    setStep(3);
-  };
-
   const handleStyleSelected = async (selectedStyle) => {
     setStyle(selectedStyle);
     setIsGenerating(true);
-    setStep(4);
+    setStep(3);
     try {
       const res = await base44.functions.invoke("generateAdCopy", {
         businessInfo,
-        selectedAd,
         style: selectedStyle,
       });
       setGeneratedAds(res.data.ads || []);
@@ -110,9 +101,8 @@ export default function AdCreator() {
             transition={{ duration: 0.35 }}
           >
             {step === 1 && <WebsiteStep onAnalyzed={handleBusinessAnalyzed} />}
-            {step === 2 && <AdsLibraryStep businessInfo={businessInfo} onSelected={handleAdSelected} />}
-            {step === 3 && <StyleStep businessInfo={businessInfo} onSelected={handleStyleSelected} />}
-            {step === 4 && <ResultsStep ads={generatedAds} isLoading={isGenerating} businessInfo={businessInfo} />}
+            {step === 2 && <StyleStep businessInfo={businessInfo} onSelected={handleStyleSelected} />}
+            {step === 3 && <ResultsStep ads={generatedAds} isLoading={isGenerating} businessInfo={businessInfo} />}
           </motion.div>
         </AnimatePresence>
       </div>
