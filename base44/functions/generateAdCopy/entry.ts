@@ -17,39 +17,72 @@ Deno.serve(async (req) => {
       urgency: 'דחיפות ומוגבלות — הצעה לזמן מוגבל, "עכשיו או לעולם לא", FOMO',
     };
 
-    const styleImageMood = {
-      emotional: 'warm, emotional, human connection, soft lighting, authentic lifestyle',
-      direct: 'clean, professional, bold, high contrast, business-focused',
-      humorous: 'colorful, playful, fun, vibrant, eye-catching',
-      luxury: 'premium, elegant, dark background, gold accents, sophisticated',
-      urgency: 'bold red and orange, dynamic, energetic, urgent, striking',
+    const styleImageDirection = {
+      emotional: {
+        mood: 'warm, emotionally resonant, authentic, cinematic',
+        lighting: 'golden hour soft diffused light, warm tones, gentle bokeh background',
+        composition: 'close-up human face showing genuine joy or relief, rule of thirds, shallow depth of field',
+        vibe: 'lifestyle documentary photography, real people, candid moments, trust and connection',
+      },
+      direct: {
+        mood: 'clean, confident, modern, high-impact',
+        lighting: 'studio-quality bright even lighting, crisp shadows, professional',
+        composition: 'bold product hero shot or confident person, centered composition, strong visual hierarchy',
+        vibe: 'commercial advertising photography, premium product display, business clarity',
+      },
+      humorous: {
+        mood: 'playful, colorful, vibrant, fun, eye-catching',
+        lighting: 'bright pop-art inspired lighting, vivid saturated colors, dynamic',
+        composition: 'unexpected creative angle, exaggerated expressions, playful props',
+        vibe: 'editorial humor, visual pun, bold graphic elements, cheerful energy',
+      },
+      luxury: {
+        mood: 'ultra-premium, sophisticated, exclusive, timeless',
+        lighting: 'dramatic chiaroscuro lighting, deep shadows, subtle rim light, moody atmosphere',
+        composition: 'architectural symmetry, negative space, minimalist elegance, cinematic wide angle',
+        vibe: 'Vogue-level fashion photography, dark rich backgrounds, gold and black palette, aspirational',
+      },
+      urgency: {
+        mood: 'dynamic, powerful, high-energy, immediate action',
+        lighting: 'dramatic high-contrast lighting, intense highlights, urgent red/orange tones',
+        composition: 'diagonal lines, motion blur, person in action, explosive energy',
+        vibe: 'sports advertising energy, breaking news urgency, visceral impact, must-act-now feeling',
+      },
     };
 
-    const prompt = `אתה מומחה פרסום דיגיטלי ברמה עולמית.
+    const imgDir = styleImageDirection[style] || styleImageDirection.direct;
 
-מידע על העסק:
-- שם: ${businessInfo.name}
-- תחום: ${businessInfo.type}
-- מוצר/שירות: ${businessInfo.product}
-- קהל יעד: ${businessInfo.audience}
-- יתרון ייחודי: ${businessInfo.usp}
+    const prompt = `You are a world-class creative director and Facebook advertising expert who has managed $100M+ in ad spend.
 
-סגנון: ${styleInstructions[style] || styleInstructions.direct}
+Business Details:
+- Name: ${businessInfo.name}
+- Industry: ${businessInfo.type}
+- Product/Service: ${businessInfo.product}
+- Target Audience: ${businessInfo.audience}
+- Unique Value Proposition: ${businessInfo.usp}
 
-צור 3 גרסאות פרסומת בעברית. כל גרסה תכיל:
-1. headline - כותרת ראשית (עד 40 תווים)
-2. subheadline - כותרת משנה (עד 25 תווים)
-3. body - גוף הפרסומת (2-4 שורות, מקסימום 150 תווים)
-4. cta - קריאה לפעולה (עד 20 תווים)
-5. imagePrompt - תיאור באנגלית לתמונת פרסומת מקצועית לפייסבוק עבור עסק זה
+Ad Style: ${styleInstructions[style] || styleInstructions.direct}
 
-בנוסף, צור תבנית מייל שיווקי אחת בעברית:
-- emailSubject: שורת נושא (עד 60 תווים)
-- emailPreview: טקסט preview (עד 90 תווים)
-- emailBody: גוף המייל ב-HTML עם עיצוב בסיסי, 3-4 פסקאות, כולל כפתור CTA`;
+TASK: Create 3 high-converting Facebook ad variants in Hebrew. Each ad must be psychologically compelling and follow proven direct-response advertising principles (AIDA, PAS, or Hook-Story-Offer).
+
+For each ad provide:
+1. headline — Main headline (max 40 chars). Must create curiosity, promise benefit, or trigger emotion. Use power words.
+2. subheadline — Supporting line (max 25 chars). Amplify the headline or add social proof.
+3. body — Ad body copy (2-3 short punchy sentences, max 150 chars). Tell a micro-story or use the PAS framework (Problem-Agitate-Solve). Make every word earn its place.
+4. cta — Call to action button text (max 20 chars). Action-oriented, specific, creates urgency.
+5. imagePrompt — A highly detailed, professional image generation prompt in English for a winning Facebook ad visual for this specific business. 
+
+The imagePrompt MUST follow this exact structure and be very detailed (minimum 80 words):
+"[Main subject description with specific details]. [Scene/environment]. [Lighting: ${imgDir.lighting}]. [Composition: ${imgDir.composition}]. [Mood/atmosphere: ${imgDir.mood}]. [Visual style: ${imgDir.vibe}]. Shot on Phase One IQ4 camera, 85mm lens, ultra-sharp 8K resolution, award-winning commercial advertising photography. No text, no watermarks, no logos. Photorealistic."
+
+Also create one Hebrew marketing email template:
+- emailSubject: Subject line (max 60 chars)
+- emailPreview: Preview text (max 90 chars)  
+- emailBody: Full HTML email with clean inline CSS, 3-4 sections, compelling copy, and a prominent CTA button`;
 
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
+      model: 'claude_sonnet_4_6',
       response_json_schema: {
         type: 'object',
         properties: {
@@ -82,19 +115,24 @@ Deno.serve(async (req) => {
       body: result.emailBody || '',
     };
 
-    const mood = styleImageMood[style] || styleImageMood.direct;
     const brandColors = (businessInfo.colors || businessInfo.brand_colors || []).join(', ');
     const rawLogoUrl = businessInfo.logo || businessInfo.logo_url || null;
     const logoUrl = rawLogoUrl && rawLogoUrl.startsWith('http') ? rawLogoUrl : null;
 
-    console.log('logoUrl:', logoUrl, 'brandColors:', brandColors);
+    console.log('logoUrl:', logoUrl, 'brandColors:', brandColors, 'style:', style);
 
-    // Generate images in parallel
+    // Generate images in parallel with rich, detailed prompts
     const adsWithImages = await Promise.all(
-      ads.map(async (ad) => {
-        const imgPrompt = `Professional Facebook advertisement image for a ${businessInfo.type} business called "${businessInfo.name}". ${ad.imagePrompt}. Style: ${mood}. ${brandColors ? `Brand colors: ${brandColors}.` : ''} High quality marketing photo, no text overlay, photorealistic.`;
+      ads.map(async (ad, index) => {
+        const baseImagePrompt = ad.imagePrompt || '';
+
+        // Enrich the prompt further with business-specific and brand details
+        const enrichedPrompt = `${baseImagePrompt}${brandColors ? ` Brand color palette reference: ${brandColors}.` : ''} This is for a ${businessInfo.type} business targeting ${businessInfo.audience || 'general consumers'}. The image should immediately communicate: ${businessInfo.usp || businessInfo.product}. Facebook feed aspect ratio 1:1, optimized for mobile scroll-stopping impact. Ultra-realistic commercial photography quality.`;
+
+        console.log(`Generating image ${index + 1} with prompt length: ${enrichedPrompt.length}`);
+
         const imgResult = await base44.asServiceRole.integrations.Core.GenerateImage({
-          prompt: imgPrompt,
+          prompt: enrichedPrompt,
           existing_image_urls: logoUrl ? [logoUrl] : undefined,
         });
         return { ...ad, imageUrl: imgResult.url || null };
