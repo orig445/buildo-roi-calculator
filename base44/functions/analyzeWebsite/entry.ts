@@ -51,7 +51,26 @@ Deno.serve(async (req) => {
           colorMatches.add(hex);
         }
       }
-      extractedColors = [...colorMatches].slice(0, 8);
+      // Count frequency of each color to find dominant ones
+      const colorFreq = {};
+      for (const m of html.matchAll(hexRegex)) {
+        const hex = m[0].length === 4
+          ? '#' + m[1][0] + m[1][0] + m[1][1] + m[1][1] + m[1][2] + m[1][2]
+          : m[0].toLowerCase();
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        const isGray = Math.abs(r - g) < 20 && Math.abs(g - b) < 20 && Math.abs(r - b) < 20;
+        const isWhiteBlack = (r > 230 && g > 230 && b > 230) || (r < 25 && g < 25 && b < 25);
+        if (!isGray && !isWhiteBlack) {
+          colorFreq[hex] = (colorFreq[hex] || 0) + 1;
+        }
+      }
+      // Sort by frequency (most common = brand color)
+      extractedColors = Object.entries(colorFreq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8)
+        .map(([hex]) => hex);
 
       // ── Extract image URLs from HTML ──
       const imgSrcRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
@@ -179,7 +198,7 @@ OUTPUT FIELDS:
 - quick_reply_1: short Hebrew button text (4–6 words)
 - quick_reply_2: short Hebrew button text (4–6 words)
 - logo_url: best candidate logo URL from extracted images, or empty string
-- brand_colors: pick the 3 most representative/prominent brand colors from the extracted list. These MUST be actual hex codes. If extractedColors is empty, infer from the website's known branding.
+- brand_colors: pick the 3 most representative/prominent brand colors. IMPORTANT: The extracted colors list is sorted by frequency (most used = most dominant). Prefer the top colors. If the site belongs to a well-known brand (e.g. Buildo = purple/lavender), use your knowledge of the brand's actual colors. These MUST be actual hex codes.
 - site_images: array of up to 6 image URLs from the extracted images list that best represent the business visually (real images only, no icons)
 - keywords: array of 3–5 English keywords for Facebook Ads Library search
 - target_audience: 1 sentence describing the typical customer
@@ -209,17 +228,22 @@ Return ONLY valid JSON.
           target_audience: { type: "string" },
           usp: { type: "string" },
         },
-        required: ["business_name", "business_type", "insight", "monthly_messages", "monthly_customers", "avg_deal_value", "opening_message", "follow_up_message", "info_message", "closing_message", "quick_reply_1", "quick_reply_2", "keywords"]
+        required: ["business_name", "business_type", "insight", "monthly_messages", "monthly_customers", "avg_deal_value", "opening_message", "follow_up_message", "info_message", "closing_message", "quick_reply_1", "quick_reply_2", "keywords", "brand_colors", "logo_url", "site_images"]
       }
     });
 
-    // Merge extracted data as fallback
-    if (!result.brand_colors?.length && extractedColors.length) {
+    // If LLM returned no colors, use top extracted colors
+    if (!result.brand_colors?.length || result.brand_colors.every(c => !c.startsWith('#'))) {
       result.brand_colors = extractedColors.slice(0, 3);
     }
+    // Validate hex format
+    result.brand_colors = (result.brand_colors || []).filter(c => /^#[0-9a-fA-F]{3,6}$/.test(c)).slice(0, 5);
     if (!result.site_images?.length && extractedImages.length) {
       result.site_images = extractedImages.slice(0, 6);
     }
+
+    console.log('brand_colors returned:', JSON.stringify(result.brand_colors));
+    console.log('top extracted colors:', JSON.stringify(extractedColors.slice(0, 5)));
 
     // Save scanned site to DB (fire-and-forget)
     base44.asServiceRole.entities.ScannedSite.create({
