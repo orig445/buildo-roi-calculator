@@ -271,12 +271,66 @@ function EmailTemplate({ emailTemplate, onUnlock, brandColor }) {
   );
 }
 
+function AdSkeleton({ index, brandColor }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1 }}
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+        gap: 16,
+        alignItems: "start",
+      }}
+    >
+      <div style={{ background: "#fff", borderRadius: 12, overflow: "hidden", boxShadow: "0 2px 16px rgba(0,0,0,0.1)" }}>
+        <div style={{ padding: "12px 14px", display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#e0e0e0" }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ height: 12, background: "#e0e0e0", borderRadius: 4, width: "60%", marginBottom: 6 }} />
+            <div style={{ height: 10, background: "#f0f0f0", borderRadius: 4, width: "30%" }} />
+          </div>
+        </div>
+        <div style={{ padding: "0 14px 10px" }}>
+          <div style={{ height: 10, background: "#f0f0f0", borderRadius: 4, marginBottom: 6 }} />
+          <div style={{ height: 10, background: "#f0f0f0", borderRadius: 4, width: "80%" }} />
+        </div>
+        <div style={{ position: "relative", height: 220, background: "#f5f5f5", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}>
+            <Loader2 size={32} color={brandColor} />
+          </motion.div>
+          <div style={{ position: "absolute", bottom: 12, fontSize: 11, color: "#999" }}>מייצר תמונה...</div>
+        </div>
+        <div style={{ background: "#f0f2f5", padding: "10px 14px" }}>
+          <div style={{ height: 12, background: "#e0e0e0", borderRadius: 4, width: "70%", marginBottom: 6 }} />
+          <div style={{ height: 10, background: "#e0e0e0", borderRadius: 4, width: "50%" }} />
+        </div>
+      </div>
+      <div style={{ background: "#f9f9f9", border: "1px solid #e0e0e0", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ background: brandColor, padding: "12px 16px", opacity: 0.7 }}>
+          <div style={{ height: 12, background: "rgba(255,255,255,0.3)", borderRadius: 4, width: "40%" }} />
+        </div>
+        <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 14 }}>
+          {[70, 50, 100, 40].map((w, i) => (
+            <div key={i} style={{ height: 10, background: "#e0e0e0", borderRadius: 4, width: `${w}%` }} />
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplate }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const brandColor = getBrandColor(businessInfo);
 
-  if (isLoading) {
+  const hasAnyAd = ads.some(Boolean);
+  const totalSlots = 3;
+
+  // Show full loading screen only before first ad arrives
+  if (isLoading && !hasAnyAd) {
     return (
       <div style={{ textAlign: "center", padding: "80px 0" }}>
         <motion.div
@@ -290,12 +344,8 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
         <div style={{ fontSize: 13, color: "#666" }}>כותב קופי, מייצר תמונות מותאמות לעסק שלך</div>
         <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 20 }}>
           {[0, 1, 2].map(i => (
-            <motion.div
-              key={i}
-              animate={{ scale: [1, 1.3, 1] }}
-              transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2 }}
-              style={{ width: 8, height: 8, borderRadius: "50%", background: brandColor }}
-            />
+            <motion.div key={i} animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2 }}
+              style={{ width: 8, height: 8, borderRadius: "50%", background: brandColor }} />
           ))}
         </div>
       </div>
@@ -327,16 +377,20 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 24, marginBottom: 28 }}>
-        {ads.map((ad, i) => (
-          <AdCard
-            key={i}
-            ad={ad}
-            index={i}
-            businessInfo={businessInfo}
-            unlocked={unlocked}
-            onUnlock={() => setModalOpen(true)}
-          />
-        ))}
+        {Array.from({ length: totalSlots }).map((_, i) =>
+          ads[i] ? (
+            <AdCard
+              key={i}
+              ad={ads[i]}
+              index={i}
+              businessInfo={businessInfo}
+              unlocked={unlocked}
+              onUnlock={() => setModalOpen(true)}
+            />
+          ) : isLoading ? (
+            <AdSkeleton key={i} index={i} brandColor={brandColor} />
+          ) : null
+        )}
       </div>
 
       {emailTemplate && (

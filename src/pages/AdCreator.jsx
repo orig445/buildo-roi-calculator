@@ -28,14 +28,33 @@ export default function AdCreator() {
   const handleStyleSelected = async (selectedStyle) => {
     setStyle(selectedStyle);
     setIsGenerating(true);
+    setGeneratedAds([]);
     setStep(3);
+
     try {
-      const res = await base44.functions.invoke("generateAdCopy", {
-        businessInfo,
-        style: selectedStyle,
-      });
-      setGeneratedAds(res.data.ads || []);
-      setEmailTemplate(res.data.emailTemplate || null);
+      // Fire all 3 ad generations in parallel — each resolves independently
+      const promises = [0, 1, 2].map((index) =>
+        base44.functions.invoke("generateAdCopy", {
+          businessInfo,
+          style: selectedStyle,
+          adIndex: index,
+          totalAds: 3,
+        }).then((res) => {
+          const ad = res.data.ad;
+          if (ad) {
+            setGeneratedAds((prev) => {
+              const next = [...prev];
+              next[index] = ad;
+              return next;
+            });
+          }
+          if (index === 0 && res.data.emailTemplate) {
+            setEmailTemplate(res.data.emailTemplate);
+          }
+        })
+      );
+
+      await Promise.all(promises);
     } catch (e) {
       console.error(e);
     } finally {
