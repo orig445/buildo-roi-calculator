@@ -10,19 +10,31 @@ export default function AdsLibraryStep({ businessInfo, onSelected }) {
   const [searchTerm, setSearchTerm] = useState(businessInfo?.keywords?.[0] || businessInfo?.type || "");
   const [error, setError] = useState("");
 
+  const DEMO_ADS = [
+    { id: "d1", page_name: "דוגמה — עסק דומה לשלך", ad_creative_link_titles: ["גלה מה אתה מפספס כל יום 🔥"], ad_creative_bodies: ["כל לקוח שלא עונים לו תוך שעה — הולך למתחרה. עם המערכת שלנו, 97% מהפניות מקבלות מענה אוטומטי תוך דקות. בלי להפסיד עסקאות."], ad_snapshot_url: null },
+    { id: "d2", page_name: "דוגמה — מתחרה בתחום", ad_creative_link_titles: ["₪0 ראשון. תוצאות ראשון. 💎"], ad_creative_bodies: ["הצטרף ל-2,000+ עסקים שכבר מרוויחים יותר עם אוטומציה חכמה. ניסיון חינם ל-14 יום — ללא כרטיס אשראי, ללא התחייבות."], ad_snapshot_url: null },
+    { id: "d3", page_name: "דוגמה — פרסומת מנצחת", ad_creative_link_titles: ["לקוחות מחכים. אל תגרום להם להמתין ⏰"], ad_creative_bodies: ["מחקר מראה: 78% מהלקוחות קונים מהעסק שענה ראשון. האם אתה תמיד ראשון? אם לא — הגיע הזמן לשנות את זה."], ad_snapshot_url: null },
+    { id: "d4", page_name: "דוגמה — מסגנון רגשי", ad_creative_link_titles: ["כשהייתי מפספס פניות, הייתי מרגיש ❤️"], ad_creative_bodies: ["בעל עסק כמוך שיתף: 'הייתי ישן בלילה ומחמיץ לידים. מאז שהפעלתי את הבוט — הכנסות עלו ב-40% תוך חודש.' זה יכול להיות הסיפור שלך."], ad_snapshot_url: null },
+    { id: "d5", page_name: "דוגמה — הצעת ערך ברורה", ad_creative_link_titles: ["3 שניות = לקוח מרוצה ✅"], ad_creative_bodies: ["הבוט שלנו עונה תוך 3 שניות, 24/7, בעברית מושלמת. מתאים את עצמו לעסק שלך, שולח הצעות מחיר, וסוגר עסקאות — בזמן שאתה ישן."], ad_snapshot_url: null },
+    { id: "d6", page_name: "דוגמה — הוכחה חברתית", ad_creative_link_titles: ["2,847 עסקים כבר בפנים 🏆"], ad_creative_bodies: ["מה המשותף לסלון היופי בתל אביב, קליניקת השיניים בחיפה, והגרפיקאי מבאר שבע? כולם הגדילו הכנסות ב-30%+ עם אוטומציית וואטסאפ. מתי תצטרף?"], ad_snapshot_url: null },
+  ];
+
   const fetchAds = async (keywords) => {
     setLoading(true);
     setError("");
     try {
       const res = await base44.functions.invoke("searchFacebookAds", { keywords, limit: 12 });
       if (res.data.error) {
-        setError(res.data.error);
-        setAds([]);
+        // Fallback to demo ads with info message
+        setError("API_PERMISSION");
+        setAds(DEMO_ADS);
+      } else if (!res.data.ads || res.data.ads.length === 0) {
+        setAds(DEMO_ADS);
       } else {
-        setAds(res.data.ads || []);
+        setAds(res.data.ads);
       }
     } catch (e) {
-      setError("שגיאה בטעינת פרסומות");
+      setAds(DEMO_ADS);
     } finally {
       setLoading(false);
     }
@@ -86,9 +98,10 @@ export default function AdsLibraryStep({ businessInfo, onSelected }) {
         </button>
       </div>
 
-      {error && (
-        <div style={{ background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.3)", borderRadius: 10, padding: "12px 16px", color: "#f87171", fontSize: 13, marginBottom: 16 }}>
-          ⚠️ {error}
+      {error === "API_PERMISSION" && (
+        <div style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.3)", borderRadius: 10, padding: "12px 16px", color: "#fbbf24", fontSize: 12, marginBottom: 16, lineHeight: 1.6 }}>
+          💡 <strong>מצב הדגמה:</strong> מציג פרסומות לדוגמה — Facebook Ads Library API דורש אישור מיוחד מ-Meta.
+          {" "}<a href="https://www.facebook.com/ads/library/api" target="_blank" rel="noopener noreferrer" style={{ color: "#60a5fa" }}>לחץ כאן להגשת בקשת גישה</a>
         </div>
       )}
 
