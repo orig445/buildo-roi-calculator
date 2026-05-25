@@ -83,7 +83,9 @@ Deno.serve(async (req) => {
     };
     const mood = styleImageMood[style] || styleImageMood.direct;
     const brandColors = (businessInfo.colors || businessInfo.brand_colors || []).join(', ');
-    const logoUrl = businessInfo.logo || businessInfo.logo_url || null;
+    const rawLogoUrl = businessInfo.logo || businessInfo.logo_url || null;
+    // Only use absolute URLs — relative paths like "/images/logo.svg" will break GenerateImage
+    const logoUrl = rawLogoUrl && rawLogoUrl.startsWith('http') ? rawLogoUrl : null;
 
     console.log('businessInfo keys:', Object.keys(businessInfo));
     console.log('logoUrl:', logoUrl);
