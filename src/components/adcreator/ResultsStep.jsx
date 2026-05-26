@@ -58,7 +58,7 @@ function AdCard({ ad, index, businessInfo, onUnlock, unlocked, lang = "he" }) {
             </div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#000" }}>{pageName}</div>
-              <div style={{ fontSize: 11, color: "#65676b" }}>ממומן</div>
+              <div style={{ fontSize: 11, color: "#65676b" }}>{lang === "en" ? "Sponsored" : "ממומן"}</div>
             </div>
           </div>
           <MoreHorizontal size={18} color="#65676b" />
@@ -86,7 +86,7 @@ function AdCard({ ad, index, businessInfo, onUnlock, unlocked, lang = "he" }) {
                       boxShadow: "0 4px 14px rgba(0,0,0,0.3)",
                     }}
                   >
-                    <Download size={14} /> הורד תמונה
+                    <Download size={14} /> {lang === "en" ? "Download Image" : "הורד תמונה"}
                   </button>
                 </div>
               )}
@@ -139,9 +139,9 @@ function AdCard({ ad, index, businessInfo, onUnlock, unlocked, lang = "he" }) {
         {/* Reactions bar */}
         <div style={{ padding: "8px 14px", borderTop: "1px solid #e4e6eb", display: "flex", gap: 4 }}>
           {[
-            <><ThumbsUp size={14} /> אהבתי</>,
-            <><MessageCircle size={14} /> תגובה</>,
-            <><Share2 size={14} /> שיתוף</>
+            <><ThumbsUp size={14} /> {lang === "en" ? "Like" : "אהבתי"}</>,
+            <><MessageCircle size={14} /> {lang === "en" ? "Comment" : "תגובה"}</>,
+            <><Share2 size={14} /> {lang === "en" ? "Share" : "שיתוף"}</>
           ].map((item, i) => (
             <button key={i} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "none", border: "none", color: "#65676b", fontSize: 13, fontWeight: 600, padding: "6px 0", borderRadius: 6, cursor: "pointer", fontFamily: "inherit" }}>
               {item}
@@ -187,7 +187,7 @@ function AdCard({ ad, index, businessInfo, onUnlock, unlocked, lang = "he" }) {
   );
 }
 
-function EmailTemplate({ emailTemplate, onUnlock, brandColor }) {
+function EmailTemplate({ emailTemplate, onUnlock, brandColor, lang = "he" }) {
   const [copied, setCopied] = useState(false);
   const [tab, setTab] = useState("preview");
 
@@ -200,25 +200,25 @@ function EmailTemplate({ emailTemplate, onUnlock, brandColor }) {
       <div style={{ background: brandColor, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Mail size={16} color="#fff" />
-          <span style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>תבנית מייל שיווקי</span>
+          <span style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{lang === "en" ? "Marketing Email Template" : "תבנית מייל שיווקי"}</span>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           {["preview", "html"].map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{ background: tab === t ? "#fff" : "transparent", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 6, padding: "4px 12px", color: tab === t ? brandColor : "rgba(255,255,255,0.7)", fontSize: 11, cursor: "pointer", fontFamily: "'Heebo', sans-serif" }}>
-              {t === "preview" ? "תצוגה מקדימה" : "HTML"}
-            </button>
+          <button key={t} onClick={() => setTab(t)} style={{ background: tab === t ? "#fff" : "transparent", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 6, padding: "4px 12px", color: tab === t ? brandColor : "rgba(255,255,255,0.7)", fontSize: 11, cursor: "pointer", fontFamily: "'Heebo', sans-serif" }}>
+            {t === "preview" ? (lang === "en" ? "Preview" : "תצוגה מקדימה") : "HTML"}
+          </button>
           ))}
         </div>
       </div>
 
       <div style={{ padding: 18 }}>
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 10, color: "#999", marginBottom: 4 }}>נושא המייל</div>
+          <div style={{ fontSize: 10, color: "#999", marginBottom: 4 }}>{lang === "en" ? "Email Subject" : "נושא המייל"}</div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff", borderRadius: 8, padding: "8px 12px", border: "1px solid #e0e0e0" }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: "#000" }}>{emailTemplate.subject}</span>
             <button onClick={() => { navigator.clipboard.writeText(emailTemplate.subject); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
               style={{ background: "none", border: "none", color: "#666", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}>
-              {copied ? <><Check size={11} color="#22c55e" /> הועתק</> : <><Copy size={11} /> העתק</>}
+              {copied ? <><Check size={11} color="#22c55e" /> {lang === "en" ? "Copied" : "הועתק"}</> : <><Copy size={11} /> {lang === "en" ? "Copy" : "העתק"}</>}
             </button>
           </div>
         </div>
@@ -246,7 +246,7 @@ function EmailTemplate({ emailTemplate, onUnlock, brandColor }) {
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
               </svg>
             </div>
-            <div style={{ color: "#000", fontSize: 13, fontWeight: 700 }}>לחץ לצפייה בתבנית המייל</div>
+            <div style={{ color: "#000", fontSize: 13, fontWeight: 700 }}>{lang === "en" ? "Click to view email template" : "לחץ לצפייה בתבנית המייל"}</div>
           </div>
         </div>
       </div>
@@ -254,7 +254,7 @@ function EmailTemplate({ emailTemplate, onUnlock, brandColor }) {
   );
 }
 
-function AdSkeleton({ index, brandColor }) {
+function AdSkeleton({ index, brandColor, lang = "he" }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -283,7 +283,7 @@ function AdSkeleton({ index, brandColor }) {
           <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}>
             <Loader2 size={32} color={brandColor} />
           </motion.div>
-          <div style={{ position: "absolute", bottom: 12, fontSize: 11, color: "#999" }}>מייצר תמונה...</div>
+          <div style={{ position: "absolute", bottom: 12, fontSize: 11, color: "#999" }}>{lang === "en" ? "Generating image..." : "מייצר תמונה..."}</div>
         </div>
         <div style={{ background: "#f0f2f5", padding: "10px 14px" }}>
           <div style={{ height: 12, background: "#e0e0e0", borderRadius: 4, width: "70%", marginBottom: 6 }} />
@@ -365,7 +365,7 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
               lang={lang}
             />
           ) : (
-            <AdSkeleton key={i} index={i} brandColor={brandColor} />
+            <AdSkeleton key={i} index={i} brandColor={brandColor} lang={lang} />
           )
         )}
       </div>
@@ -375,6 +375,7 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
           emailTemplate={emailTemplate}
           onUnlock={() => setModalOpen(true)}
           brandColor={brandColor}
+          lang={lang}
         />
       )}
 

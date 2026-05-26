@@ -3,7 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { url } = await req.json();
+    const { url, lang = "he" } = await req.json();
 
     if (!url) {
       return Response.json({ error: 'URL is required' }, { status: 400 });
@@ -186,23 +186,23 @@ ESTIMATION RULES (use these industry benchmarks as a guide):
 
 OUTPUT FIELDS:
 - business_name: the actual business name from the site
-- business_type: short industry label in Hebrew (2–4 words)
-- insight: 1–2 Hebrew sentences explaining the WhatsApp opportunity for THIS business
+- business_type: short industry label in ${lang === "en" ? "English" : "Hebrew"} (2–4 words)
+- insight: 1–2 ${lang === "en" ? "English" : "Hebrew"} sentences explaining the WhatsApp opportunity for THIS business
 - monthly_messages: integer
 - monthly_customers: integer
 - avg_deal_value: integer (NIS)
-- opening_message: Hebrew WhatsApp greeting, 1–2 sentences, emoji
-- follow_up_message: Hebrew follow-up, 1–2 sentences
-- info_message: Hebrew informational response, 2–3 sentences
-- closing_message: Hebrew confirmation, 1 sentence
-- quick_reply_1: short Hebrew button text (4–6 words)
-- quick_reply_2: short Hebrew button text (4–6 words)
+- opening_message: ${lang === "en" ? "English" : "Hebrew"} WhatsApp greeting, 1–2 sentences, emoji
+- follow_up_message: ${lang === "en" ? "English" : "Hebrew"} follow-up, 1–2 sentences
+- info_message: ${lang === "en" ? "English" : "Hebrew"} informational response, 2–3 sentences
+- closing_message: ${lang === "en" ? "English" : "Hebrew"} confirmation, 1 sentence
+- quick_reply_1: short ${lang === "en" ? "English" : "Hebrew"} button text (4–6 words)
+- quick_reply_2: short ${lang === "en" ? "English" : "Hebrew"} button text (4–6 words)
 - logo_url: best candidate logo URL from extracted images, or empty string
 - brand_colors: pick the 3 most representative/prominent brand colors. IMPORTANT: The extracted colors list is sorted by frequency (most used = most dominant). Prefer the top colors. If the site belongs to a well-known brand (e.g. Buildo = purple/lavender), use your knowledge of the brand's actual colors. These MUST be actual hex codes.
 - site_images: array of up to 6 image URLs from the extracted images list that best represent the business visually (real images only, no icons)
 - keywords: array of 3–5 English keywords for Facebook Ads Library search
 - target_audience: 1 sentence describing the typical customer
-- usp: unique selling proposition in Hebrew, 1 sentence
+- usp: unique selling proposition in ${lang === "en" ? "English" : "Hebrew"}, 1 sentence
 
 Return ONLY valid JSON.
 `,

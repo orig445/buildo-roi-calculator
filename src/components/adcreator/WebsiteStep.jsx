@@ -50,7 +50,7 @@ export default function WebsiteStep({ onAnalyzed, lang = "he" }) {
     setPreview(null);
     try {
       const normalized = url.trim().startsWith("http") ? url.trim() : "https://" + url.trim();
-      const res = await base44.functions.invoke("analyzeWebsite", { url: normalized });
+      const res = await base44.functions.invoke("analyzeWebsite", { url: normalized, lang });
       const data = res.data;
 
       const info = {
