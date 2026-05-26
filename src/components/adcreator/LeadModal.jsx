@@ -3,7 +3,29 @@ import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 
-export default function LeadModal({ isOpen, onClose, businessInfo, onSuccess }) {
+const T = {
+  he: {
+    title: "הורד את התמונה שלך",
+    subtitle: "השאר פרטים כדי לקבל את התמונה בחינם",
+    name: "שם מלא",
+    email: "כתובת אימייל",
+    phone: "מספר טלפון",
+    submit: "הורד תמונה",
+    downloading: "מוריד את התמונה...",
+  },
+  en: {
+    title: "Download Your Image",
+    subtitle: "Enter your details to get the image for free",
+    name: "Full name",
+    email: "Email address",
+    phone: "Phone number",
+    submit: "Download Image",
+    downloading: "Downloading your image...",
+  },
+};
+
+export default function LeadModal({ isOpen, onClose, businessInfo, onSuccess, lang = "he" }) {
+  const t = T[lang] || T.he;
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -20,7 +42,7 @@ export default function LeadModal({ isOpen, onClose, businessInfo, onSuccess }) 
       phone,
       company: businessInfo?.name || "",
       source: "ad_creator",
-      notes: `סוג עסק: ${businessInfo?.type || ""}`,
+      notes: `Business type: ${businessInfo?.type || ""}`,
     });
 
     setTimeout(() => {
@@ -64,51 +86,51 @@ export default function LeadModal({ isOpen, onClose, businessInfo, onSuccess }) 
             {submitted ? (
               <div style={{ textAlign: "center", padding: "20px 0" }}>
                 <div style={{ fontSize: 36, marginBottom: 12 }}>✅</div>
-                <div style={{ fontSize: 16, fontWeight: 800 }}>מוריד את התמונה...</div>
+                <div style={{ fontSize: 16, fontWeight: 800 }}>{t.downloading}</div>
               </div>
             ) : (
               <>
                 <h3 style={{ fontSize: 20, fontWeight: 900, marginBottom: 6, textAlign: "center" }}>
-                  הורד את התמונה שלך
+                  {t.title}
                 </h3>
                 <p style={{ fontSize: 13, color: "#666", textAlign: "center", marginBottom: 20 }}>
-                  השאר פרטים כדי לקבל את התמונה בחינם
+                  {t.subtitle}
                 </p>
                 <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   <input
                     type="text"
-                    placeholder="שם מלא"
+                    placeholder={t.name}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
                     style={{
                       padding: "12px 14px", border: "1.5px solid #ddd", borderRadius: 8,
                       fontSize: 14, fontFamily: "'Heebo', sans-serif", outline: "none",
-                      direction: "rtl",
+                      direction: lang === "en" ? "ltr" : "rtl",
                     }}
                   />
                   <input
                     type="email"
-                    placeholder="כתובת אימייל"
+                    placeholder={t.email}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     style={{
                       padding: "12px 14px", border: "1.5px solid #ddd", borderRadius: 8,
                       fontSize: 14, fontFamily: "'Heebo', sans-serif", outline: "none",
-                      direction: "rtl",
+                      direction: "ltr",
                     }}
                   />
                   <input
                     type="tel"
-                    placeholder="מספר טלפון"
+                    placeholder={t.phone}
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     required
                     style={{
                       padding: "12px 14px", border: "1.5px solid #ddd", borderRadius: 8,
                       fontSize: 14, fontFamily: "'Heebo', sans-serif", outline: "none",
-                      direction: "rtl",
+                      direction: lang === "en" ? "ltr" : "rtl",
                     }}
                   />
                   <button
@@ -119,7 +141,7 @@ export default function LeadModal({ isOpen, onClose, businessInfo, onSuccess }) 
                       cursor: "pointer", fontFamily: "'Heebo', sans-serif", marginTop: 4,
                     }}
                   >
-                    הורד תמונה
+                    {t.submit}
                   </button>
                 </form>
               </>

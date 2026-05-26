@@ -334,6 +334,7 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         businessInfo={businessInfo}
+        lang={lang}
         onSuccess={() => {
           setUnlocked(true);
           setModalOpen(false);
