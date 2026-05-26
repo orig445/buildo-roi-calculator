@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 
-const STYLES = [
+const STYLES_HE = [
   { id: "emotional", label: "רגשי", desc: "מחבר ללב, מספר סיפור" },
   { id: "direct", label: "ישיר", desc: "תועלות ברורות, מספרים" },
   { id: "humorous", label: "הומוריסטי", desc: "קליל, חכם, מחייך" },
@@ -9,16 +9,32 @@ const STYLES = [
   { id: "urgency", label: "דחיפות", desc: "הצעה מוגבלת, FOMO" },
 ];
 
-export default function StyleStep({ businessInfo, onSelected }) {
+const STYLES_EN = [
+  { id: "emotional", label: "Emotional", desc: "Connects to the heart, storytelling" },
+  { id: "direct", label: "Direct", desc: "Clear benefits, numbers, facts" },
+  { id: "humorous", label: "Humorous", desc: "Light, clever, makes you smile" },
+  { id: "luxury", label: "Luxury", desc: "Premium, exclusive, quality" },
+  { id: "urgency", label: "Urgency", desc: "Limited offer, FOMO" },
+];
+
+export default function StyleStep({ businessInfo, onSelected, lang = "he" }) {
   const [selected, setSelected] = useState(null);
+  const STYLES = lang === "en" ? STYLES_EN : STYLES_HE;
+  const isEn = lang === "en";
 
   return (
     <div>
       <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <div style={{ fontSize: 13, color: "#666", fontWeight: 700, marginBottom: 8 }}>שלב 2 מתוך 3</div>
-        <h2 style={{ fontSize: 26, fontWeight: 900, marginBottom: 8, color: "#000" }}>באיזה סגנון לכתוב?</h2>
+        <div style={{ fontSize: 13, color: "#666", fontWeight: 700, marginBottom: 8 }}>
+          {isEn ? "Step 2 of 3" : "שלב 2 מתוך 3"}
+        </div>
+        <h2 style={{ fontSize: 26, fontWeight: 900, marginBottom: 8, color: "#000" }}>
+          {isEn ? "Choose Your Ad Style" : "באיזה סגנון לכתוב?"}
+        </h2>
         <p style={{ fontSize: 13, color: "#666" }}>
-          ה-AI יכתוב 3 גרסאות פרסומת בסגנון שתבחר עבור {businessInfo?.name || "העסק שלך"}
+          {isEn
+            ? `AI will write 3 ad versions in your chosen style for ${businessInfo?.name || "your business"}`
+            : `ה-AI יכתוב 3 גרסאות פרסומת בסגנון שתבחר עבור ${businessInfo?.name || "העסק שלך"}`}
         </p>
       </div>
 
@@ -55,7 +71,7 @@ export default function StyleStep({ businessInfo, onSelected }) {
           transition: "all 0.3s",
         }}
       >
-        צור את הפרסומות שלי
+        {isEn ? "Create My Ads" : "צור את הפרסומות שלי"}
       </button>
     </div>
   );

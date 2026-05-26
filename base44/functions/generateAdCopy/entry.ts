@@ -3,7 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { businessInfo, style, adIndex = 0, totalAds = 3, pregenerateImages = false } = await req.json();
+    const { businessInfo, style, adIndex = 0, totalAds = 3, pregenerateImages = false, lang = "he" } = await req.json();
 
     if (!businessInfo) {
       return Response.json({ error: 'חסר businessInfo' }, { status: 400 });
@@ -91,7 +91,23 @@ Deno.serve(async (req) => {
     ];
     const variantHint = variantHints[adIndex] || variantHints[0];
 
-    const prompt = `צור פרסומת פייסבוק בעברית לעסק:
+    const isEn = lang === "en";
+    const prompt = isEn
+      ? `Write a Facebook ad in ENGLISH for this business:
+Name: ${businessInfo.name}
+Type: ${businessInfo.type}
+Product: ${businessInfo.product}
+Audience: ${businessInfo.audience}
+USP: ${businessInfo.usp}
+Style: ${styleInstructions[style] || 'direct and benefit-focused'}
+
+Return JSON only:
+headline (max 40 chars)
+subheadline (max 25 chars)
+body (3 sentences)
+cta (max 20 chars)
+${adIndex === 0 ? 'emailSubject, emailPreview, emailBody (HTML)' : ''}`
+      : `צור פרסומת פייסבוק בעברית לעסק:
 שם: ${businessInfo.name}
 סוג: ${businessInfo.type}
 מוצר: ${businessInfo.product}

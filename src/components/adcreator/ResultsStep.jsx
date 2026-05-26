@@ -21,7 +21,7 @@ function downloadImage(url, filename) {
     });
 }
 
-function AdCard({ ad, index, businessInfo, onUnlock, unlocked }) {
+function AdCard({ ad, index, businessInfo, onUnlock, unlocked, lang = "he" }) {
   const [copied, setCopied] = useState(false);
   const brandColor = getBrandColor(businessInfo);
   const isFirst = index === 0;
@@ -108,7 +108,7 @@ function AdCard({ ad, index, businessInfo, onUnlock, unlocked }) {
                           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                         </svg>
                       </div>
-                      <div style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>לחץ לצפייה בתמונה</div>
+                      <div style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>{lang === "en" ? "Click to view image" : "לחץ לצפייה בתמונה"}</div>
                     </>
                   )}
                 </div>
@@ -119,7 +119,7 @@ function AdCard({ ad, index, businessInfo, onUnlock, unlocked }) {
               <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}>
                 <Loader2 size={28} color={brandColor} />
               </motion.div>
-              <div style={{ fontSize: 12, color: "#999" }}>מייצר תמונה...</div>
+              <div style={{ fontSize: 12, color: "#999" }}>{lang === "en" ? "Generating image..." : "מייצר תמונה..."}</div>
             </div>
           )}
         </div>
@@ -153,30 +153,30 @@ function AdCard({ ad, index, businessInfo, onUnlock, unlocked }) {
       {/* RIGHT: Copy panel */}
       <div style={{ background: "#f9f9f9", border: "1px solid #e0e0e0", borderRadius: 12, overflow: "hidden" }}>
         <div style={{ background: brandColor, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ fontSize: 11, color: "#fff", fontWeight: 700 }}>גרסה {index + 1}</div>
+          <div style={{ fontSize: 11, color: "#fff", fontWeight: 700 }}>{lang === "en" ? `Version ${index + 1}` : `גרסה ${index + 1}`}</div>
           <button onClick={copyAll} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.2)", border: "none", borderRadius: 6, padding: "5px 12px", color: "#fff", cursor: "pointer", fontSize: 11, fontFamily: "'Heebo', sans-serif" }}>
-            {copied ? <><Check size={11} color="#4ade80" /> הועתק!</> : <><Copy size={11} /> העתק הכל</>}
+            {copied ? <><Check size={11} color="#4ade80" /> {lang === "en" ? "Copied!" : "הועתק!"}</> : <><Copy size={11} /> {lang === "en" ? "Copy all" : "העתק הכל"}</>}
           </button>
         </div>
         <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
           <div>
-            <div style={{ fontSize: 10, color: "#999", marginBottom: 4 }}>כותרת ראשית</div>
+            <div style={{ fontSize: 10, color: "#999", marginBottom: 4 }}>{lang === "en" ? "Headline" : "כותרת ראשית"}</div>
             <div style={{ fontSize: 15, fontWeight: 900, color: "#000" }}>{ad.headline}</div>
           </div>
           {ad.subheadline && (
             <div>
-              <div style={{ fontSize: 10, color: "#999", marginBottom: 4 }}>כותרת משנה</div>
+              <div style={{ fontSize: 10, color: "#999", marginBottom: 4 }}>{lang === "en" ? "Subheadline" : "כותרת משנה"}</div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#333" }}>{ad.subheadline}</div>
             </div>
           )}
           <div>
-            <div style={{ fontSize: 10, color: "#999", marginBottom: 4 }}>גוף הפרסומת</div>
+            <div style={{ fontSize: 10, color: "#999", marginBottom: 4 }}>{lang === "en" ? "Ad Body" : "גוף הפרסומת"}</div>
             <div style={{ fontSize: 12, color: "#444", lineHeight: 1.7, background: "#fff", borderRadius: 8, padding: "10px 12px", borderRight: `3px solid ${brandColor}` }}>
               {ad.body}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: "#999", marginBottom: 6 }}>CTA</div>
+            <div style={{ fontSize: 10, color: "#999", marginBottom: 6 }}>{lang === "en" ? "CTA Button" : "CTA"}</div>
             <div style={{ display: "inline-flex", background: brandColor, color: "#fff", borderRadius: 8, padding: "7px 16px", fontSize: 13, fontWeight: 800 }}>
               {ad.cta}
             </div>
@@ -304,7 +304,7 @@ function AdSkeleton({ index, brandColor }) {
   );
 }
 
-export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplate }) {
+export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplate, lang = "he" }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const brandColor = getBrandColor(businessInfo);
@@ -322,8 +322,8 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
         >
           <Loader2 size={48} color={brandColor} />
         </motion.div>
-        <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8, color: "#000" }}>יוצר פרסומות...</div>
-        <div style={{ fontSize: 13, color: "#666" }}>כתיבת קופי מותאם אישית</div>
+        <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8, color: "#000" }}>{lang === "en" ? "Creating your ads..." : "יוצר פרסומות..."}</div>
+        <div style={{ fontSize: 13, color: "#666" }}>{lang === "en" ? "Writing personalized copy" : "כתיבת קופי מותאם אישית"}</div>
       </div>
     );
   }
@@ -345,10 +345,10 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
       />
 
       <div style={{ textAlign: "center", marginBottom: 28 }}>
-        <div style={{ fontSize: 13, color: "#666", fontWeight: 700, marginBottom: 8 }}>שלב 3 מתוך 3</div>
-        <h2 style={{ fontSize: 26, fontWeight: 900, marginBottom: 8, color: "#000" }}>הפרסומות שלך מוכנות</h2>
+        <div style={{ fontSize: 13, color: "#666", fontWeight: 700, marginBottom: 8 }}>{lang === "en" ? "Step 3 of 3" : "שלב 3 מתוך 3"}</div>
+        <h2 style={{ fontSize: 26, fontWeight: 900, marginBottom: 8, color: "#000" }}>{lang === "en" ? "Your Ads Are Ready" : "הפרסומות שלך מוכנות"}</h2>
         <p style={{ fontSize: 13, color: "#666" }}>
-          {ads.length} גרסאות מותאמות אישית לעסק שלך
+          {lang === "en" ? `${ads.length} personalized versions for your business` : `${ads.length} גרסאות מותאמות אישית לעסק שלך`}
         </p>
       </div>
 
@@ -362,6 +362,7 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
               businessInfo={businessInfo}
               unlocked={unlocked}
               onUnlock={() => setModalOpen(true)}
+              lang={lang}
             />
           ) : (
             <AdSkeleton key={i} index={i} brandColor={brandColor} />
@@ -384,10 +385,13 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
         transition={{ delay: 0.5 }}
         style={{ background: "#000", borderRadius: 20, padding: "28px 24px", textAlign: "center" }}
       >
-        <h3 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8, color: "#fff" }}>רוצה לקבל את הפרסומות האלה כתמונות מוכנות?</h3>
+        <h3 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8, color: "#fff" }}>
+          {lang === "en" ? "Want these ads as ready-to-use images?" : "רוצה לקבל את הפרסומות האלה כתמונות מוכנות?"}
+        </h3>
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.7, marginBottom: 20 }}>
-          הצטרף לבילדו וקבל גישה לעובדים דיגיטליים שיצרו פרסומות,<br />
-          ינהלו את הוואטסאפ שלך ויגדילו את המכירות אוטומטית.
+          {lang === "en"
+            ? <>Join Bildo and get access to digital workers who create ads,<br />manage your WhatsApp and grow sales automatically.</>
+            : <>הצטרף לבילדו וקבל גישה לעובדים דיגיטליים שיצרו פרסומות,<br />ינהלו את הוואטסאפ שלך ויגדילו את המכירות אוטומטית.</>}
         </p>
         <a
           href="https://buildoai.com/worker-onboarding"
@@ -400,9 +404,11 @@ export default function ResultsStep({ ads, isLoading, businessInfo, emailTemplat
             fontFamily: "'Heebo', sans-serif",
           }}
         >
-          הצטרף לבילדו עכשיו <ArrowRight size={16} />
+          {lang === "en" ? "Join Bildo Now" : "הצטרף לבילדו עכשיו"} <ArrowRight size={16} />
         </a>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 12 }}>ללא כרטיס אשראי · ניסיון חינם · מענה תוך שעות</div>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 12 }}>
+          {lang === "en" ? "No credit card · Free trial · Response within hours" : "ללא כרטיס אשראי · ניסיון חינם · מענה תוך שעות"}
+        </div>
       </motion.div>
     </div>
   );

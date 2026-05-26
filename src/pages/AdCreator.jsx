@@ -5,14 +5,23 @@ import { Loader2, Globe, Sparkles, ChevronLeft, Check, ExternalLink, Copy, Arrow
 import WebsiteStep from "@/components/adcreator/WebsiteStep";
 import StyleStep from "@/components/adcreator/StyleStep";
 import ResultsStep from "@/components/adcreator/ResultsStep";
+import { useLanguage } from "@/lib/useLanguage";
 
-const STEPS = [
+const STEPS_HE = [
   { id: 1, label: "ניתוח האתר" },
   { id: 2, label: "בחר סגנון" },
   { id: 3, label: "הפרסומת שלך" },
 ];
 
+const STEPS_EN = [
+  { id: 1, label: "Analyze Site" },
+  { id: 2, label: "Choose Style" },
+  { id: 3, label: "Your Ads" },
+];
+
 export default function AdCreator() {
+  const lang = useLanguage();
+  const STEPS = lang === "en" ? STEPS_EN : STEPS_HE;
   const [step, setStep] = useState(1);
   const [businessInfo, setBusinessInfo] = useState(null);
   const [style, setStyle] = useState(null);
@@ -38,6 +47,7 @@ export default function AdCreator() {
           style: selectedStyle,
           adIndex: index,
           totalAds: 3,
+          lang,
         }).then((res) => {
           const ad = res.data.ad;
           if (ad) {
@@ -62,13 +72,13 @@ export default function AdCreator() {
   };
 
   return (
-    <div dir="rtl" style={{ minHeight: "100vh", background: "#fff", fontFamily: "'Heebo', sans-serif", color: "#000" }}>
+    <div dir={lang === "en" ? "ltr" : "rtl"} style={{ minHeight: "100vh", background: "#fff", fontFamily: "'Heebo', sans-serif", color: "#000" }}>
       
       {/* Header */}
       <header style={{ background: "#fff", borderBottom: "1px solid #e0e0e0", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <img src="https://media.base44.com/images/public/6a02f33e91d5cbd1f45f106b/b6a902f52_Gemini_Generated_Image_b0y91hb0y91hb0y9.png" alt="Bildo" style={{ height: 32 }} />
-          <div style={{ fontSize: 16, fontWeight: 800, color: "#000" }}>Ad Creator AI</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: "#000" }}>{lang === "en" ? "Ad Creator AI" : "יוצר המודעות"}</div>
         </div>
         <div style={{ fontSize: 11, color: "#999", display: "none" }}></div>
       </header>
@@ -114,9 +124,9 @@ export default function AdCreator() {
             exit={{ opacity: 0, y: -24 }}
             transition={{ duration: 0.35 }}
           >
-            {step === 1 && <WebsiteStep onAnalyzed={handleBusinessAnalyzed} />}
-            {step === 2 && <StyleStep businessInfo={businessInfo} onSelected={handleStyleSelected} />}
-            {step === 3 && <ResultsStep ads={generatedAds} isLoading={isGenerating} businessInfo={businessInfo} emailTemplate={emailTemplate} />}
+            {step === 1 && <WebsiteStep onAnalyzed={handleBusinessAnalyzed} lang={lang} />}
+            {step === 2 && <StyleStep businessInfo={businessInfo} onSelected={handleStyleSelected} lang={lang} />}
+            {step === 3 && <ResultsStep ads={generatedAds} isLoading={isGenerating} businessInfo={businessInfo} emailTemplate={emailTemplate} lang={lang} />}
           </motion.div>
         </AnimatePresence>
       </div>

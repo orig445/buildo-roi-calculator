@@ -3,7 +3,41 @@ import { base44 } from "@/api/base44Client";
 import { Loader2, Globe, Search, AlertCircle, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function WebsiteStep({ onAnalyzed }) {
+const T = {
+  he: {
+    step: "שלב 1 מתוך 3",
+    title: "נתח את האתר שלך",
+    subtitle: "ה-AI יזהה את המיתוג, המוצר וקהל היעד שלך אוטומטית",
+    placeholder: "הכנס כתובת האתר שלך...",
+    analyze: "נתח",
+    analyzing: "מנתח...",
+    scanning: "סורק מיתוג, תמונות וצבעים...",
+    error: "לא הצלחנו לנתח את האתר. נסה URL אחר.",
+    brandColors: "צבעי מותג:",
+    continue: "נראה מעולה, המשך לבחירת סגנון",
+    defaultName: "עסק",
+    defaultType: "כללי",
+    defaultAudience: "לקוחות פוטנציאליים",
+  },
+  en: {
+    step: "Step 1 of 3",
+    title: "Analyze Your Website",
+    subtitle: "AI will automatically detect your branding, product and target audience",
+    placeholder: "Enter your website URL...",
+    analyze: "Analyze",
+    analyzing: "Analyzing...",
+    scanning: "Scanning branding, images and colors...",
+    error: "Couldn't analyze this website. Try a different URL.",
+    brandColors: "Brand colors:",
+    continue: "Looks great, continue to style selection",
+    defaultName: "Business",
+    defaultType: "General",
+    defaultAudience: "Potential customers",
+  },
+};
+
+export default function WebsiteStep({ onAnalyzed, lang = "he" }) {
+  const t = T[lang] || T.he;
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -21,10 +55,10 @@ export default function WebsiteStep({ onAnalyzed }) {
 
       const info = {
         url: normalized,
-        name: data.business_name || "עסק",
-        type: data.business_type || "כללי",
+        name: data.business_name || t.defaultName,
+        type: data.business_type || t.defaultType,
         product: data.insight || "",
-        audience: data.target_audience || "לקוחות פוטנציאליים",
+        audience: data.target_audience || t.defaultAudience,
         usp: data.usp || "",
         logo: data.logo_url || null,
         logo_url: data.logo_url || null,
@@ -35,39 +69,42 @@ export default function WebsiteStep({ onAnalyzed }) {
       };
       setPreview(info);
     } catch (e) {
-      setError("לא הצלחנו לנתח את האתר. נסה URL אחר.");
+      setError(t.error);
     } finally {
       setLoading(false);
     }
   };
 
+  const isLtr = lang === "en";
+
   return (
     <div>
       <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <div style={{ fontSize: 13, color: "#666", fontWeight: 700, marginBottom: 8 }}>שלב 1 מתוך 3</div>
-        <h2 style={{ fontSize: 28, fontWeight: 900, marginBottom: 10, color: "#000" }}>נתח את האתר שלך</h2>
-        <p style={{ fontSize: 14, color: "#666", lineHeight: 1.7 }}>
-          ה-AI יזהה את המיתוג, המוצר וקהל היעד שלך אוטומטית
-        </p>
+        <div style={{ fontSize: 13, color: "#666", fontWeight: 700, marginBottom: 8 }}>{t.step}</div>
+        <h2 style={{ fontSize: 28, fontWeight: 900, marginBottom: 10, color: "#000" }}>{t.title}</h2>
+        <p style={{ fontSize: 14, color: "#666", lineHeight: 1.7 }}>{t.subtitle}</p>
       </div>
 
       <div style={{ background: "#f5f5f5", border: "1px solid #e0e0e0", borderRadius: 16, padding: 24 }}>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
-            <Globe style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "#999" }} />
+            <Globe style={{ position: "absolute", [isLtr ? "left" : "right"]: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "#999" }} />
             <input
               type="text"
-              placeholder="הכנס כתובת האתר שלך..."
+              placeholder={t.placeholder}
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !loading && analyze()}
               disabled={loading}
               style={{
-                width: "100%", paddingRight: 40, paddingLeft: 14, paddingTop: 13, paddingBottom: 13,
+                width: "100%",
+                paddingRight: isLtr ? 14 : 40,
+                paddingLeft: isLtr ? 40 : 14,
+                paddingTop: 13, paddingBottom: 13,
                 background: "#fff", border: "1.5px solid #ddd",
                 borderRadius: 10, fontSize: 14, color: "#000", outline: "none",
                 fontFamily: "'Heebo', sans-serif", boxSizing: "border-box",
-                transition: "border-color 0.2s",
+                transition: "border-color 0.2s", direction: "ltr",
               }}
               onFocus={(e) => { e.target.style.borderColor = "#000"; }}
               onBlur={(e) => { e.target.style.borderColor = "#ddd"; }}
@@ -89,7 +126,7 @@ export default function WebsiteStep({ onAnalyzed }) {
             }}
           >
             {loading ? <Loader2 style={{ width: 16, height: 16, animation: "spin 1s linear infinite" }} /> : <Search size={16} />}
-            {loading ? "מנתח..." : "נתח"}
+            {loading ? t.analyzing : t.analyze}
           </button>
         </div>
 
@@ -111,14 +148,13 @@ export default function WebsiteStep({ onAnalyzed }) {
                 />
               ))}
             </div>
-            <div style={{ fontSize: 13, color: "#666" }}>סורק מיתוג, תמונות וצבעים...</div>
+            <div style={{ fontSize: 13, color: "#666" }}>{t.scanning}</div>
           </motion.div>
         )}
 
         <AnimatePresence>
           {preview && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: 20 }}>
-              {/* Business info card */}
               <div style={{ background: "#fff", borderRadius: 12, padding: 20, border: "1px solid #e0e0e0", marginBottom: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 12 }}>
                   {preview.logo && (
@@ -131,10 +167,9 @@ export default function WebsiteStep({ onAnalyzed }) {
                   </div>
                 </div>
 
-                {/* Brand Colors */}
                 {preview.colors?.length > 0 && (
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                    <span style={{ fontSize: 11, color: "#999" }}>צבעי מותג:</span>
+                    <span style={{ fontSize: 11, color: "#999" }}>{t.brandColors}</span>
                     <div style={{ display: "flex", gap: 6 }}>
                       {preview.colors.map((c, i) => (
                         <div key={i} title={c} style={{ width: 24, height: 24, borderRadius: 6, background: c, border: "1px solid #e0e0e0" }} />
@@ -143,7 +178,7 @@ export default function WebsiteStep({ onAnalyzed }) {
                   </div>
                 )}
 
-                <div style={{ fontSize: 13, color: "#444", lineHeight: 1.7, padding: "10px 14px", background: "#f9f9f9", borderRadius: 8, borderRight: "3px solid #000" }}>
+                <div style={{ fontSize: 13, color: "#444", lineHeight: 1.7, padding: "10px 14px", background: "#f9f9f9", borderRadius: 8, [isLtr ? "borderLeft" : "borderRight"]: "3px solid #000" }}>
                   {preview.product}
                 </div>
               </div>
@@ -159,7 +194,7 @@ export default function WebsiteStep({ onAnalyzed }) {
                   transition: "all 0.2s",
                 }}
               >
-                נראה מעולה, המשך לבחירת סגנון
+                {t.continue}
                 <ChevronRight size={16} />
               </button>
             </motion.div>
