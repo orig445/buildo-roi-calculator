@@ -51,6 +51,11 @@ export default function Admin() {
     queryFn: () => base44.entities.FacebookLead.list("-created_date", 500),
   });
 
+  const { data: briefs = [], refetch: refetchBriefs } = useQuery({
+    queryKey: ["briefs"],
+    queryFn: () => base44.entities.ClientBrief.list("-created_date", 500),
+  });
+
   const adLeads = leads.filter(l => l.source === "ad_creator");
 
   const filtered = leads.filter((l) => {
@@ -96,7 +101,7 @@ export default function Admin() {
             <div className="font-display" style={{ fontSize: 18, color: "var(--gold-light)", fontWeight: 700 }}>ניהול לידים</div>
           </div>
         </div>
-        <button onClick={() => { refetch(); refetchAnalytics(); refetchSites(); refetchFbLeads(); }} style={{ background: "none", border: "1px solid var(--gold-border)", borderRadius: 3, color: "var(--gold-light)", padding: "6px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+        <button onClick={() => { refetch(); refetchAnalytics(); refetchSites(); refetchFbLeads(); refetchBriefs(); }} style={{ background: "none", border: "1px solid var(--gold-border)", borderRadius: 3, color: "var(--gold-light)", padding: "6px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
           <RefreshCw style={{ width: 13, height: 13 }} /> רענן
         </button>
       </div>
@@ -111,6 +116,7 @@ export default function Admin() {
             { key: "sites", label: `אתרים שנסרקו (${scannedSites.length})`, icon: <Globe style={{ width: 13, height: 13 }} /> },
             { key: "fb", label: `פייסבוק לידים (${fbLeads.length})`, icon: <Facebook style={{ width: 13, height: 13 }} /> },
             { key: "adleads", label: `Ad Creator לידים`, icon: <Mail style={{ width: 13, height: 13 }} /> },
+            { key: "briefs", label: `אפיונים (${briefs.length})`, icon: <Building2 style={{ width: 13, height: 13 }} /> },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
               style={{
@@ -294,6 +300,76 @@ export default function Admin() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "briefs" && (
+          <div>
+            {briefs.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "60px 0", color: "var(--ink-light)" }}>אין אפיונים עדיין</div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                {briefs.map((b, i) => (
+                  <motion.div
+                    key={b.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    className="card-v"
+                    style={{ padding: "20px 24px" }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                      <div>
+                        <div style={{ fontSize: 18, fontWeight: 900, color: "var(--ink)" }}>{b.business_name || "—"}</div>
+                        <div style={{ fontSize: 12, color: "var(--ink-light)", marginTop: 2 }}>{b.business_type || ""}</div>
+                      </div>
+                      <span style={{ fontSize: 11, color: "var(--ink-light)", display: "flex", alignItems: "center", gap: 4 }}>
+                        <Calendar style={{ width: 11, height: 11 }} />{fmtDate(b.created_date)}
+                      </span>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12, marginBottom: 14 }}>
+                      {[
+                        { label: "שם מלא", value: b.full_name },
+                        { label: "טלפון", value: b.phone, href: `tel:${b.phone}` },
+                        { label: "אימייל", value: b.email, href: `mailto:${b.email}` },
+                        { label: "תקציב שיווקי", value: b.marketing_budget },
+                        { label: "מטרות שיווק", value: b.marketing_goals },
+                        { label: "קהל יעד", value: b.target_audience },
+                        { label: "מתחרים", value: b.competitors },
+                        { label: "סגנון ויזואלי", value: b.visual_style },
+                        { label: "נכסי מותג", value: b.brand_assets },
+                      ].map(({ label, value, href }) => value ? (
+                        <div key={label}>
+                          <div style={{ fontSize: 9, fontWeight: 700, color: "var(--ink-light)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 3 }}>{label}</div>
+                          {href ? (
+                            <a href={href} style={{ fontSize: 13, color: "var(--forest-mid)", textDecoration: "none", fontWeight: 600 }}>{value}</a>
+                          ) : (
+                            <div style={{ fontSize: 13, color: "var(--ink)", fontWeight: 500 }}>{value}</div>
+                          )}
+                        </div>
+                      ) : null)}
+                    </div>
+                    {(b.value_proposition || b.products_services || b.focused_product || b.existing_platforms || b.platforms_credentials || b.notes) && (
+                      <div style={{ borderTop: "1px solid var(--gold-border)", paddingTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+                        {[
+                          { label: "הצעת ערך", value: b.value_proposition },
+                          { label: "מוצרים / שירותים", value: b.products_services },
+                          { label: "מוצר ממוקד", value: b.focused_product },
+                          { label: "פלטפורמות קיימות", value: b.existing_platforms },
+                          { label: "פרטי גישה", value: b.platforms_credentials },
+                          { label: "הערות", value: b.notes },
+                        ].map(({ label, value }) => value ? (
+                          <div key={label}>
+                            <div style={{ fontSize: 9, fontWeight: 700, color: "var(--ink-light)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 3 }}>{label}</div>
+                            <div style={{ fontSize: 13, color: "var(--ink)", lineHeight: 1.6, background: "var(--cream-mid)", borderRadius: 6, padding: "8px 12px", borderRight: "3px solid var(--gold)" }}>{value}</div>
+                          </div>
+                        ) : null)}
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
               </div>
             )}
           </div>
