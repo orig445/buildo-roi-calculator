@@ -37,6 +37,11 @@
     "platform": {
       "type": "string",
       "description": "\u05e4\u05dc\u05d8\u05e4\u05d5\u05e8\u05de\u05d4"
+    },
+    "description": {
+      "type": "string",
+      "description": "\u05ea\u05d9\u05d0\u05d5\u05e8 \u05d7\u05d5\u05e4\u05e9\u05d9 \u05e9\u05dc \u05d4\u05dc\u05d9\u05d3",
+      "maxLength": 1000
     }
   },
   "required": [
