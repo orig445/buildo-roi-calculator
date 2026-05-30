@@ -3,10 +3,37 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { businessInfo, style, adIndex = 0, totalAds = 3, pregenerateImages = false, lang = "he" } = await req.json();
+    const { businessInfo, style, adIndex = 0, totalAds = 3, pregenerateImages = false, generateImageOnly = false, lang = "he" } = await req.json();
 
     if (!businessInfo) {
       return Response.json({ error: 'חסר businessInfo' }, { status: 400 });
+    }
+
+    // If generating image only for an existing ad
+    if (generateImageOnly) {
+      const brandColors = (businessInfo.colors || businessInfo.brand_colors || []).join(', ');
+      const logoUrl = (businessInfo.logo || businessInfo.logo_url || null);
+      const validLogo = logoUrl && logoUrl.startsWith('http') ? logoUrl : null;
+
+      const styleImageDirection = {
+        emotional: 'warm golden sunlight, happy smiling people, natural light, vibrant saturated colors',
+        direct: 'bright professional studio lighting, clean background, confident product showcase',
+        humorous: 'bright vivid colorful lighting, fun playful scene, bold neon colors',
+        luxury: 'bright elegant lighting with gold accents, sophisticated premium feel',
+        urgency: 'bright energetic lighting, vibrant red/orange accents, dynamic action scene',
+      };
+      const imgDir = styleImageDirection[style] || styleImageDirection.direct;
+      const prompt = `Professional commercial photography for ${businessInfo.type} business named ${businessInfo.name}. ${businessInfo.product || businessInfo.usp || ''}. Target audience: ${businessInfo.audience || 'general consumers'}. Style: ${imgDir}.${brandColors ? ` Brand colors: ${brandColors}.` : ''} Facebook ad square 1:1, NO TEXT, bright vibrant colors, ultra-high quality.`;
+
+      try {
+        const imgResult = await base44.asServiceRole.integrations.Core.GenerateImage({
+          prompt,
+          existing_image_urls: validLogo ? [validLogo] : undefined,
+        });
+        return Response.json({ imageUrl: imgResult?.url || null });
+      } catch {
+        return Response.json({ imageUrl: null });
+      }
     }
 
     // If pre-generating images only (no style selected yet)
