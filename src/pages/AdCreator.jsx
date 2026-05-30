@@ -41,33 +41,57 @@ export default function AdCreator() {
     setStep(3);
 
     try {
-      // Fire all 3 ad generations in parallel — each resolves independently
-      const promises = [0, 1, 2].map((index) =>
-        base44.functions.invoke("generateAdCopy", {
-          businessInfo,
-          style: selectedStyle,
-          adIndex: index,
-          totalAds: 3,
-          lang,
-        }).then((res) => {
-          const ad = res.data.ad;
-          if (ad) {
-            setGeneratedAds((prev) => {
-              const next = [...prev];
-              next[index] = ad;
-              return next;
-            });
-          }
-          if (index === 0 && res.data.emailTemplate) {
-            setEmailTemplate(res.data.emailTemplate);
-          }
-        })
+      // Step 1: generate all 3 copies in parallel (fast, no images)
+      const copyResults = await Promise.all(
+        [0, 1, 2].map((index) =>
+          base44.functions.invoke("generateAdCopy", {
+            businessInfo,
+            style: selectedStyle,
+            adIndex: index,
+            totalAds: 3,
+            lang,
+          }).then((res) => {
+            const ad = res.data.ad;
+            if (ad) {
+              setGeneratedAds((prev) => {
+                const next = [...prev];
+                next[index] = ad;
+                return next;
+              });
+            }
+            if (index === 0 && res.data.emailTemplate) {
+              setEmailTemplate(res.data.emailTemplate);
+            }
+            return { index, ad: res.data.ad };
+          })
+        )
       );
 
-      await Promise.all(promises);
+      setIsGenerating(false);
+
+      // Step 2: generate all 3 images in parallel immediately after copy is ready
+      await Promise.all(
+        copyResults.map(({ index }) =>
+          base44.functions.invoke("generateAdCopy", {
+            businessInfo,
+            style: selectedStyle,
+            adIndex: index,
+            totalAds: 3,
+            lang,
+            generateImageOnly: true,
+          }).then((res) => {
+            if (res.data.imageUrl) {
+              setGeneratedAds((prev) => {
+                const next = [...prev];
+                if (next[index]) next[index] = { ...next[index], imageUrl: res.data.imageUrl };
+                return next;
+              });
+            }
+          }).catch(() => {})
+        )
+      );
     } catch (e) {
       console.error(e);
-    } finally {
       setIsGenerating(false);
     }
   };

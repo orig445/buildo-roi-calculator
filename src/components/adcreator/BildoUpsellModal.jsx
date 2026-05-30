@@ -4,11 +4,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft } from "lucide-react";
 
 const services = [
-  "פרסומות ממותגות",
-  "סרטונים לעסק",
-  "אתר לעסק",
-  "קמפיינים ממומנים",
-  "ניהול סושיאל, תכנים ותזמונים",
+  "Branded Ads",
+  "Business Videos",
+  "Website for Your Business",
+  "Paid Campaigns",
+  "Social Media Management & Scheduling",
 ];
 
 export default function BildoUpsellModal({ lang = "he" }) {
@@ -67,7 +67,7 @@ export default function BildoUpsellModal({ lang = "he" }) {
                 overflowY: "auto",
                 boxShadow: "0 24px 80px rgba(0,0,0,0.25)",
                 textAlign: "center",
-                direction: "rtl",
+                direction: "ltr",
                 position: "relative",
               }}
             >
@@ -94,14 +94,14 @@ export default function BildoUpsellModal({ lang = "he" }) {
               </div>
 
               <div style={{ fontSize: 11, fontWeight: 700, color: "#7c3aed", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 8 }}>
-                מחלקת שיווק שלמה — בלי עובד אחד
+                Full Marketing Department — Zero Employees
               </div>
 
               <h2 style={{ fontSize: 24, fontWeight: 900, color: "#1a0a2e", margin: "0 0 8px" }}>
-                הצטרפו לבילדו
+                Join Bildo
               </h2>
               <p style={{ fontSize: 14, color: "#666", lineHeight: 1.7, margin: "0 0 20px" }}>
-                קבלו את כל מה שצריך כדי לצמוח אונליין — במחיר של עובד חצי משרה
+                Get everything you need to grow online — for the price of a part-time employee
               </p>
 
               {/* Services list */}
@@ -145,12 +145,12 @@ export default function BildoUpsellModal({ lang = "he" }) {
                   boxShadow: "0 6px 24px rgba(124,58,237,0.35)",
                 }}
               >
-                התחל עכשיו בחינם
+                Get Started for Free
                 <ArrowLeft size={16} />
               </a>
 
               <div style={{ fontSize: 11, color: "#aaa", marginTop: 12 }}>
-                ללא כרטיס אשראי · ניסיון חינם · מענה תוך שעות
+                No credit card · Free trial · Response within hours
               </div>
             </motion.div>
           </div>
