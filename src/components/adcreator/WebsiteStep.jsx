@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Loader2, Globe, Search, AlertCircle, ChevronRight } from "lucide-react";
+import { Loader2, Globe, Search, AlertCircle, ChevronRight, Instagram } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const T = {
@@ -9,10 +9,15 @@ const T = {
     title: "נתח את האתר שלך",
     subtitle: "ה-AI יזהה את המיתוג, המוצר וקהל היעד שלך אוטומטית",
     placeholder: "הכנס כתובת האתר שלך...",
+    igPlaceholder: "שם משתמש אינסטגרם (ללא @)...",
+    tabWebsite: "אתר אינטרנט",
+    tabInstagram: "אינסטגרם",
     analyze: "נתח",
     analyzing: "מנתח...",
     scanning: "סורק מיתוג, תמונות וצבעים...",
+    igScanning: "מנתח פרופיל אינסטגרם...",
     error: "לא הצלחנו לנתח את האתר. נסה URL אחר.",
+    igError: "לא הצלחנו לנתח את פרופיל האינסטגרם. בדוק שם המשתמש.",
     brandColors: "צבעי מותג:",
     continue: "נראה מעולה, המשך לבחירת סגנון",
     defaultName: "עסק",
@@ -24,10 +29,15 @@ const T = {
     title: "Analyze Your Website",
     subtitle: "AI will automatically detect your branding, product and target audience",
     placeholder: "Enter your website URL...",
+    igPlaceholder: "Instagram username (without @)...",
+    tabWebsite: "Website",
+    tabInstagram: "Instagram",
     analyze: "Analyze",
     analyzing: "Analyzing...",
     scanning: "Scanning branding, images and colors...",
+    igScanning: "Analyzing Instagram profile...",
     error: "Couldn't analyze this website. Try a different URL.",
+    igError: "Couldn't analyze this Instagram profile. Check the username.",
     brandColors: "Brand colors:",
     continue: "Looks great, continue to style selection",
     defaultName: "Business",
@@ -38,23 +48,36 @@ const T = {
 
 export default function WebsiteStep({ onAnalyzed, lang = "he" }) {
   const t = T[lang] || T.he;
+  const [mode, setMode] = useState("website");
   const [url, setUrl] = useState("");
+  const [igUsername, setIgUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [preview, setPreview] = useState(null);
 
   const analyze = async () => {
-    if (!url.trim()) return;
+    const isIg = mode === "instagram";
+    const input = isIg ? igUsername.trim() : url.trim();
+    if (!input) return;
     setLoading(true);
     setError("");
     setPreview(null);
     try {
-      const normalized = url.trim().startsWith("http") ? url.trim() : "https://" + url.trim();
-      const res = await base44.functions.invoke("analyzeWebsite", { url: normalized, lang });
-      const data = res.data;
+      let data, sourceUrl;
+      if (isIg) {
+        const clean = input.replace(/^@/, "");
+        const res = await base44.functions.invoke("analyzeInstagram", { username: clean, lang });
+        data = res.data;
+        sourceUrl = `https://www.instagram.com/${clean}/`;
+      } else {
+        const normalized = input.startsWith("http") ? input : "https://" + input;
+        sourceUrl = normalized;
+        const res = await base44.functions.invoke("analyzeWebsite", { url: normalized, lang });
+        data = res.data;
+      }
 
       const info = {
-        url: normalized,
+        url: sourceUrl,
         name: data.business_name || t.defaultName,
         type: data.business_type || t.defaultType,
         product: data.insight || "",
@@ -69,13 +92,16 @@ export default function WebsiteStep({ onAnalyzed, lang = "he" }) {
       };
       setPreview(info);
     } catch (e) {
-      setError(t.error);
+      setError(mode === "instagram" ? t.igError : t.error);
     } finally {
       setLoading(false);
     }
   };
 
   const isLtr = lang === "en";
+  const isIg = mode === "instagram";
+  const inputValue = isIg ? igUsername : url;
+  const canAnalyze = !loading && inputValue.trim().length > 0;
 
   return (
     <div>
@@ -86,15 +112,43 @@ export default function WebsiteStep({ onAnalyzed, lang = "he" }) {
       </div>
 
       <div style={{ background: "#f5f5f5", border: "1px solid #e0e0e0", borderRadius: 16, padding: 24 }}>
+        {/* Mode tabs */}
+        <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+          {[
+            { key: "website", label: t.tabWebsite, icon: <Globe size={13} /> },
+            { key: "instagram", label: t.tabInstagram, icon: <Instagram size={13} /> },
+          ].map(({ key, label, icon }) => (
+            <button
+              key={key}
+              onClick={() => { setMode(key); setPreview(null); setError(""); }}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "7px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600,
+                border: mode === key ? "1.5px solid #000" : "1.5px solid #ddd",
+                background: mode === key ? "#000" : "#fff",
+                color: mode === key ? "#fff" : "#666",
+                cursor: "pointer", fontFamily: "'Heebo', sans-serif",
+                transition: "all 0.2s",
+              }}
+            >
+              {icon} {label}
+            </button>
+          ))}
+        </div>
+
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
-            <Globe style={{ position: "absolute", [isLtr ? "left" : "right"]: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "#999" }} />
+            {isIg ? (
+              <span style={{ position: "absolute", [isLtr ? "left" : "right"]: 12, top: "50%", transform: "translateY(-50%)", color: "#999", fontSize: 15, fontWeight: 700, pointerEvents: "none" }}>@</span>
+            ) : (
+              <Globe style={{ position: "absolute", [isLtr ? "left" : "right"]: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "#999" }} />
+            )}
             <input
               type="text"
-              placeholder={t.placeholder}
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !loading && analyze()}
+              placeholder={isIg ? t.igPlaceholder : t.placeholder}
+              value={inputValue}
+              onChange={(e) => isIg ? setIgUsername(e.target.value.replace(/^@/, "")) : setUrl(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && canAnalyze && analyze()}
               disabled={loading}
               style={{
                 width: "100%",
@@ -106,21 +160,21 @@ export default function WebsiteStep({ onAnalyzed, lang = "he" }) {
                 fontFamily: "'Heebo', sans-serif", boxSizing: "border-box",
                 transition: "border-color 0.2s", direction: "ltr",
               }}
-              onFocus={(e) => { e.target.style.borderColor = "#000"; }}
+              onFocus={(e) => { e.target.style.borderColor = isIg ? "#e1306c" : "#000"; }}
               onBlur={(e) => { e.target.style.borderColor = "#ddd"; }}
             />
           </div>
           <button
             onClick={analyze}
-            disabled={loading || !url.trim()}
+            disabled={!canAnalyze}
             style={{
               display: "flex", alignItems: "center", gap: 8,
-              background: loading || !url.trim() ? "#ddd" : "#000",
-              color: loading || !url.trim() ? "#999" : "#fff",
+              background: canAnalyze ? "#000" : "#ddd",
+              color: canAnalyze ? "#fff" : "#999",
               border: "none", borderRadius: 10,
               padding: "13px 22px", fontSize: 14, fontWeight: 700,
               fontFamily: "'Heebo', sans-serif",
-              cursor: loading || !url.trim() ? "not-allowed" : "pointer",
+              cursor: canAnalyze ? "pointer" : "not-allowed",
               whiteSpace: "nowrap", flexShrink: 0,
               transition: "all 0.2s",
             }}
@@ -144,11 +198,11 @@ export default function WebsiteStep({ onAnalyzed, lang = "he" }) {
                   key={i}
                   animate={{ scale: [1, 1.4, 1], opacity: [0.3, 1, 0.3] }}
                   transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.2 }}
-                  style={{ width: 8, height: 8, borderRadius: "50%", background: "#000" }}
+                  style={{ width: 8, height: 8, borderRadius: "50%", background: isIg ? "#e1306c" : "#000" }}
                 />
               ))}
             </div>
-            <div style={{ fontSize: 13, color: "#666" }}>{t.scanning}</div>
+            <div style={{ fontSize: 13, color: "#666" }}>{isIg ? t.igScanning : t.scanning}</div>
           </motion.div>
         )}
 
