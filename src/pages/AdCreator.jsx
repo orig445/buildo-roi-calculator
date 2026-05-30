@@ -129,7 +129,7 @@ export default function AdCreator() {
             {step === 2 && <StyleStep businessInfo={businessInfo} onSelected={handleStyleSelected} lang={lang} />}
             {step === 3 && (
               <>
-                <BildoUpsellModal lang={lang} />
+                {!isGenerating && <BildoUpsellModal lang={lang} />}
                 <ResultsStep ads={generatedAds} isLoading={isGenerating} businessInfo={businessInfo} emailTemplate={emailTemplate} lang={lang} />
               </>
             )}

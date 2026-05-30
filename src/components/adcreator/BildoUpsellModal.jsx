@@ -44,7 +44,7 @@ export default function BildoUpsellModal({ lang = "he" }) {
             style={{
               position: "fixed",
               top: "50%", left: "50%",
-              transform: "translate(-50%, -50%)",
+              transform: "translate(-50%, -50%) !important",
               zIndex: 9999,
               background: "#fff",
               borderRadius: 24,
