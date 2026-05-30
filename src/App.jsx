@@ -13,6 +13,7 @@ import About from "@/pages/About";
 import Contact from "@/pages/Contact";
 import AdCreator from "@/pages/AdCreator";
 import ClientBriefForm from "@/pages/ClientBriefForm";
+import SEOAnalyzer from "@/pages/SEOAnalyzer";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -47,6 +48,7 @@ const AuthenticatedApp = () => {
       <Route path="/contact" element={<Contact />} />
       <Route path="/ad-creator" element={<AdCreator />} />
       <Route path="/brief" element={<ClientBriefForm />} />
+      <Route path="/seo" element={<SEOAnalyzer />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
