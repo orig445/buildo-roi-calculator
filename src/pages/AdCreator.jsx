@@ -5,6 +5,7 @@ import { Loader2, Globe, Sparkles, ChevronLeft, Check, ExternalLink, Copy, Arrow
 import WebsiteStep from "@/components/adcreator/WebsiteStep";
 import StyleStep from "@/components/adcreator/StyleStep";
 import ResultsStep from "@/components/adcreator/ResultsStep";
+import BildoUpsellModal from "@/components/adcreator/BildoUpsellModal";
 import { useLanguage } from "@/lib/useLanguage";
 
 const STEPS_HE = [
@@ -126,7 +127,12 @@ export default function AdCreator() {
           >
             {step === 1 && <WebsiteStep onAnalyzed={handleBusinessAnalyzed} lang={lang} />}
             {step === 2 && <StyleStep businessInfo={businessInfo} onSelected={handleStyleSelected} lang={lang} />}
-            {step === 3 && <ResultsStep ads={generatedAds} isLoading={isGenerating} businessInfo={businessInfo} emailTemplate={emailTemplate} lang={lang} />}
+            {step === 3 && (
+              <>
+                <BildoUpsellModal lang={lang} />
+                <ResultsStep ads={generatedAds} isLoading={isGenerating} businessInfo={businessInfo} emailTemplate={emailTemplate} lang={lang} />
+              </>
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
