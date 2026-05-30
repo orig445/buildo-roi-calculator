@@ -85,7 +85,7 @@ export default function BildoUpsellModal({ lang = "he" }) {
               </button>
 
               {/* Logo */}
-              <div style={{ marginBottom: 18 }}>
+              <div style={{ marginBottom: 18, display: "flex", justifyContent: "center" }}>
                 <img
                   src="https://media.base44.com/images/public/6a02f33e91d5cbd1f45f106b/09f0d2769_b-arrow-1.png"
                   alt="Bildo"
