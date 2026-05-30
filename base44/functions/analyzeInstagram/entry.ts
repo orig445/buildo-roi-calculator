@@ -11,53 +11,15 @@ Deno.serve(async (req) => {
 
     const cleanUsername = username.replace(/^@/, '').trim();
 
-    // Fetch public Instagram profile page
-    let profileContent = '';
-    let profileImageUrl = '';
-    let fetchedOk = false;
-
-    try {
-      const res = await fetch(`https://www.instagram.com/${cleanUsername}/`, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept-Language': 'en-US,en;q=0.9',
-        },
-        signal: AbortSignal.timeout(10000),
-      });
-      const html = await res.text();
-
-      // Try to extract profile image from og:image
-      const ogImg = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
-        || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-      if (ogImg) profileImageUrl = ogImg[1];
-
-      // Extract text content from meta tags
-      const descMatch = html.match(/<meta[^>]+(?:name=["']description["']|property=["']og:description["'])[^>]+content=["']([^"']+)["']/i)
-        || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+(?:name=["']description["']|property=["']og:description["'])/i);
-      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-
-      profileContent = [
-        titleMatch ? `Title: ${titleMatch[1]}` : '',
-        descMatch ? `Description: ${descMatch[1]}` : '',
-        `Instagram URL: https://www.instagram.com/${cleanUsername}/`,
-      ].filter(Boolean).join('\n');
-
-      fetchedOk = profileContent.length > 30;
-    } catch {
-      profileContent = `Instagram username: @${cleanUsername}`;
-    }
-
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt: `
-You are an expert marketing consultant analyzing an Instagram business profile.
+Search the web for the Instagram profile @${cleanUsername} and find out everything about this business.
+Look for: their logo image URL, brand colors, bio, what they sell, and their website.
+Also search for "${cleanUsername} logo" and "${cleanUsername} brand colors" to find accurate visual identity.
 
-Instagram username: @${cleanUsername}
-Profile data: ${profileContent}
-Profile image: ${profileImageUrl || 'not available'}
-Data fetched: ${fetchedOk}
+Instagram URL to search: https://www.instagram.com/${cleanUsername}/
 
-Based on the username and any extracted profile data, analyze this Instagram account and provide business intelligence.
-Use your knowledge about this type of business/brand. If the profile content is limited, infer intelligently from the username.
+Based on real search results, provide business intelligence for this brand/business.
 
 ESTIMATION RULES:
 - Beauty/Spa/Hair: customers 80–300/month, deal value ₪150–600
@@ -77,8 +39,8 @@ OUTPUT:
 - monthly_messages: integer estimate
 - monthly_customers: integer estimate
 - avg_deal_value: integer (NIS)
-- logo_url: profile image url if available, else empty string
-- brand_colors: array of 2–3 hex color codes inferred from the brand/industry
+- logo_url: ACTUAL logo or profile image URL from search results (must be a real https:// URL from CDN or the web, not instagram.com). Search for the brand's logo online.
+- brand_colors: array of 2–3 hex color codes from the brand's ACTUAL visual identity found online. Do NOT guess — use real brand colors from search results.
 - site_images: empty array (no website images)
 - keywords: array of 3–5 English keywords for ad search
 - target_audience: 1 sentence describing the typical customer in ${lang === "en" ? "English" : "Hebrew"}
@@ -92,6 +54,8 @@ OUTPUT:
 
 Return ONLY valid JSON.
 `,
+      add_context_from_internet: true,
+      model: 'gemini_3_flash',
       response_json_schema: {
         type: "object",
         properties: {
@@ -119,7 +83,6 @@ Return ONLY valid JSON.
     });
 
     result.brand_colors = (result.brand_colors || []).filter(c => /^#[0-9a-fA-F]{3,6}$/.test(c)).slice(0, 5);
-    if (!result.logo_url && profileImageUrl) result.logo_url = profileImageUrl;
 
     // Save to DB
     base44.asServiceRole.entities.ScannedSite.create({
