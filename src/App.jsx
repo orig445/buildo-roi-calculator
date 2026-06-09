@@ -14,6 +14,11 @@ import Contact from "@/pages/Contact";
 import AdCreator from "@/pages/AdCreator";
 import ClientBriefForm from "@/pages/ClientBriefForm";
 import SEOAnalyzer from "@/pages/SEOAnalyzer";
+import LandingPage from "@/pages/LandingPage";
+import ComparisonPage from "@/pages/ComparisonPage";
+import FacebookAdGenerator from "@/pages/tools/FacebookAdGenerator";
+import MarketingPlanGenerator from "@/pages/tools/MarketingPlanGenerator";
+import WhatsAppCampaignGenerator from "@/pages/tools/WhatsAppCampaignGenerator";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -49,6 +54,11 @@ const AuthenticatedApp = () => {
       <Route path="/ad-creator" element={<AdCreator />} />
       <Route path="/brief" element={<ClientBriefForm />} />
       <Route path="/seo" element={<SEOAnalyzer />} />
+      <Route path="/tools/facebook-ad-generator" element={<FacebookAdGenerator />} />
+      <Route path="/tools/marketing-plan-generator" element={<MarketingPlanGenerator />} />
+      <Route path="/tools/whatsapp-campaign-generator" element={<WhatsAppCampaignGenerator />} />
+      <Route path="/buildo-vs-:slug" element={<ComparisonPage />} />
+      <Route path="/:slug" element={<LandingPage />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
