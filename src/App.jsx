@@ -57,7 +57,9 @@ const AuthenticatedApp = () => {
       <Route path="/tools/facebook-ad-generator" element={<FacebookAdGenerator />} />
       <Route path="/tools/marketing-plan-generator" element={<MarketingPlanGenerator />} />
       <Route path="/tools/whatsapp-campaign-generator" element={<WhatsAppCampaignGenerator />} />
-      <Route path="/buildo-vs-:slug" element={<ComparisonPage />} />
+      <Route path="/buildo-vs-chatgpt" element={<ComparisonPage />} />
+      <Route path="/buildo-vs-marketing-agency" element={<ComparisonPage />} />
+      <Route path="/buildo-vs-canva" element={<ComparisonPage />} />
       <Route path="/:slug" element={<LandingPage />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { Check, X, ArrowRight } from "lucide-react";
 import { track } from "@/lib/analytics";
 import PageHeader from "@/components/landing/PageHeader";
@@ -135,7 +135,8 @@ function ComparisonRow({ section, competitor }) {
 }
 
 export default function ComparisonPage() {
-  const { slug } = useParams();
+  const location = useLocation();
+  const slug = location.pathname.replace("/", "");
   const page = COMPARISONS[slug];
 
   useEffect(() => {
