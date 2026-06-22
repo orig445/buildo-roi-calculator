@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Component } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, TrendingUp, Globe, FileText, Settings, RefreshCw, Lock,
@@ -1189,8 +1189,29 @@ function DashboardTab({ settings }) {
   );
 }
 
+// ─── Error Boundary ──────────────────────────────────────────────────────────
+class SEOErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div dir="rtl" style={{ minHeight: "100vh", background: "var(--cream)", fontFamily: "'Heebo',sans-serif", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ maxWidth: 600, padding: 32, background: "#fff", border: "2px solid #c00", borderRadius: 10 }}>
+            <h2 style={{ color: "#c00", marginBottom: 12 }}>שגיאת JavaScript — שלח לנו את הפרטים</h2>
+            <pre style={{ fontSize: 12, background: "#f5f5f5", padding: 16, borderRadius: 6, overflowX: "auto", whiteSpace: "pre-wrap" }}>
+              {String(this.state.error)}{"\n\n"}{this.state.error?.stack || ""}
+            </pre>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // ─── Main Page ───────────────────────────────────────────────────────────────
-export default function SEOAdminPage() {
+function SEOAdminPageInner() {
   const [authChecked, setAuthChecked] = useState(false);
   const [allowed, setAllowed] = useState(false);
   const [settings, setSettings] = useState(loadSettings);
@@ -1310,5 +1331,13 @@ export default function SEOAdminPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function SEOAdminPage() {
+  return (
+    <SEOErrorBoundary>
+      <SEOAdminPageInner />
+    </SEOErrorBoundary>
   );
 }
