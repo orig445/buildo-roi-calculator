@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, Component } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, TrendingUp, Globe, FileText, Settings, RefreshCw, Lock,
   BarChart2, Eye, MousePointer, ArrowUpRight, ArrowDownRight,
@@ -1308,28 +1307,24 @@ function SEOAdminPageInner() {
         </div>
 
         {/* Tab Content */}
-        <AnimatePresence mode="wait">
-          <motion.div key={tab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-            {tab === "dashboard" && <DashboardTab settings={settings} />}
-            {tab === "gsc" && <SearchConsoleTab settings={settings} />}
-            {tab === "trends" && <TrendsTab settings={settings} />}
-            {tab === "framer" && <FramerCMSTab settings={settings} />}
-            {tab === "blog" && <BuildoBlogTab settings={settings} />}
-          </motion.div>
-        </AnimatePresence>
+        <div>
+          {tab === "dashboard" && <DashboardTab settings={settings} />}
+          {tab === "gsc" && <SearchConsoleTab settings={settings} />}
+          {tab === "trends" && <TrendsTab settings={settings} />}
+          {tab === "framer" && <FramerCMSTab settings={settings} />}
+          {tab === "blog" && <BuildoBlogTab settings={settings} />}
+        </div>
       </div>
 
-      <AnimatePresence>
-        {showSettings && (
-          <SettingsPanel
-            settings={settings}
-            onChange={setSettings}
-            onClose={() => setShowSettings(false)}
-            onTest={handleTest}
-            testResults={testResults}
-          />
-        )}
-      </AnimatePresence>
+      {showSettings && (
+        <SettingsPanel
+          settings={settings}
+          onChange={setSettings}
+          onClose={() => setShowSettings(false)}
+          onTest={handleTest}
+          testResults={testResults}
+        />
+      )}
     </div>
   );
 }
