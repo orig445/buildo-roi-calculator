@@ -1100,7 +1100,7 @@ function DashboardTab({ settings }) {
       const results = await Promise.allSettled([
         settings.gscSiteUrl && settings.gscToken ? fetchGSCSummary(settings.gscSiteUrl, settings.gscToken, 28) : Promise.resolve(null),
         settings.framerToken && settings.framerCollectionId ? fetchFramerCMS(settings.framerToken, settings.framerCollectionId) : Promise.resolve(null),
-        settings.buildoBlogUrl ? fetchBuildoBlog(settings.buildoBlogUrl, settings.buildoBlogToken) : Promise.resolve(null),
+        settings.buildoBlogUrl ? buildoApi(settings.buildoBlogUrl, settings.buildoBlogToken, "blog-posts") : Promise.resolve(null),
       ]);
       if (!alive) return;
       if (results[0].status === "fulfilled" && results[0].value) setGscSummary(results[0].value);
@@ -1220,7 +1220,7 @@ export default function SEOAdminPage() {
         return;
       }
       if (source === "gsc") await fetchGSCSummary(cfg.gscSiteUrl, cfg.gscToken, 7);
-      if (source === "blog") await fetchBuildoBlog(cfg.buildoBlogUrl, cfg.buildoBlogToken);
+      if (source === "blog") await buildoApi(cfg.buildoBlogUrl, cfg.buildoBlogToken, "health");
       setTestResults((p) => ({ ...p, [source]: { ok: true, msg: "✓ חיבור תקין!" } }));
     } catch (e) {
       setTestResults((p) => ({ ...p, [source]: { ok: false, msg: `✗ ${e.message}` } }));
