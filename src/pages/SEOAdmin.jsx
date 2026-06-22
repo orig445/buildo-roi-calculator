@@ -77,32 +77,25 @@ const loadSettings = () => {
 const saveSettings = (s) => localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
 
 // ─── API Clients ────────────────────────────────────────────────────────────
+// All Framer calls go through a backend proxy to avoid CORS restrictions
+async function framerCall(payload) {
+  const res = await base44.functions.invoke("framerProxy", payload);
+  if (res?.error) throw new Error(res.error);
+  return res;
+}
+
 async function fetchFramerCollections(token) {
   if (!token) throw new Error("חסר טוקן Framer");
-  const res = await fetch("https://api.framer.com/store/api/cms/collections", {
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-  });
-  if (!res.ok) throw new Error(`Framer API: ${res.status} ${res.statusText}`);
-  return res.json();
+  return framerCall({ token, action: "collections" });
 }
 
 async function fetchFramerCMS(token, collectionId) {
   if (!token || !collectionId) throw new Error("חסר טוקן או Collection ID");
-  const res = await fetch(`https://api.framer.com/store/api/cms/collections/${collectionId}/items`, {
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-  });
-  if (!res.ok) throw new Error(`Framer API: ${res.status} ${res.statusText}`);
-  return res.json();
+  return framerCall({ token, collectionId, action: "items" });
 }
 
-async function updateFramerItem(token, collectionId, itemId, data) {
-  const res = await fetch(`https://api.framer.com/store/api/cms/collections/${collectionId}/items/${itemId}`, {
-    method: "PATCH",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ fieldData: data }),
-  });
-  if (!res.ok) throw new Error(`Framer PATCH: ${res.status}`);
-  return res.json();
+async function updateFramerItem(token, collectionId, itemId, fieldData) {
+  return framerCall({ token, collectionId, itemId, fieldData, action: "update" });
 }
 
 async function fetchGSC(siteUrl, token, days = 28) {
