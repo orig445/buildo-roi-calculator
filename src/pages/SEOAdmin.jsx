@@ -63,7 +63,6 @@ function SectionHeader({ icon, title, action }) {
 const SETTINGS_KEY = "buildo_seo_admin_settings";
 const defaultSettings = {
   framerToken: "",
-  framerCollectionId: "",
   gscSiteUrl: "",
   gscToken: "",
   buildoBlogUrl: "",
@@ -78,6 +77,15 @@ const loadSettings = () => {
 const saveSettings = (s) => localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
 
 // ─── API Clients ────────────────────────────────────────────────────────────
+async function fetchFramerCollections(token) {
+  if (!token) throw new Error("חסר טוקן Framer");
+  const res = await fetch("https://api.framer.com/store/api/cms/collections", {
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+  });
+  if (!res.ok) throw new Error(`Framer API: ${res.status} ${res.statusText}`);
+  return res.json();
+}
+
 async function fetchFramerCMS(token, collectionId) {
   if (!token || !collectionId) throw new Error("חסר טוקן או Collection ID");
   const res = await fetch(`https://api.framer.com/store/api/cms/collections/${collectionId}/items`, {
@@ -199,9 +207,8 @@ function SettingsPanel({ settings, onChange, onClose, onTest, testResults }) {
         <div style={{ borderBottom: "1px solid var(--gold-border)", paddingBottom: 16, marginBottom: 18 }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: "var(--gold)", letterSpacing: "0.1em", marginBottom: 12 }}>FRAMER CMS</div>
           <Field label="Framer API Token" k="framerToken" type="password" placeholder="fmr_xxxxxxxxxxxxxxxx" hint="ניתן ליצור ב-Framer Dashboard → Project Settings → CMS → API" />
-          <Field label="Collection ID" k="framerCollectionId" placeholder="xxxxxxxxxxxxxxxx" hint="ה-ID של קולקשן הבלוג ב-Framer CMS" />
           {testResults?.framer && <div style={{ fontSize: 11, color: testResults.framer.ok ? "#2D5C3F" : "var(--rust)", marginTop: -8, marginBottom: 10 }}>{testResults.framer.msg}</div>}
-          <button onClick={() => onTest("framer", local)} style={{ fontSize: 11, padding: "5px 14px", background: "none", border: "1px solid var(--gold-border)", borderRadius: 4, cursor: "pointer", color: "var(--ink-mid)", fontFamily: "'Heebo',sans-serif" }}>בדוק חיבור</button>
+          <button onClick={() => onTest("framer", local)} style={{ fontSize: 11, padding: "5px 14px", background: "none", border: "1px solid var(--gold-border)", borderRadius: 4, cursor: "pointer", color: "var(--ink-mid)", fontFamily: "'Heebo',sans-serif" }}>בדוק חיבור ושלוף קולקשנים</button>
         </div>
 
         <div style={{ borderBottom: "1px solid var(--gold-border)", paddingBottom: 16, marginBottom: 18 }}>
@@ -239,8 +246,11 @@ function SettingsPanel({ settings, onChange, onClose, onTest, testResults }) {
 
 // ─── Framer CMS Tab ─────────────────────────────────────────────────────────
 function FramerCMSTab({ settings }) {
+  const [collections, setCollections] = useState(null);
+  const [selectedCollectionId, setSelectedCollectionId] = useState(settings.framerCollectionId || "");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [collectionsLoading, setCollectionsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(null);
   const [editFields, setEditFields] = useState({});
@@ -248,16 +258,36 @@ function FramerCMSTab({ settings }) {
   const [saveMsg, setSaveMsg] = useState(null);
   const [search, setSearch] = useState("");
 
+  // Step 1: fetch all collections when token is ready
+  const loadCollections = useCallback(async () => {
+    if (!settings.framerToken) return;
+    setCollectionsLoading(true); setError(null);
+    try {
+      const res = await fetchFramerCollections(settings.framerToken);
+      const cols = res.collections || res.items || res || [];
+      setCollections(cols);
+      // auto-select first if none selected
+      if (!selectedCollectionId && cols.length > 0) {
+        setSelectedCollectionId(cols[0].id);
+      }
+    } catch (e) { setError(e.message); }
+    finally { setCollectionsLoading(false); }
+  }, [settings.framerToken]);
+
+  useEffect(() => { loadCollections(); }, [loadCollections]);
+
+  // Step 2: fetch items when a collection is selected
   const load = useCallback(async () => {
+    if (!settings.framerToken || !selectedCollectionId) return;
     setLoading(true); setError(null);
     try {
-      const res = await fetchFramerCMS(settings.framerToken, settings.framerCollectionId);
+      const res = await fetchFramerCMS(settings.framerToken, selectedCollectionId);
       setData(res);
     } catch (e) { setError(e.message); }
     finally { setLoading(false); }
-  }, [settings.framerToken, settings.framerCollectionId]);
+  }, [settings.framerToken, selectedCollectionId]);
 
-  useEffect(() => { if (settings.framerToken && settings.framerCollectionId) load(); }, [load]);
+  useEffect(() => { if (selectedCollectionId) load(); }, [load]);
 
   const startEdit = (item) => {
     setEditing(item.id);
@@ -273,7 +303,7 @@ function FramerCMSTab({ settings }) {
   const handleSave = async (itemId) => {
     setSaving(true); setSaveMsg(null);
     try {
-      await updateFramerItem(settings.framerToken, settings.framerCollectionId, itemId, editFields);
+      await updateFramerItem(settings.framerToken, selectedCollectionId, itemId, editFields);
       setSaveMsg({ ok: true, text: "נשמר בהצלחה!" });
       setEditing(null);
       await load();
@@ -288,24 +318,54 @@ function FramerCMSTab({ settings }) {
     return !q || name.includes(q) || slug.includes(q);
   });
 
-  if (!settings.framerToken || !settings.framerCollectionId) {
+  if (!settings.framerToken) {
     return (
       <div style={{ textAlign: "center", padding: "60px 20px" }}>
         <Settings style={{ width: 36, height: 36, color: "var(--gold)", margin: "0 auto 12px", display: "block" }} />
-        <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)", marginBottom: 6 }}>יש להגדיר Framer API</div>
-        <div style={{ fontSize: 13, color: "var(--ink-light)" }}>הגדר Framer Token ו-Collection ID בהגדרות</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)", marginBottom: 6 }}>יש להגדיר Framer API Token</div>
+        <div style={{ fontSize: 13, color: "var(--ink-light)" }}>הגדר את ה-Token בהגדרות — הקולקשנים יישלפו אוטומטית</div>
       </div>
     );
   }
 
   return (
     <div>
+      {/* Collection picker */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-light)", letterSpacing: "0.08em", marginBottom: 5 }}>קולקשן</div>
+        {collectionsLoading && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--ink-light)" }}>
+            <RefreshCw style={{ width: 12, height: 12, animation: "spin 1s linear infinite" }} /> שולף קולקשנים...
+          </div>
+        )}
+        {!collectionsLoading && collections && collections.length > 0 && (
+          <select
+            value={selectedCollectionId}
+            onChange={(e) => { setSelectedCollectionId(e.target.value); setData(null); }}
+            className="input-v"
+            style={{ fontSize: 13, fontWeight: 600, maxWidth: 380 }}
+          >
+            {collections.map((col) => (
+              <option key={col.id} value={col.id}>
+                {col.name || col.slug || col.id}
+              </option>
+            ))}
+          </select>
+        )}
+        {!collectionsLoading && collections && collections.length === 0 && (
+          <div style={{ fontSize: 12, color: "var(--rust)" }}>לא נמצאו קולקשנים</div>
+        )}
+        {!collectionsLoading && !collections && error && (
+          <div style={{ fontSize: 12, color: "var(--rust)" }}>{error}</div>
+        )}
+      </div>
+
       <div style={{ display: "flex", gap: 10, marginBottom: 16, alignItems: "center" }}>
         <div style={{ position: "relative", flex: 1 }}>
           <Search style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", width: 13, height: 13, color: "var(--ink-light)" }} />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="חיפוש פוסטים..." className="input-v" style={{ paddingRight: 30, fontSize: 12 }} />
         </div>
-        <button onClick={load} style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 14px", background: "none", border: "1px solid var(--gold-border)", borderRadius: 5, cursor: "pointer", fontSize: 12, color: "var(--ink-mid)", fontFamily: "'Heebo',sans-serif" }}>
+        <button onClick={load} disabled={!selectedCollectionId} style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 14px", background: "none", border: "1px solid var(--gold-border)", borderRadius: 5, cursor: "pointer", fontSize: 12, color: "var(--ink-mid)", fontFamily: "'Heebo',sans-serif", opacity: selectedCollectionId ? 1 : 0.4 }}>
           <RefreshCw style={{ width: 12, height: 12, ...(loading ? { animation: "spin 1s linear infinite" } : {}) }} /> רענן
         </button>
       </div>
@@ -313,6 +373,7 @@ function FramerCMSTab({ settings }) {
       {saveMsg && <div style={{ marginBottom: 12, padding: "8px 14px", borderRadius: 5, background: saveMsg.ok ? "rgba(45,92,63,0.1)" : "rgba(139,58,26,0.1)", color: saveMsg.ok ? "#2D5C3F" : "var(--rust)", fontSize: 12, border: `1px solid ${saveMsg.ok ? "#2D5C3F44" : "var(--rust)44"}` }}>{saveMsg.text}</div>}
 
       {loading && <div style={{ textAlign: "center", padding: "40px 0", color: "var(--ink-light)" }}>טוען מ-Framer CMS...</div>}
+      {!loading && error && collections && <div style={{ padding: "12px 16px", background: "rgba(139,58,26,0.08)", border: "1px solid var(--rust)33", borderRadius: 6, color: "var(--rust)", fontSize: 12, marginBottom: 12 }}><AlertCircle style={{ width: 13, height: 13, display: "inline", marginLeft: 5 }} />{error}</div>}
       {error && <div style={{ padding: "12px 16px", background: "rgba(139,58,26,0.08)", border: "1px solid var(--rust)33", borderRadius: 6, color: "var(--rust)", fontSize: 12, marginBottom: 12 }}><AlertCircle style={{ width: 13, height: 13, display: "inline", marginLeft: 5 }} />{error}</div>}
 
       {!loading && items.length > 0 && (
@@ -940,7 +1001,12 @@ export default function SEOAdminPage() {
   const handleTest = async (source, cfg) => {
     setTestResults((p) => ({ ...p, [source]: { loading: true } }));
     try {
-      if (source === "framer") await fetchFramerCMS(cfg.framerToken, cfg.framerCollectionId);
+      if (source === "framer") {
+        const res = await fetchFramerCollections(cfg.framerToken);
+        const cols = res.collections || res.items || res || [];
+        setTestResults((p) => ({ ...p, framer: { ok: true, msg: `✓ נמצאו ${cols.length} קולקשנים: ${cols.map(c => c.name || c.id).join(", ")}` } }));
+        return;
+      }
       if (source === "gsc") await fetchGSCSummary(cfg.gscSiteUrl, cfg.gscToken, 7);
       if (source === "blog") await fetchBuildoBlog(cfg.buildoBlogUrl, cfg.buildoBlogToken);
       setTestResults((p) => ({ ...p, [source]: { ok: true, msg: "✓ חיבור תקין!" } }));
