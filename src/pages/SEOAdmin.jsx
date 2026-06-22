@@ -168,7 +168,6 @@ async function buildoApi(baseUrl, apiKey, path, method = "GET", body = null) {
   if (res.status === 204) return {};
   return res.json();
 }
-}
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
 
