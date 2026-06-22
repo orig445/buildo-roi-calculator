@@ -152,12 +152,22 @@ async function fetchGSCSummary(siteUrl, token, days = 28) {
   return { current: curr.rows?.[0] || {}, previous: prevR.rows?.[0] || {} };
 }
 
-async function fetchBuildoBlog(apiUrl, token) {
-  if (!apiUrl) throw new Error("חסר Blog API URL");
-  const headers = token ? { Authorization: `Bearer ${token}` } : {};
-  const res = await fetch(apiUrl, { headers });
-  if (!res.ok) throw new Error(`Blog API: ${res.status}`);
+async function buildoApi(baseUrl, apiKey, path, method = "GET", body = null) {
+  if (!baseUrl) throw new Error("חסר Blog API URL");
+  const headers = { "Content-Type": "application/json" };
+  if (apiKey) headers["x-api-key"] = apiKey;
+  const res = await fetch(`${baseUrl.replace(/\/$/, "")}/${path}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(`Blog API ${res.status}: ${txt.slice(0, 200)}`);
+  }
+  if (res.status === 204) return {};
   return res.json();
+}
 }
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
@@ -220,8 +230,8 @@ function SettingsPanel({ settings, onChange, onClose, onTest, testResults }) {
 
         <div style={{ borderBottom: "1px solid var(--gold-border)", paddingBottom: 16, marginBottom: 18 }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: "var(--gold)", letterSpacing: "0.1em", marginBottom: 12 }}>BUILDO BLOG API</div>
-          <Field label="Blog API URL" k="buildoBlogUrl" placeholder="https://api.buildoai.com/blog/posts" hint="endpoint שמחזיר רשימת פוסטים" />
-          <Field label="API Token (אופציונלי)" k="buildoBlogToken" type="password" placeholder="sk_xxxxxxxx" />
+          <Field label="Blog API Base URL" k="buildoBlogUrl" placeholder="https://xxx.supabase.co/functions/v1/content-api" hint="ה-base URL ללא /blog-posts בסוף" />
+          <Field label="API Key (x-api-key)" k="buildoBlogToken" type="password" placeholder="buildo_xxxxxxxx" hint="ה-key שנשלח ב-header x-api-key" />
           {testResults?.blog && <div style={{ fontSize: 11, color: testResults.blog.ok ? "#2D5C3F" : "var(--rust)", marginTop: -8, marginBottom: 10 }}>{testResults.blog.msg}</div>}
           <button onClick={() => onTest("blog", local)} style={{ fontSize: 11, padding: "5px 14px", background: "none", border: "1px solid var(--gold-border)", borderRadius: 4, cursor: "pointer", color: "var(--ink-mid)", fontFamily: "'Heebo',sans-serif" }}>בדוק חיבור</button>
         </div>
@@ -774,117 +784,305 @@ function TrendsTab({ settings }) {
   );
 }
 
+// ─── Post Editor Modal ────────────────────────────────────────────────────────
+function PostEditorModal({ post, onClose, onSave, apiBase, apiKey, type = "blog-posts" }) {
+  const isNew = !post;
+  const [fields, setFields] = useState({
+    title: post?.title || "",
+    excerpt: post?.excerpt || "",
+    content_html: post?.content_html || "",
+    hero_image_url: post?.hero_image_url || "",
+    seo_title: post?.seo_title || "",
+    seo_description: post?.seo_description || "",
+    status: post?.status || "draft",
+  });
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState(null);
+  const set = (k, v) => setFields((p) => ({ ...p, [k]: v }));
+
+  const handleSave = async () => {
+    if (!fields.title.trim()) { setErr("כותרת חובה"); return; }
+    setSaving(true); setErr(null);
+    try {
+      if (isNew) {
+        await buildoApi(apiBase, apiKey, type, "POST", fields);
+      } else {
+        await buildoApi(apiBase, apiKey, `${type}/${post.slug}`, "PATCH", fields);
+      }
+      onSave();
+    } catch (e) { setErr(e.message); }
+    finally { setSaving(false); }
+  };
+
+  const F = ({ label, k, placeholder, type: t = "text", hint, rows }) => (
+    <div style={{ marginBottom: 12 }}>
+      <label style={{ fontSize: 10, fontWeight: 700, color: "var(--ink-light)", letterSpacing: "0.08em", display: "block", marginBottom: 3 }}>{label}</label>
+      {rows ? (
+        <textarea value={fields[k]} onChange={(e) => set(k, e.target.value)} placeholder={placeholder} rows={rows}
+          className="input-v" style={{ fontSize: 12, resize: "vertical" }} />
+      ) : (
+        <input value={fields[k]} onChange={(e) => set(k, e.target.value)} placeholder={placeholder} type={t}
+          className="input-v" style={{ fontSize: 12 }} />
+      )}
+      {hint && <div style={{ fontSize: 10, color: "var(--ink-light)", marginTop: 2 }}>{hint}</div>}
+    </div>
+  );
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
+      <motion.div initial={{ opacity: 0, scale: 0.96, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+        style={{ background: "var(--cream)", border: "1px solid var(--gold-border)", borderRadius: 10, padding: 24, width: "100%", maxWidth: 620, maxHeight: "90vh", overflowY: "auto", direction: "rtl" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+          <div style={{ fontSize: 16, fontWeight: 900, color: "var(--ink)" }}>{isNew ? "פוסט חדש" : `ערוך: ${post.title}`}</div>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-light)" }}><X style={{ width: 17, height: 17 }} /></button>
+        </div>
+
+        <F label="כותרת *" k="title" placeholder="כותרת הפוסט" />
+        <F label="תקציר (Excerpt)" k="excerpt" placeholder="תיאור קצר..." rows={2} />
+        <F label="תוכן (HTML)" k="content_html" placeholder="<p>תוכן הפוסט...</p>" rows={6} />
+        <F label="תמונה ראשית (URL)" k="hero_image_url" placeholder="https://..." />
+
+        <div style={{ borderTop: "1px solid var(--gold-border)", paddingTop: 12, marginTop: 4, marginBottom: 12 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, color: "var(--gold)", letterSpacing: "0.1em", marginBottom: 10 }}>SEO</div>
+          <F label={`SEO Title (${fields.seo_title.length}/60)`} k="seo_title" placeholder="כותרת לגוגל"
+            hint={fields.seo_title.length > 60 ? "ארוך מדי!" : ""} />
+          <F label={`Meta Description (${fields.seo_description.length}/160)`} k="seo_description" placeholder="תיאור לגוגל..."
+            rows={2} hint={fields.seo_description.length > 160 ? "ארוך מדי!" : ""} />
+        </div>
+
+        {/* Google preview */}
+        {(fields.seo_title || fields.title) && (
+          <div style={{ marginBottom: 14, padding: "10px 12px", background: "#fff", borderRadius: 6, border: "1px solid #e0e0e0" }}>
+            <div style={{ fontSize: 9, fontWeight: 700, color: "var(--ink-light)", letterSpacing: "0.1em", marginBottom: 5 }}>תצוגה מקדימה בגוגל</div>
+            <div style={{ fontSize: 14, color: "#1a0dab", fontFamily: "Arial, sans-serif", marginBottom: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fields.seo_title || fields.title}</div>
+            <div style={{ fontSize: 12, color: "#006621", fontFamily: "Arial, sans-serif", marginBottom: 1 }}>buildoai.com/blog/{fields.title.toLowerCase().replace(/\s+/g, "-")}</div>
+            <div style={{ fontSize: 13, color: "#545454", fontFamily: "Arial, sans-serif", lineHeight: 1.4, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{fields.seo_description || fields.excerpt || "אין תיאור"}</div>
+          </div>
+        )}
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ fontSize: 10, fontWeight: 700, color: "var(--ink-light)", letterSpacing: "0.08em", display: "block", marginBottom: 5 }}>סטטוס</label>
+          <div style={{ display: "flex", gap: 8 }}>
+            {["draft", "published"].map((s) => (
+              <button key={s} onClick={() => set("status", s)}
+                style={{ padding: "5px 16px", borderRadius: 20, border: `1px solid ${fields.status === s ? "var(--gold)" : "var(--gold-border)"}`, background: fields.status === s ? "var(--gold)" : "none", color: fields.status === s ? "var(--cream)" : "var(--ink-mid)", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Heebo',sans-serif" }}>
+                {s === "published" ? "פורסם" : "טיוטה"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {err && <div style={{ color: "var(--rust)", fontSize: 12, marginBottom: 10 }}>{err}</div>}
+
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+          <button onClick={onClose} style={{ padding: "8px 18px", background: "none", border: "1px solid var(--gold-border)", borderRadius: 5, cursor: "pointer", fontSize: 13, fontFamily: "'Heebo',sans-serif", color: "var(--ink-mid)" }}>ביטול</button>
+          <button onClick={handleSave} disabled={saving}
+            style={{ padding: "8px 18px", background: "var(--forest)", color: "var(--gold-light)", border: "1px solid var(--gold)", borderRadius: 5, cursor: saving ? "not-allowed" : "pointer", fontSize: 13, fontWeight: 700, fontFamily: "'Heebo',sans-serif", display: "flex", alignItems: "center", gap: 6, opacity: saving ? 0.7 : 1 }}>
+            <Save style={{ width: 13, height: 13 }} />{saving ? "שומר..." : isNew ? "צור פוסט" : "עדכן"}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 // ─── Buildo Blog Tab ─────────────────────────────────────────────────────────
 function BuildoBlogTab({ settings }) {
+  const [contentTab, setContentTab] = useState("blog-posts");
   const [posts, setPosts] = useState(null);
+  const [pages, setPages] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
-  const [expanded, setExpanded] = useState(null);
+  const [editing, setEditing] = useState(null); // null | "new" | post object
+  const [deleting, setDeleting] = useState(null);
+  const [actionMsg, setActionMsg] = useState(null);
+
+  const api = settings.buildoBlogUrl;
+  const key = settings.buildoBlogToken;
 
   const load = useCallback(async () => {
-    if (!settings.buildoBlogUrl) return;
+    if (!api) return;
     setLoading(true); setError(null);
     try {
-      const data = await fetchBuildoBlog(settings.buildoBlogUrl, settings.buildoBlogToken);
-      const arr = Array.isArray(data) ? data : data.posts || data.data || data.items || data.results || [];
-      setPosts(arr);
+      const [postsRes, pagesRes] = await Promise.all([
+        buildoApi(api, key, "blog-posts"),
+        buildoApi(api, key, "pages").catch(() => ({ pages: [] })),
+      ]);
+      const toArr = (d) => Array.isArray(d) ? d : d?.posts || d?.pages || d?.data || d?.items || [];
+      setPosts(toArr(postsRes));
+      setPages(toArr(pagesRes));
     } catch (e) { setError(e.message); }
     finally { setLoading(false); }
-  }, [settings.buildoBlogUrl, settings.buildoBlogToken]);
+  }, [api, key]);
 
   useEffect(() => { load(); }, [load]);
 
-  if (!settings.buildoBlogUrl) {
+  const handleDelete = async (slug) => {
+    try {
+      await buildoApi(api, key, `${contentTab}/${slug}`, "DELETE");
+      setDeleting(null);
+      setActionMsg({ ok: true, text: "נמחק בהצלחה" });
+      await load();
+    } catch (e) { setActionMsg({ ok: false, text: e.message }); }
+  };
+
+  const handleSaved = async () => {
+    setEditing(null);
+    setActionMsg({ ok: true, text: "נשמר בהצלחה!" });
+    await load();
+  };
+
+  if (!api) {
     return (
       <div style={{ textAlign: "center", padding: "60px 20px" }}>
         <BookOpen style={{ width: 36, height: 36, color: "var(--gold)", margin: "0 auto 12px", display: "block" }} />
         <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)", marginBottom: 6 }}>הגדר Buildo Blog API</div>
-        <div style={{ fontSize: 13, color: "var(--ink-light)" }}>הגדר Blog API URL בהגדרות</div>
+        <div style={{ fontSize: 13, color: "var(--ink-light)" }}>הגדר Blog API URL ו-API Key בהגדרות</div>
       </div>
     );
   }
 
-  const filtered = (posts || []).filter((p) => {
+  const currentList = contentTab === "blog-posts" ? (posts || []) : (pages || []);
+  const filtered = currentList.filter((p) => {
     const q = search.toLowerCase();
-    return !q || JSON.stringify(p).toLowerCase().includes(q);
+    return !q || (p.title || "").toLowerCase().includes(q) || (p.slug || "").toLowerCase().includes(q) || (p.excerpt || "").toLowerCase().includes(q);
   });
 
-  const titleOf = (p) => p.title || p.name || p.headline || p.subject || JSON.stringify(p).slice(0, 40);
-  const slugOf = (p) => p.slug || p.url || p.path || "";
-  const dateOf = (p) => p.publishedAt || p.published_at || p.date || p.createdAt || p.created_at || "";
-  const descOf = (p) => p.description || p.excerpt || p.summary || p.seoDescription || p.meta?.description || "";
-  const seoTitleOf = (p) => p.seoTitle || p.meta?.title || p.og?.title || "";
+  const statusColor = (s) => s === "published" ? { color: "#2D5C3F", bg: "rgba(45,92,63,0.1)" } : { color: "#8B5A00", bg: "rgba(196,130,42,0.1)" };
 
   return (
     <div>
-      <div style={{ display: "flex", gap: 10, marginBottom: 16, alignItems: "center" }}>
-        <div style={{ position: "relative", flex: 1 }}>
-          <Search style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", width: 13, height: 13, color: "var(--ink-light)" }} />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="חיפוש פוסטים..." className="input-v" style={{ paddingRight: 30, fontSize: 12 }} />
-        </div>
-        <button onClick={load} style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 14px", background: "none", border: "1px solid var(--gold-border)", borderRadius: 5, cursor: "pointer", fontSize: 12, color: "var(--ink-mid)", fontFamily: "'Heebo',sans-serif" }}>
-          <RefreshCw style={{ width: 12, height: 12, ...(loading ? { animation: "spin 1s linear infinite" } : {}) }} /> רענן
-        </button>
+      {/* Content type tabs */}
+      <div style={{ display: "flex", gap: 4, marginBottom: 18, borderBottom: "1px solid var(--gold-border)" }}>
+        {[
+          { key: "blog-posts", label: `בלוג (${posts?.length ?? "..."})`, icon: <BookOpen style={{ width: 12, height: 12 }} /> },
+          { key: "pages", label: `עמודים (${pages?.length ?? "..."})`, icon: <FileText style={{ width: 12, height: 12 }} /> },
+        ].map((t) => (
+          <button key={t.key} onClick={() => { setContentTab(t.key); setSearch(""); }}
+            style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 16px", fontSize: 12, fontWeight: 700, background: "none", border: "none", cursor: "pointer", fontFamily: "'Heebo',sans-serif", color: contentTab === t.key ? "var(--forest)" : "var(--ink-light)", borderBottom: contentTab === t.key ? "2px solid var(--gold)" : "2px solid transparent", marginBottom: -1 }}>
+            {t.icon} {t.label}
+          </button>
+        ))}
       </div>
 
-      {error && <div style={{ padding: "10px 14px", background: "rgba(139,58,26,0.08)", borderRadius: 6, color: "var(--rust)", fontSize: 12, marginBottom: 14, border: "1px solid var(--rust)33" }}>{error}</div>}
-      {loading && <div style={{ textAlign: "center", padding: "40px 0", color: "var(--ink-light)" }}>טוען מ-Blog API...</div>}
+      {/* Toolbar */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 14, alignItems: "center" }}>
+        <div style={{ position: "relative", flex: 1 }}>
+          <Search style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", width: 13, height: 13, color: "var(--ink-light)" }} />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={`חיפוש ${contentTab === "blog-posts" ? "פוסטים" : "עמודים"}...`}
+            className="input-v" style={{ paddingRight: 30, fontSize: 12 }} />
+        </div>
+        <button onClick={load} style={{ display: "flex", alignItems: "center", gap: 4, padding: "8px 12px", background: "none", border: "1px solid var(--gold-border)", borderRadius: 5, cursor: "pointer", fontSize: 12, color: "var(--ink-mid)", fontFamily: "'Heebo',sans-serif" }}>
+          <RefreshCw style={{ width: 12, height: 12, ...(loading ? { animation: "spin 1s linear infinite" } : {}) }} />
+        </button>
+        {contentTab === "blog-posts" && (
+          <button onClick={() => setEditing("new")}
+            style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 16px", background: "var(--forest)", color: "var(--gold-light)", border: "1px solid var(--gold)", borderRadius: 5, cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: "'Heebo',sans-serif" }}>
+            <Plus style={{ width: 13, height: 13 }} /> פוסט חדש
+          </button>
+        )}
+      </div>
 
-      {!loading && posts !== null && (
-        <div style={{ marginBottom: 12 }}>
-          <Badge>{filtered.length} פוסטים</Badge>
+      {actionMsg && (
+        <div style={{ marginBottom: 12, padding: "8px 14px", borderRadius: 5, background: actionMsg.ok ? "rgba(45,92,63,0.1)" : "rgba(139,58,26,0.1)", color: actionMsg.ok ? "#2D5C3F" : "var(--rust)", fontSize: 12, border: `1px solid ${actionMsg.ok ? "#2D5C3F33" : "var(--rust)33"}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          {actionMsg.text}
+          <button onClick={() => setActionMsg(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "inherit" }}><X style={{ width: 11, height: 11 }} /></button>
         </div>
       )}
+
+      {error && <div style={{ padding: "10px 14px", background: "rgba(139,58,26,0.08)", borderRadius: 6, color: "var(--rust)", fontSize: 12, marginBottom: 14, border: "1px solid var(--rust)33" }}><AlertCircle style={{ width: 12, height: 12, display: "inline", marginLeft: 5 }} />{error}</div>}
+      {loading && <div style={{ textAlign: "center", padding: "40px 0", color: "var(--ink-light)" }}>טוען...</div>}
 
       {!loading && filtered.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {filtered.map((post, i) => {
-            const title = titleOf(post);
-            const slug = slugOf(post);
-            const date = dateOf(post);
-            const desc = descOf(post);
-            const seoTitle = seoTitleOf(post);
-            const isOpen = expanded === i;
-
-            return (
-              <div key={i} className="card-v" style={{ overflow: "hidden" }}>
-                <div style={{ padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }} onClick={() => setExpanded(isOpen ? null : i)}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>{title}</div>
-                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                      {slug && <span style={{ fontSize: 11, color: "var(--ink-light)" }}>/{slug}</span>}
-                      {date && <span style={{ fontSize: 11, color: "var(--ink-light)", display: "flex", alignItems: "center", gap: 3 }}><Calendar style={{ width: 10, height: 10 }} />{fmtDate(date)}</span>}
-                      {!seoTitle && <Badge color="var(--rust)" bg="rgba(139,58,26,0.1)">חסר SEO Title</Badge>}
-                      {!desc && <Badge color="var(--rust)" bg="rgba(139,58,26,0.1)">חסר Meta Description</Badge>}
-                      {seoTitle && <Badge color="#2D5C3F" bg="rgba(45,92,63,0.1)">SEO ✓</Badge>}
-                    </div>
-                  </div>
-                  {isOpen ? <ChevronUp style={{ width: 14, height: 14, color: "var(--ink-light)", flexShrink: 0 }} /> : <ChevronDown style={{ width: 14, height: 14, color: "var(--ink-light)", flexShrink: 0 }} />}
-                </div>
-                {isOpen && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: "0 18px 16px", borderTop: "1px solid var(--gold-border)" }}>
-                    <div style={{ paddingTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
-                      {seoTitle && <div><span style={{ fontSize: 9, fontWeight: 700, color: "var(--ink-light)", letterSpacing: "0.08em" }}>SEO TITLE: </span><span style={{ fontSize: 12, color: "var(--ink-mid)" }}>{seoTitle}</span></div>}
-                      {desc && <div><span style={{ fontSize: 9, fontWeight: 700, color: "var(--ink-light)", letterSpacing: "0.08em" }}>META DESC: </span><span style={{ fontSize: 12, color: "var(--ink-mid)" }}>{desc}</span></div>}
-                      <div style={{ borderTop: "1px solid var(--gold-border)", paddingTop: 8 }}>
-                        <div style={{ fontSize: 9, fontWeight: 700, color: "var(--ink-light)", letterSpacing: "0.08em", marginBottom: 4 }}>RAW DATA</div>
-                        <pre style={{ fontSize: 10, color: "var(--ink-light)", background: "var(--cream-dark)", padding: "8px 10px", borderRadius: 4, overflow: "auto", maxHeight: 180 }}>
-                          {JSON.stringify(post, null, 2)}
-                        </pre>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </div>
-            );
-          })}
+        <div className="card-v" style={{ overflow: "hidden" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ background: "var(--cream-dark)", borderBottom: "1px solid var(--gold-border)" }}>
+                {["כותרת", "Slug", "סטטוס", "SEO", "תאריך", "פעולות"].map((h) => (
+                  <th key={h} style={{ padding: "10px 14px", textAlign: "right" }}>
+                    <span className="font-label" style={{ fontSize: 8, color: "var(--ink-light)", letterSpacing: "0.12em", fontWeight: 700 }}>{h}</span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((post, i) => {
+                const sc = statusColor(post.status);
+                const hasSeo = !!(post.seo_title && post.seo_description);
+                const isConfirmDel = deleting === post.slug;
+                return (
+                  <motion.tr key={post.slug || i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
+                    style={{ borderBottom: "1px solid rgba(196,150,42,0.07)", transition: "background .15s" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "var(--cream-mid)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = ""; }}>
+                    <td style={{ padding: "11px 14px" }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{post.title}</div>
+                      {post.excerpt && <div style={{ fontSize: 11, color: "var(--ink-light)", marginTop: 1, maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{post.excerpt}</div>}
+                    </td>
+                    <td style={{ padding: "11px 14px" }}>
+                      <span style={{ fontSize: 11, color: "var(--ink-light)", background: "var(--cream-dark)", padding: "2px 7px", borderRadius: 3 }}>{post.slug || "—"}</span>
+                    </td>
+                    <td style={{ padding: "11px 14px" }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: sc.bg, color: sc.color }}>
+                        {post.status === "published" ? "פורסם" : "טיוטה"}
+                      </span>
+                    </td>
+                    <td style={{ padding: "11px 14px", textAlign: "center" }}>
+                      {hasSeo
+                        ? <CheckCircle style={{ width: 14, height: 14, color: "#2D5C3F" }} />
+                        : <AlertCircle style={{ width: 14, height: 14, color: "var(--rust-light)" }} />}
+                    </td>
+                    <td style={{ padding: "11px 14px" }}>
+                      <span style={{ fontSize: 11, color: "var(--ink-light)", display: "flex", alignItems: "center", gap: 3 }}>
+                        <Calendar style={{ width: 10, height: 10 }} />{fmtDate(post.published_at || post.created_at)}
+                      </span>
+                    </td>
+                    <td style={{ padding: "11px 14px" }}>
+                      {isConfirmDel ? (
+                        <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+                          <span style={{ fontSize: 11, color: "var(--rust)" }}>למחוק?</span>
+                          <button onClick={() => handleDelete(post.slug)} style={{ fontSize: 10, padding: "3px 8px", background: "var(--rust)", color: "#fff", border: "none", borderRadius: 3, cursor: "pointer", fontFamily: "'Heebo',sans-serif" }}>כן</button>
+                          <button onClick={() => setDeleting(null)} style={{ fontSize: 10, padding: "3px 8px", background: "none", border: "1px solid var(--gold-border)", borderRadius: 3, cursor: "pointer", fontFamily: "'Heebo',sans-serif", color: "var(--ink-mid)" }}>לא</button>
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", gap: 5 }}>
+                          <button onClick={() => setEditing(post)} style={{ display: "flex", alignItems: "center", gap: 3, padding: "4px 10px", background: "none", border: "1px solid var(--gold-border)", borderRadius: 4, cursor: "pointer", fontSize: 11, color: "var(--ink-mid)", fontFamily: "'Heebo',sans-serif" }}>
+                            <Edit3 style={{ width: 10, height: 10 }} /> ערוך
+                          </button>
+                          <button onClick={() => setDeleting(post.slug)} style={{ display: "flex", alignItems: "center", padding: "4px 8px", background: "none", border: "1px solid var(--rust)44", borderRadius: 4, cursor: "pointer", color: "var(--rust)" }}>
+                            <Trash2 style={{ width: 10, height: 10 }} />
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </motion.tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
 
-      {!loading && posts !== null && filtered.length === 0 && (
-        <div style={{ textAlign: "center", padding: "50px 0", color: "var(--ink-light)", fontSize: 13 }}>אין פוסטים</div>
+      {!loading && filtered.length === 0 && !error && (
+        <div style={{ textAlign: "center", padding: "50px 0", color: "var(--ink-light)", fontSize: 13 }}>
+          {contentTab === "blog-posts" ? "אין פוסטים עדיין" : "אין עמודים עדיין"}
+        </div>
       )}
+
+      <AnimatePresence>
+        {editing && (
+          <PostEditorModal
+            post={editing === "new" ? null : editing}
+            onClose={() => setEditing(null)}
+            onSave={handleSaved}
+            apiBase={api}
+            apiKey={key}
+            type={contentTab}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
