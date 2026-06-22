@@ -71,8 +71,17 @@ const defaultSettings = {
   targetKeywords: "בילדו, AI שיווק, שיווק דיגיטלי, כלים שיווקיים",
 };
 const loadSettings = () => {
-  try { return { ...defaultSettings, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}") }; }
-  catch { return defaultSettings; }
+  try {
+    const stored = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+    const merged = { ...defaultSettings, ...stored };
+    // Ensure string fields are always strings
+    for (const k of Object.keys(defaultSettings)) {
+      if (typeof defaultSettings[k] === "string" && typeof merged[k] !== "string") {
+        merged[k] = defaultSettings[k];
+      }
+    }
+    return merged;
+  } catch { return defaultSettings; }
 };
 const saveSettings = (s) => localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
 
@@ -1062,8 +1071,8 @@ function BuildoBlogTab({ settings }) {
             post={editing === "new" ? null : editing}
             onClose={() => setEditing(null)}
             onSave={handleSaved}
-            apiBase={api}
-            apiKey={key}
+            apiBase={null}
+            apiKey={null}
             type={contentTab}
           />
         )}
