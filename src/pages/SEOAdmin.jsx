@@ -909,7 +909,7 @@ function BuildoBlogTab({ settings }) {
       setPages(toArr(pagesRes));
     } catch (e) { setError(e.message); }
     finally { setLoading(false); }
-  }, [api, key]);
+  }, []);
 
   useEffect(() => { load(); }, [load]);
 
