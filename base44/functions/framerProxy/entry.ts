@@ -1,59 +1,100 @@
 Deno.serve(async (req) => {
-  // Handle CORS preflight
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, x-framer-token, x-framer-collection-id, x-framer-item-id, x-framer-action",
-      },
-    });
-  }
-
   const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Content-Type": "application/json",
   };
 
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      headers: {
+        ...corsHeaders,
+        "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      },
+    });
+  }
+
+  let body: Record<string, unknown> = {};
   try {
-    const body = await req.json().catch(() => ({}));
-    const { token, collectionId, itemId, action, fieldData } = body;
+    body = await req.json();
+  } catch {
+    return Response.json({ error: "Invalid JSON body" }, { status: 400, headers: corsHeaders });
+  }
 
-    if (!token) {
-      return Response.json({ error: "Missing Framer token" }, { status: 400, headers: corsHeaders });
-    }
+  const { token, collectionId, itemId, action, fieldData } = body as {
+    token?: string;
+    collectionId?: string;
+    itemId?: string;
+    action?: string;
+    fieldData?: Record<string, unknown>;
+  };
 
-    const baseUrl = "https://api.framer.com/store/api/cms";
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
+  if (!token) {
+    return Response.json({ error: "Missing Framer token" }, { status: 400, headers: corsHeaders });
+  }
 
+  if (!action) {
+    return Response.json({ error: "Missing action" }, { status: 400, headers: corsHeaders });
+  }
+
+  const framerHeaders = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+
+  // Try both known Framer CMS API base URLs
+  const BASE = "https://api.framer.com/store/api/cms";
+
+  try {
     let url: string;
     let method = "GET";
     let fetchBody: string | undefined;
 
     if (action === "collections") {
-      url = `${baseUrl}/collections`;
+      url = `${BASE}/collections`;
     } else if (action === "items" && collectionId) {
-      url = `${baseUrl}/collections/${collectionId}/items`;
-    } else if (action === "update" && collectionId && itemId && fieldData) {
-      url = `${baseUrl}/collections/${collectionId}/items/${itemId}`;
+      url = `${BASE}/collections/${collectionId}/items`;
+    } else if (action === "update" && collectionId && itemId) {
+      url = `${BASE}/collections/${collectionId}/items/${itemId}`;
       method = "PATCH";
-      fetchBody = JSON.stringify({ fieldData });
+      fetchBody = JSON.stringify({ fieldData: fieldData ?? {} });
     } else {
-      return Response.json({ error: "Invalid action or missing parameters" }, { status: 400, headers: corsHeaders });
+      return Response.json(
+        { error: `Invalid action "${action}" or missing parameters (collectionId=${collectionId}, itemId=${itemId})` },
+        { status: 400, headers: corsHeaders }
+      );
     }
 
-    const res = await fetch(url, { method, headers, body: fetchBody });
-    const data = await res.json();
+    console.log(`[framerProxy] ${method} ${url}`);
 
-    if (!res.ok) {
-      return Response.json({ error: data.message || `Framer API error: ${res.status}` }, { status: res.status, headers: corsHeaders });
+    const framerRes = await fetch(url, {
+      method,
+      headers: framerHeaders,
+      body: fetchBody,
+      signal: AbortSignal.timeout(15000),
+    });
+
+    const text = await framerRes.text();
+    console.log(`[framerProxy] status=${framerRes.status} body=${text.slice(0, 300)}`);
+
+    let data: unknown;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { raw: text };
+    }
+
+    if (!framerRes.ok) {
+      return Response.json(
+        { error: `Framer API ${framerRes.status}: ${text.slice(0, 200)}` },
+        { status: framerRes.status, headers: corsHeaders }
+      );
     }
 
     return Response.json(data, { headers: corsHeaders });
   } catch (err) {
-    return Response.json({ error: err instanceof Error ? err.message : "Unknown error" }, { status: 500, headers: corsHeaders });
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[framerProxy] error: ${msg}`);
+    return Response.json({ error: msg }, { status: 500, headers: corsHeaders });
   }
 });

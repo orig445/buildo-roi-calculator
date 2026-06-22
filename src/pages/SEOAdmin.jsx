@@ -79,7 +79,13 @@ const saveSettings = (s) => localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)
 // ─── API Clients ────────────────────────────────────────────────────────────
 // All Framer calls go through a backend proxy to avoid CORS restrictions
 async function framerCall(payload) {
-  const res = await base44.functions.invoke("framerProxy", payload);
+  let res;
+  try {
+    res = await base44.functions.invoke("framerProxy", payload);
+  } catch (e) {
+    // base44 SDK throws on non-2xx — extract message from response if possible
+    throw new Error(e?.response?.data?.error || e?.message || "שגיאת שרת");
+  }
   if (res?.error) throw new Error(res.error);
   return res;
 }
