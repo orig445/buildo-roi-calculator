@@ -897,9 +897,6 @@ function BuildoBlogTab({ settings }) {
   const [deleting, setDeleting] = useState(null);
   const [actionMsg, setActionMsg] = useState(null);
 
-  const api = settings.buildoBlogUrl;
-  const key = settings.buildoBlogToken;
-
   const load = useCallback(async () => {
     setLoading(true); setError(null);
     try {
@@ -1110,7 +1107,7 @@ function DashboardTab({ settings }) {
   const sources = [
     { label: "Framer CMS", ok: !!(settings.framerToken && settings.framerCollectionId), key: "framer" },
     { label: "Search Console", ok: !!(settings.gscSiteUrl && settings.gscToken), key: "gsc" },
-    { label: "Buildo Blog API", ok: !!settings.buildoBlogUrl, key: "blog" },
+    { label: "Buildo Blog API", ok: true, key: "blog" },
     { label: "Google Trends", ok: !!(settings.targetKeywords), key: "trends" },
   ];
 
