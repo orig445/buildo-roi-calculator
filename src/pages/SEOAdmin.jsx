@@ -154,19 +154,14 @@ async function fetchGSCSummary(siteUrl, token, days = 28) {
 
 async function buildoApi(baseUrl, apiKey, path, method = "GET", body = null) {
   if (!baseUrl) throw new Error("חסר Blog API URL");
-  const headers = { "Content-Type": "application/json" };
-  if (apiKey) headers["x-api-key"] = apiKey;
-  const res = await fetch(`${baseUrl.replace(/\/$/, "")}/${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (!res.ok) {
-    const txt = await res.text().catch(() => "");
-    throw new Error(`Blog API ${res.status}: ${txt.slice(0, 200)}`);
+  let res;
+  try {
+    res = await base44.functions.invoke("blogProxy", { baseUrl, apiKey, path, method, payload: body });
+  } catch (e) {
+    throw new Error(e?.response?.data?.error || e?.message || "שגיאת שרת");
   }
-  if (res.status === 204) return {};
-  return res.json();
+  if (res?.error) throw new Error(res.error);
+  return res;
 }
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
