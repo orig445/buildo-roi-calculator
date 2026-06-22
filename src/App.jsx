@@ -19,6 +19,7 @@ import ComparisonPage from "@/pages/ComparisonPage";
 import FacebookAdGenerator from "@/pages/tools/FacebookAdGenerator";
 import MarketingPlanGenerator from "@/pages/tools/MarketingPlanGenerator";
 import WhatsAppCampaignGenerator from "@/pages/tools/WhatsAppCampaignGenerator";
+import SEOAdminPage from "@/pages/SEOAdmin";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -54,6 +55,7 @@ const AuthenticatedApp = () => {
       <Route path="/ad-creator" element={<AdCreator />} />
       <Route path="/brief" element={<ClientBriefForm />} />
       <Route path="/seo" element={<SEOAnalyzer />} />
+      <Route path="/seo-admin" element={<SEOAdminPage />} />
       <Route path="/tools/facebook-ad-generator" element={<FacebookAdGenerator />} />
       <Route path="/tools/marketing-plan-generator" element={<MarketingPlanGenerator />} />
       <Route path="/tools/whatsapp-campaign-generator" element={<WhatsAppCampaignGenerator />} />

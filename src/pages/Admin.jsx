@@ -117,6 +117,7 @@ export default function Admin() {
             { key: "fb", label: `פייסבוק לידים (${fbLeads.length})`, icon: <Facebook style={{ width: 13, height: 13 }} /> },
             { key: "adleads", label: `Ad Creator לידים`, icon: <Mail style={{ width: 13, height: 13 }} /> },
             { key: "briefs", label: `אפיונים (${briefs.length})`, icon: <Building2 style={{ width: 13, height: 13 }} /> },
+            { key: "seo", label: "ניהול SEO", icon: <Globe style={{ width: 13, height: 13 }} /> },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
               style={{
@@ -302,6 +303,17 @@ export default function Admin() {
                 </table>
               </div>
             )}
+          </div>
+        )}
+
+        {tab === "seo" && (
+          <div style={{ textAlign: "center", padding: "60px 20px" }}>
+            <Globe style={{ width: 40, height: 40, color: "var(--gold)", margin: "0 auto 14px", display: "block" }} />
+            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", marginBottom: 8 }}>ממשק ניהול SEO</div>
+            <div style={{ fontSize: 13, color: "var(--ink-light)", marginBottom: 20 }}>Search Console, Framer CMS, Blog API ו-Google Trends</div>
+            <a href="/seo-admin" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 24px", background: "var(--forest)", color: "var(--gold-light)", border: "1px solid var(--gold)", borderRadius: 6, textDecoration: "none", fontSize: 14, fontWeight: 700, fontFamily: "'Heebo',sans-serif" }}>
+              פתח ממשק SEO
+            </a>
           </div>
         )}
 
