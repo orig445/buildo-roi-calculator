@@ -355,7 +355,23 @@ function FramerCMSTab({ settings }) {
           <div style={{ fontSize: 12, color: "var(--rust)" }}>לא נמצאו קולקשנים</div>
         )}
         {!collectionsLoading && !collections && error && (
-          <div style={{ fontSize: 12, color: "var(--rust)" }}>{error}</div>
+          <div>
+            <div style={{ fontSize: 12, color: "var(--rust)", marginBottom: 10 }}>{error}</div>
+            <div style={{ fontSize: 11, color: "var(--ink-light)", marginBottom: 6 }}>הכנס Collection ID ידנית:</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                className="input-v"
+                placeholder="e.g. abc123def456"
+                style={{ fontSize: 12, maxWidth: 260 }}
+                onKeyDown={(e) => { if (e.key === "Enter") { setSelectedCollectionId(e.currentTarget.value); setCollections([{ id: e.currentTarget.value, name: e.currentTarget.value }]); } }}
+              />
+              <button
+                style={{ fontSize: 11, padding: "5px 14px", background: "var(--forest)", color: "var(--gold-light)", border: "1px solid var(--gold)", borderRadius: 4, cursor: "pointer", fontFamily: "'Heebo',sans-serif" }}
+                onClick={(e) => { const inp = e.currentTarget.previousSibling; if (inp?.value) { setSelectedCollectionId(inp.value); setCollections([{ id: inp.value, name: inp.value }]); } }}>
+                טען
+              </button>
+            </div>
+          </div>
         )}
       </div>
 
