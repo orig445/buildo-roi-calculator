@@ -152,11 +152,11 @@ async function fetchGSCSummary(siteUrl, token, days = 28) {
   return { current: curr.rows?.[0] || {}, previous: prevR.rows?.[0] || {} };
 }
 
-async function buildoApi(baseUrl, apiKey, path, method = "GET", body = null) {
-  if (!baseUrl) throw new Error("חסר Blog API URL");
+async function buildoApi(_baseUrl, _apiKey, path, method = "GET", body = null) {
+  // credentials are stored securely in base44 secrets — only path/method needed
   let res;
   try {
-    res = await base44.functions.invoke("blogProxy", { baseUrl, apiKey, path, method, payload: body });
+    res = await base44.functions.invoke("blogProxy", { path, method, payload: body });
   } catch (e) {
     throw new Error(e?.response?.data?.error || e?.message || "שגיאת שרת");
   }
@@ -224,9 +224,13 @@ function SettingsPanel({ settings, onChange, onClose, onTest, testResults }) {
 
         <div style={{ borderBottom: "1px solid var(--gold-border)", paddingBottom: 16, marginBottom: 18 }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: "var(--gold)", letterSpacing: "0.1em", marginBottom: 12 }}>BUILDO BLOG API</div>
-          <Field label="Blog API Base URL" k="buildoBlogUrl" placeholder="https://xxx.supabase.co/functions/v1/content-api" hint="ה-base URL ללא /blog-posts בסוף" />
-          <Field label="API Key (x-api-key)" k="buildoBlogToken" type="password" placeholder="buildo_xxxxxxxx" hint="ה-key שנשלח ב-header x-api-key" />
-          {testResults?.blog && <div style={{ fontSize: 11, color: testResults.blog.ok ? "#2D5C3F" : "var(--rust)", marginTop: -8, marginBottom: 10 }}>{testResults.blog.msg}</div>}
+          <div style={{ padding: "10px 14px", background: "rgba(45,92,63,0.08)", borderRadius: 6, border: "1px solid rgba(45,92,63,0.2)", marginBottom: 10 }}>
+            <div style={{ fontSize: 11, color: "#2D5C3F", fontWeight: 700, marginBottom: 3 }}>✓ Credentials שמורים ב-base44 Secrets</div>
+            <div style={{ fontSize: 10, color: "var(--ink-light)" }}>
+              <code>BlogAPIBaseURL</code> ו-<code>buildoblogapikey</code> — מנוהלים בצד שרת בלבד
+            </div>
+          </div>
+          {testResults?.blog && <div style={{ fontSize: 11, color: testResults.blog.ok ? "#2D5C3F" : "var(--rust)", marginBottom: 10 }}>{testResults.blog.msg}</div>}
           <button onClick={() => onTest("blog", local)} style={{ fontSize: 11, padding: "5px 14px", background: "none", border: "1px solid var(--gold-border)", borderRadius: 4, cursor: "pointer", color: "var(--ink-mid)", fontFamily: "'Heebo',sans-serif" }}>בדוק חיבור</button>
         </div>
 
@@ -799,9 +803,9 @@ function PostEditorModal({ post, onClose, onSave, apiBase, apiKey, type = "blog-
     setSaving(true); setErr(null);
     try {
       if (isNew) {
-        await buildoApi(apiBase, apiKey, type, "POST", fields);
+        await buildoApi(null, null, type, "POST", fields);
       } else {
-        await buildoApi(apiBase, apiKey, `${type}/${post.slug}`, "PATCH", fields);
+        await buildoApi(null, null, `${type}/${post.slug}`, "PATCH", fields);
       }
       onSave();
     } catch (e) { setErr(e.message); }
@@ -897,12 +901,11 @@ function BuildoBlogTab({ settings }) {
   const key = settings.buildoBlogToken;
 
   const load = useCallback(async () => {
-    if (!api) return;
     setLoading(true); setError(null);
     try {
       const [postsRes, pagesRes] = await Promise.all([
-        buildoApi(api, key, "blog-posts"),
-        buildoApi(api, key, "pages").catch(() => ({ pages: [] })),
+        buildoApi(null, null, "blog-posts"),
+        buildoApi(null, null, "pages").catch(() => ({ pages: [] })),
       ]);
       const toArr = (d) => Array.isArray(d) ? d : d?.posts || d?.pages || d?.data || d?.items || [];
       setPosts(toArr(postsRes));
@@ -915,7 +918,7 @@ function BuildoBlogTab({ settings }) {
 
   const handleDelete = async (slug) => {
     try {
-      await buildoApi(api, key, `${contentTab}/${slug}`, "DELETE");
+      await buildoApi(null, null, `${contentTab}/${slug}`, "DELETE");
       setDeleting(null);
       setActionMsg({ ok: true, text: "נמחק בהצלחה" });
       await load();
@@ -928,15 +931,6 @@ function BuildoBlogTab({ settings }) {
     await load();
   };
 
-  if (!api) {
-    return (
-      <div style={{ textAlign: "center", padding: "60px 20px" }}>
-        <BookOpen style={{ width: 36, height: 36, color: "var(--gold)", margin: "0 auto 12px", display: "block" }} />
-        <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)", marginBottom: 6 }}>הגדר Buildo Blog API</div>
-        <div style={{ fontSize: 13, color: "var(--ink-light)" }}>הגדר Blog API URL ו-API Key בהגדרות</div>
-      </div>
-    );
-  }
 
   const currentList = contentTab === "blog-posts" ? (posts || []) : (pages || []);
   const filtered = currentList.filter((p) => {
@@ -1095,7 +1089,7 @@ function DashboardTab({ settings }) {
       const results = await Promise.allSettled([
         settings.gscSiteUrl && settings.gscToken ? fetchGSCSummary(settings.gscSiteUrl, settings.gscToken, 28) : Promise.resolve(null),
         settings.framerToken && settings.framerCollectionId ? fetchFramerCMS(settings.framerToken, settings.framerCollectionId) : Promise.resolve(null),
-        settings.buildoBlogUrl ? buildoApi(settings.buildoBlogUrl, settings.buildoBlogToken, "blog-posts") : Promise.resolve(null),
+        buildoApi(null, null, "blog-posts"),
       ]);
       if (!alive) return;
       if (results[0].status === "fulfilled" && results[0].value) setGscSummary(results[0].value);
@@ -1215,7 +1209,7 @@ export default function SEOAdminPage() {
         return;
       }
       if (source === "gsc") await fetchGSCSummary(cfg.gscSiteUrl, cfg.gscToken, 7);
-      if (source === "blog") await buildoApi(cfg.buildoBlogUrl, cfg.buildoBlogToken, "health");
+      if (source === "blog") await buildoApi(null, null, "health");
       setTestResults((p) => ({ ...p, [source]: { ok: true, msg: "✓ חיבור תקין!" } }));
     } catch (e) {
       setTestResults((p) => ({ ...p, [source]: { ok: false, msg: `✗ ${e.message}` } }));
