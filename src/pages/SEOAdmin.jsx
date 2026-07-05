@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, Component } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, TrendingUp, Globe, FileText, Settings, RefreshCw, Lock,
   BarChart2, Eye, MousePointer, ArrowUpRight, ArrowDownRight,
