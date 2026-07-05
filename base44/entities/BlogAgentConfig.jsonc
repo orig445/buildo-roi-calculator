@@ -1,0 +1,64 @@
+{
+  "name": "BlogAgentConfig",
+  "type": "object",
+  "properties": {
+    "singleton": {
+      "type": "string",
+      "description": "Always 'main' — there is a single config row.",
+      "default": "main"
+    },
+    "brand_name": {
+      "type": "string",
+      "description": "Brand the posts are written for",
+      "default": "Buildo"
+    },
+    "site_url": {
+      "type": "string",
+      "description": "Public site base URL used for canonical/internal links",
+      "default": "https://buildoai.com"
+    },
+    "audience": {
+      "type": "string",
+      "description": "Target reader description",
+      "default": "small and medium business owners who want to grow with AI-powered marketing"
+    },
+    "brand_context": {
+      "type": "string",
+      "description": "What Buildo does, tone of voice, products, and key differentiators the writer should weave in"
+    },
+    "language": {
+      "type": "string",
+      "description": "Output language for posts",
+      "default": "en"
+    },
+    "seed_keywords": {
+      "type": "string",
+      "description": "Comma-separated seed keywords / themes used to research new topics"
+    },
+    "framer_collection_id": {
+      "type": "string",
+      "description": "Target Framer CMS collection ID for blog posts (auto-discovered if empty)"
+    },
+    "framer_collection_name": {
+      "type": "string",
+      "description": "Fallback: match target collection by name if ID is not set",
+      "default": "Blog"
+    },
+    "publish_as_draft": {
+      "type": "boolean",
+      "description": "If true, items are created but not auto-published",
+      "default": false
+    },
+    "auto_propose": {
+      "type": "boolean",
+      "description": "When the queue is empty, let the agent research and add a fresh topic automatically",
+      "default": true
+    },
+    "generate_hero_image": {
+      "type": "boolean",
+      "description": "Generate a hero graphic for each post",
+      "default": true
+    }
+  },
+  "required": ["singleton"]
+}

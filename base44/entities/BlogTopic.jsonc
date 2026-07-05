@@ -1,0 +1,64 @@
+{
+  "name": "BlogTopic",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Working title / headline for the blog post"
+    },
+    "target_keyword": {
+      "type": "string",
+      "description": "Primary SEO keyword the post should rank for"
+    },
+    "secondary_keywords": {
+      "type": "string",
+      "description": "Comma-separated supporting keywords"
+    },
+    "angle": {
+      "type": "string",
+      "description": "The unique angle / search intent the post answers"
+    },
+    "rationale": {
+      "type": "string",
+      "description": "Why this topic matters for organic traffic (from research)"
+    },
+    "status": {
+      "type": "string",
+      "description": "Lifecycle stage of the topic in the automation queue",
+      "enum": ["queued", "generating", "published", "failed", "rejected"],
+      "default": "queued"
+    },
+    "source": {
+      "type": "string",
+      "description": "Where the topic came from",
+      "enum": ["ai", "manual"],
+      "default": "manual"
+    },
+    "priority": {
+      "type": "number",
+      "description": "Lower runs first. Default 100.",
+      "default": 100
+    },
+    "generated": {
+      "type": "object",
+      "description": "Snapshot of the generated post (title, slug, content_html, seo, faqs, hero_image_url, etc.)"
+    },
+    "framer_item_id": {
+      "type": "string",
+      "description": "ID of the created item in the Framer CMS collection"
+    },
+    "published_url": {
+      "type": "string",
+      "description": "Live URL of the published post"
+    },
+    "published_at": {
+      "type": "string",
+      "description": "ISO timestamp of publication"
+    },
+    "error": {
+      "type": "string",
+      "description": "Last error message if generation/publishing failed"
+    }
+  },
+  "required": ["title"]
+}

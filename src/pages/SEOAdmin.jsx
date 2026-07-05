@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback, Component } from "react";
 import {
   Search, TrendingUp, Globe, FileText, Settings, RefreshCw, Lock,
   BarChart2, Eye, MousePointer, ArrowUpRight, ArrowDownRight,
-  ExternalLink, ChevronDown, ChevronUp, AlertCircle, CheckCircle,
+  ExternalLink, AlertCircle, CheckCircle,
   Edit3, Save, X, Plus, Trash2, Tag, Calendar, Activity, Zap,
   BookOpen, Link2, Star, Target, Info
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
+import BlogAgentTab from "@/components/seo/BlogAgentTab";
 
 const ALLOWED_EMAILS = ["orig445@gmail.com", "nevo@buildoai.com"];
 
@@ -1270,6 +1272,7 @@ function SEOAdminPageInner() {
 
   const tabs = [
     { key: "dashboard", label: "דשבורד", icon: <Zap style={{ width: 13, height: 13 }} /> },
+    { key: "agent", label: "אוטומציה AI", icon: <Zap style={{ width: 13, height: 13 }} /> },
     { key: "gsc", label: "Search Console", icon: <Search style={{ width: 13, height: 13 }} /> },
     { key: "trends", label: "Google Trends", icon: <TrendingUp style={{ width: 13, height: 13 }} /> },
     { key: "framer", label: "Framer CMS", icon: <Globe style={{ width: 13, height: 13 }} /> },
@@ -1309,6 +1312,7 @@ function SEOAdminPageInner() {
         {/* Tab Content */}
         <div>
           {tab === "dashboard" && <DashboardTab settings={settings} />}
+          {tab === "agent" && <BlogAgentTab settings={settings} />}
           {tab === "gsc" && <SearchConsoleTab settings={settings} />}
           {tab === "trends" && <TrendsTab settings={settings} />}
           {tab === "framer" && <FramerCMSTab settings={settings} />}
