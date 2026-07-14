@@ -1,7 +1,7 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.31";
 import { connect } from "npm:framer-api";
 
-// ─── 20 topic pool: rotates daily so no repeats ─────────────────────────────
+// ─── 20 topic pool: rotates daily ────────────────────────────────────────────
 const TOPICS = [
   { topic: "5 ways AI automation saves small businesses 10 hours a week", keyword: "AI automation for small business", intent: "informational" },
   { topic: "How to generate Facebook ads that convert using AI in 2025", keyword: "AI Facebook ads generator", intent: "transactional" },
@@ -45,12 +45,12 @@ Write a complete, deeply actionable blog post targeting:
 - Tone: Expert, helpful, direct — no fluff
 - Today's date: ${dateStr}
 
-STRUCTURE (return only the JSON below — no markdown fences):
+Return a JSON object with these exact fields:
 {
-  "title": "<keyword-rich H1, 60-70 chars>",
+  "title": "<keyword-rich title, 60-70 chars>",
   "slug": "<4-6 word lowercase-hyphenated slug>",
   "excerpt": "<2 compelling sentences, 150-160 chars>",
-  "content": "<1200-1500 word HTML with: h2/h3 headings, ul/ol lists, strong tags, real stats, 3-4 action sections, one CTA link to https://buildoai.com/worker-onboarding, FAQ section at end with 3 Q&As for AEO, mention Israel/local context for GEO>",
+  "content": "<1200-1500 word HTML with h2/h3 headings, ul/ol lists, strong tags, real stats, CTA link to https://buildoai.com/worker-onboarding, FAQ section with 3 Q&As>",
   "metaTitle": "<55-60 char SEO title>",
   "metaDescription": "<150-160 char description with keyword>",
   "tags": "<3-5 comma-separated tags>",
@@ -86,11 +86,61 @@ async function makeCoverImage(sdk: ReturnType<typeof createClientFromRequest>, t
   }
 }
 
+// Build fieldData by examining a real existing item from the collection
+// This is needed because getFields() returns only {type} without id/name
+function buildFieldDataFromSample(
+  sampleItem: Record<string, { type: string; value?: unknown }>,
+  blog: { title: string; slug: string; excerpt: string; content: string; metaTitle: string; metaDescription: string; tags: string; readingTime: number },
+  imageUrl: string
+): Record<string, unknown> {
+  const fd: Record<string, unknown> = {};
+  const fields = Object.entries(sampleItem);
+  
+  // Identify field roles by type and positional order
+  const stringFields = fields.filter(([, v]) => v.type === "string");
+  const dateFields = fields.filter(([, v]) => v.type === "date");
+  const imageFields = fields.filter(([, v]) => v.type === "image");
+  const formattedTextFields = fields.filter(([, v]) => v.type === "formattedText");
+  const colorFields = fields.filter(([, v]) => v.type === "color");
+  const enumFields = fields.filter(([, v]) => v.type === "enum");
+
+  console.log("[buildFieldData] strings:", stringFields.map(([id]) => id).join(","));
+  console.log("[buildFieldData] dates:", dateFields.map(([id]) => id).join(","));
+  console.log("[buildFieldData] images:", imageFields.map(([id]) => id).join(","));
+  console.log("[buildFieldData] formattedText:", formattedTextFields.map(([id]) => id).join(","));
+
+  // String fields — Framer expects plain string value (not wrapped)
+  if (stringFields[0]) fd[stringFields[0][0]] = blog.title;
+  if (stringFields[1]) fd[stringFields[1][0]] = blog.excerpt;
+  if (stringFields[2]) fd[stringFields[2][0]] = blog.metaTitle;
+  if (stringFields[3]) fd[stringFields[3][0]] = blog.metaDescription;
+
+  // Date fields — Framer expects { type: "date", value: ISO string }
+  if (dateFields[0]) fd[dateFields[0][0]] = { type: "date", value: new Date().toISOString() };
+
+  // FormattedText fields — plain string (same as string fields)
+  if (formattedTextFields[0]) {
+    const contentStr = typeof blog.content === "string" ? blog.content : JSON.stringify(blog.content);
+    fd[formattedTextFields[0][0]] = contentStr;
+  }
+
+  // Image fields — Framer expects { type: "image", value: { url: string } }
+  if (imageFields[0] && imageUrl) {
+    fd[imageFields[0][0]] = { type: "image", value: { url: imageUrl } };
+  }
+
+  // Color fields: skip — don't set, let Framer use default
+  // Enum fields: skip — don't set, let Framer use default
+  void colorFields;
+  void enumFields;
+
+  return fd;
+}
+
 Deno.serve(async (req) => {
   try {
     const sdk = createClientFromRequest(req);
 
-    // Auth: admin user OR automation (no token)
     try {
       const u = await sdk.auth.me();
       if (u.role !== "admin") return Response.json({ error: "Admin only" }, { status: 403 });
@@ -98,9 +148,8 @@ Deno.serve(async (req) => {
 
     const FRAMER_KEY = Deno.env.get("framercmsapi");
     const FRAMER_URL = Deno.env.get("FRAMER_PROJECT_URL");
-
     if (!FRAMER_KEY) return Response.json({ error: "Secret 'framercmsapi' not set" }, { status: 500 });
-    if (!FRAMER_URL) return Response.json({ error: "Secret 'FRAMER_PROJECT_URL' not set — add your Framer project URL" }, { status: 500 });
+    if (!FRAMER_URL) return Response.json({ error: "Secret 'FRAMER_PROJECT_URL' not set" }, { status: 500 });
 
     const topics = getTodaysTopics();
     console.log("[dailyBlogPublisher] Topics:", topics.map(t => t.keyword).join(" | "));
@@ -110,15 +159,13 @@ Deno.serve(async (req) => {
     for (const topic of topics) {
       console.log("[dailyBlogPublisher] Writing:", topic.topic);
       const blog = await writeBlog(sdk, topic);
-      console.log("[dailyBlogPublisher] ✓ Blog:", blog.title);
+      console.log("[dailyBlogPublisher] ✓ Blog:", blog.title, "slug:", blog.slug);
 
       const imageUrl = await makeCoverImage(sdk, blog.title);
 
-      // Framer CMS
       const framer = await connect(FRAMER_URL, FRAMER_KEY);
       try {
         const collections = await framer.getCollections();
-        console.log("[dailyBlogPublisher] Collections:", collections.map((c: { name: string }) => c.name).join(", "));
 
         const col = collections.find((c: { name: string }) =>
           c.name.toLowerCase().includes("blog") ||
@@ -130,30 +177,24 @@ Deno.serve(async (req) => {
           published.push({ error: "No blog collection found", collections: collections.map((c: { name: string }) => c.name) });
           continue;
         }
+        console.log("[dailyBlogPublisher] Collection:", col.name, col.id);
 
-        const fields: Array<{ id: string; name: string; type: string }> = await col.getFields();
-        console.log("[dailyBlogPublisher] Fields:", fields.map(f => f.name).join(", "));
-
-        const fd: Record<string, unknown> = {};
-        for (const f of fields) {
-          const n = f.name.toLowerCase();
-          if (n === "title" || n === "name") fd[f.id] = blog.title;
-          else if (n.includes("excerpt") || n.includes("description") || n.includes("summary") || n.includes("subtitle")) fd[f.id] = blog.excerpt;
-          else if (n.includes("content") || n.includes("body") || n.includes("rich") || n === "text") fd[f.id] = blog.content;
-          else if ((n.includes("image") || n.includes("cover") || n.includes("thumbnail")) && f.type === "image" && imageUrl) fd[f.id] = { url: imageUrl };
-          else if (n.includes("date") || n.includes("published")) fd[f.id] = new Date().toISOString();
-          else if (n.includes("tag") || n.includes("categor")) fd[f.id] = blog.tags;
-          else if (n.includes("reading") || n.includes("minutes")) fd[f.id] = blog.readingTime;
-          else if (n === "meta title" || n === "seo title") fd[f.id] = blog.metaTitle;
-          else if (n === "meta description" || n === "seo description") fd[f.id] = blog.metaDescription;
-          else if (n.includes("keyword")) fd[f.id] = topic.keyword;
-          else if (n.includes("author")) fd[f.id] = "Buildo AI";
+        // Get a sample item to learn field IDs and types
+        const existingItems = await col.getItems();
+        if (!existingItems || existingItems.length === 0) {
+          published.push({ error: "No existing items in collection — cannot determine field structure" });
+          continue;
         }
+
+        const sampleItem = existingItems[0].fieldData as Record<string, { type: string; value?: unknown }>;
+        console.log("[dailyBlogPublisher] Full sample fieldData:", JSON.stringify(sampleItem));
+
+        const fd = buildFieldDataFromSample(sampleItem, blog, imageUrl);
+        console.log("[dailyBlogPublisher] Built fieldData:", JSON.stringify(fd).slice(0, 400));
 
         const uniqueId = `buildo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
         await col.addItems([{ id: uniqueId, slug: blog.slug, draft: false, fieldData: fd }]);
 
-        // Publish & deploy to production
         const pub = await framer.publish();
         await framer.deploy(pub.deployment.id);
 
