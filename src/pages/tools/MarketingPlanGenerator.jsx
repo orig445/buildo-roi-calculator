@@ -5,6 +5,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { track } from "@/lib/analytics";
 import PageHeader from "@/components/landing/PageHeader";
 import FinalCTA from "@/components/landing/FinalCTA";
+import useToolSEO from "@/components/seo/useToolSEO";
+import { ToolSchema, FAQSchema, BreadcrumbSchema } from "@/components/seo/StructuredData";
+import ToolFAQSection from "@/components/seo/ToolFAQSection";
+
+const MP_FAQS = [
+  { q: "What is an AI marketing plan generator?", a: "An AI marketing plan generator creates a customized, actionable marketing strategy for your business based on your industry, budget, goals, and preferred channels. Buildo's free generator produces a full 30-day plan with weekly activities, campaign ideas, and a budget split in seconds." },
+  { q: "How do I create a 30-day marketing plan for my small business?", a: "Define your goal (leads, sales, bookings), choose your channels (Facebook, Instagram, WhatsApp, email), set your budget, and let Buildo's AI generate a week-by-week action plan with specific campaign ideas and a content calendar preview." },
+  { q: "How should I split my marketing budget across channels?", a: "Budget split depends on your industry and goal. For most local businesses, Facebook and Instagram typically get 50–60% for paid reach, with the remainder split between WhatsApp/email (nurture) and Google (search intent). Buildo's AI calculates a recommended split based on your specific inputs." },
+  { q: "What makes a good 30-day marketing plan?", a: "A strong 30-day marketing plan has a clear theme for each week, specific daily or weekly actions, at least 3 distinct campaign ideas to test, a realistic budget allocation, and a content cadence that matches your audience's online behavior." },
+  { q: "Is the 30-day marketing plan generator free?", a: "Yes. The full plan generator is free — no credit card, no account required. You get a week-by-week plan, campaign ideas, and a budget split at no cost." },
+];
 
 const GOALS = ["Generate leads", "Drive sales", "Increase bookings", "Build awareness"];
 const CHANNELS = ["Facebook", "Instagram", "LinkedIn", "Google", "WhatsApp", "Email"];
@@ -17,8 +28,13 @@ export default function MarketingPlanGenerator() {
   const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
 
+  useToolSEO({
+    title: "Free 30-Day Marketing Plan Generator for Small Business | Buildo",
+    description: "Generate a complete 30-day marketing plan with weekly activities, campaign ideas, and budget split — free, instant, no sign-up required.",
+    url: "/tools/marketing-plan-generator",
+  });
+
   useEffect(() => {
-    document.title = "Free 30-Day Marketing Plan Generator | Buildo";
     track.pageView("tools/marketing-plan-generator", { tool_name: "marketing_plan_generator", page_template: "tool" });
   }, []);
 
@@ -238,7 +254,25 @@ Return JSON:
         </AnimatePresence>
 
         {result && <FinalCTA cta="Turn this plan into live campaigns" page="tools/marketing-plan-generator" keyword="marketing plan generator" />}
+
+        <ToolFAQSection faqs={MP_FAQS} />
+
+        <nav aria-label="Related tools" style={{ marginTop: 40, padding: "24px 0", borderTop: "1px solid #f0f0f0" }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: "#999", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.08em" }}>Related Free Tools</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            {[
+              { label: "Facebook Ad Generator", href: "/tools/facebook-ad-generator" },
+              { label: "WhatsApp Campaign Generator", href: "/tools/whatsapp-campaign-generator" },
+              { label: "All Free Marketing Tools", href: "/tools" },
+            ].map(({ label, href }) => (
+              <a key={href} href={href} style={{ fontSize: 13, fontWeight: 700, color: "#7c3aed", background: "#f5f3ff", border: "1px solid #ede9fe", borderRadius: 20, padding: "6px 14px", textDecoration: "none" }}>{label} →</a>
+            ))}
+          </div>
+        </nav>
       </div>
+      <ToolSchema name="Free 30-Day Marketing Plan Generator" description="Generate a complete 30-day marketing plan with weekly activities, campaign ideas, and budget split — free, instant, no sign-up." url="/tools/marketing-plan-generator" />
+      <FAQSchema faqs={MP_FAQS} />
+      <BreadcrumbSchema items={[{ name: "Home", url: "/" }, { name: "Free AI Tools", url: "/tools" }, { name: "Marketing Plan Generator", url: "/tools/marketing-plan-generator" }]} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );

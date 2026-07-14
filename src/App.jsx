@@ -6,6 +6,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
+import ToolsHub from "@/pages/ToolsHub";
 import Calculator from "@/pages/Calculator";
 import CalculatorV2 from "@/pages/CalculatorV2";
 import Admin from "@/pages/Admin";
@@ -56,6 +57,7 @@ const AuthenticatedApp = () => {
       <Route path="/brief" element={<ClientBriefForm />} />
       <Route path="/seo" element={<SEOAnalyzer />} />
       <Route path="/seo-admin" element={<SEOAdminPage />} />
+      <Route path="/tools" element={<ToolsHub />} />
       <Route path="/tools/facebook-ad-generator" element={<FacebookAdGenerator />} />
       <Route path="/tools/marketing-plan-generator" element={<MarketingPlanGenerator />} />
       <Route path="/tools/whatsapp-campaign-generator" element={<WhatsAppCampaignGenerator />} />

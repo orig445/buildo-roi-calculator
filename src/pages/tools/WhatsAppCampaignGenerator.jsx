@@ -5,6 +5,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { track } from "@/lib/analytics";
 import PageHeader from "@/components/landing/PageHeader";
 import FinalCTA from "@/components/landing/FinalCTA";
+import useToolSEO from "@/components/seo/useToolSEO";
+import { ToolSchema, FAQSchema, BreadcrumbSchema } from "@/components/seo/StructuredData";
+import ToolFAQSection from "@/components/seo/ToolFAQSection";
+
+const WA_FAQS = [
+  { q: "What is a WhatsApp campaign generator?", a: "A WhatsApp campaign generator creates a sequence of ready-to-send WhatsApp messages for your business — including an initial broadcast, follow-ups, urgency messages, thank-you notes, and re-engagement messages. Buildo's free generator produces a complete 5-message sequence in seconds." },
+  { q: "How do I create a WhatsApp marketing campaign?", a: "Enter your business name, offer, and target audience into Buildo's WhatsApp Campaign Generator. The AI writes a 5-message sequence: (1) initial offer broadcast, (2) 24-hour follow-up, (3) last-chance reminder, (4) post-purchase thank-you, and (5) 30-day re-engagement message." },
+  { q: "What is the best time to send WhatsApp marketing messages?", a: "For most businesses, the highest open rates occur between 9–11am and 6–9pm on weekdays. Avoid early mornings, late nights, and Mondays. Buildo's AI includes personalized send-time recommendations based on your industry and audience." },
+  { q: "What should I include in a WhatsApp marketing message?", a: "Effective WhatsApp messages are short (under 160 characters for the first line), use emojis sparingly, include a clear offer or value, have a single call-to-action, and feel personal rather than promotional. Buildo's AI applies these best practices automatically." },
+  { q: "Is WhatsApp marketing legal for businesses?", a: "Yes, WhatsApp Business marketing is legal when recipients have opted in to receive messages from you. Buildo's generated sequences include opt-in best practices and messaging that complies with WhatsApp Business Policy guidelines." },
+];
 
 export default function WhatsAppCampaignGenerator() {
   const [form, setForm] = useState({ business: "", offer: "", audience: "", goal: "Drive bookings" });
@@ -14,8 +25,13 @@ export default function WhatsAppCampaignGenerator() {
   const [emailSent, setEmailSent] = useState(false);
   const [copied, setCopied] = useState(null);
 
+  useToolSEO({
+    title: "Free WhatsApp Campaign Generator — 5-Message Sequence | Buildo",
+    description: "Generate a complete WhatsApp marketing sequence — broadcast, follow-ups, and re-engagement — for your business. Free, instant, no sign-up.",
+    url: "/tools/whatsapp-campaign-generator",
+  });
+
   useEffect(() => {
-    document.title = "Free WhatsApp Campaign Generator | Buildo";
     track.pageView("tools/whatsapp-campaign-generator", { tool_name: "whatsapp_campaign_generator", page_template: "tool" });
   }, []);
 
@@ -173,7 +189,25 @@ Return JSON:
         </AnimatePresence>
 
         {result && <FinalCTA cta="Create a full WhatsApp campaign in Buildo" page="tools/whatsapp-campaign-generator" keyword="whatsapp campaign generator" />}
+
+        <ToolFAQSection faqs={WA_FAQS} />
+
+        <nav aria-label="Related tools" style={{ marginTop: 40, padding: "24px 0", borderTop: "1px solid #f0f0f0" }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: "#999", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.08em" }}>Related Free Tools</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            {[
+              { label: "Facebook Ad Generator", href: "/tools/facebook-ad-generator" },
+              { label: "30-Day Marketing Plan Generator", href: "/tools/marketing-plan-generator" },
+              { label: "All Free Marketing Tools", href: "/tools" },
+            ].map(({ label, href }) => (
+              <a key={href} href={href} style={{ fontSize: 13, fontWeight: 700, color: "#25D366", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 20, padding: "6px 14px", textDecoration: "none" }}>{label} →</a>
+            ))}
+          </div>
+        </nav>
       </div>
+      <ToolSchema name="Free WhatsApp Campaign Generator" description="Generate a complete 5-message WhatsApp marketing sequence instantly — broadcast, follow-ups, and re-engagement. Free, no sign-up." url="/tools/whatsapp-campaign-generator" />
+      <FAQSchema faqs={WA_FAQS} />
+      <BreadcrumbSchema items={[{ name: "Home", url: "/" }, { name: "Free AI Tools", url: "/tools" }, { name: "WhatsApp Campaign Generator", url: "/tools/whatsapp-campaign-generator" }]} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );

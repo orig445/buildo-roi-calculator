@@ -5,6 +5,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { track } from "@/lib/analytics";
 import PageHeader from "@/components/landing/PageHeader";
 import FinalCTA from "@/components/landing/FinalCTA";
+import useToolSEO from "@/components/seo/useToolSEO";
+import { ToolSchema, FAQSchema, BreadcrumbSchema } from "@/components/seo/StructuredData";
+import ToolFAQSection from "@/components/seo/ToolFAQSection";
+
+const FB_FAQS = [
+  { q: "What is a Facebook ad generator?", a: "A Facebook ad generator is an AI tool that automatically writes complete Facebook ad copy — including primary text, headline, description, and call-to-action — based on your business name, offer, and target audience. Buildo's free Facebook ad generator creates 3 ready-to-use ad variants in under 60 seconds." },
+  { q: "How do I write a good Facebook ad for my business?", a: "A high-converting Facebook ad has a strong hook in the first line, a clear offer, social proof or urgency, and a single call-to-action. Buildo's AI Facebook ad generator applies these principles automatically — just enter your business, offer, and audience." },
+  { q: "How many Facebook ad variants should I test?", a: "Facebook recommends testing 3–5 ad variants simultaneously to find the best performer. Buildo generates 3 distinct variants in one click so you can run A/B tests without writing additional copy." },
+  { q: "What industries does the Facebook ad generator support?", a: "Buildo's ad generator works for restaurants, gyms, beauty salons, dental clinics, real estate agents, e-commerce stores, law firms, coaches, personal trainers, cleaning services, and any other small business." },
+  { q: "Is Buildo's Facebook ad generator free?", a: "Yes, completely free. No credit card, no sign-up. You get 3 complete Facebook ad variants plus targeting suggestions at no cost." },
+];
 
 const INDUSTRIES = ["Restaurant", "Real Estate", "Dental", "Beauty Salon", "Gym", "E-commerce", "Law Firm", "Coaching", "Retail", "Other"];
 const TONES = ["Professional", "Friendly", "Urgent", "Inspirational", "Playful"];
@@ -18,8 +29,13 @@ export default function FacebookAdGenerator() {
   const [emailSent, setEmailSent] = useState(false);
   const [copied, setCopied] = useState(null);
 
+  useToolSEO({
+    title: "Free Facebook Ad Generator — 3 Ad Variants in 60 Seconds | Buildo",
+    description: "Generate 3 complete Facebook ad variants instantly — primary text, headline, and CTA — tailored to your business. Free, no sign-up required.",
+    url: "/tools/facebook-ad-generator",
+  });
+
   useEffect(() => {
-    document.title = "Free Facebook Ad Generator | Buildo";
     track.pageView("tools/facebook-ad-generator", { tool_name: "facebook_ad_generator", page_template: "tool" });
   }, []);
 
@@ -226,7 +242,26 @@ Return JSON with:
         {result && (
           <FinalCTA cta="Create this campaign in Buildo" page="tools/facebook-ad-generator" keyword="facebook ad generator" />
         )}
+
+        <ToolFAQSection faqs={FB_FAQS} />
+
+        {/* Internal links */}
+        <nav aria-label="Related tools" style={{ marginTop: 40, padding: "24px 0", borderTop: "1px solid #f0f0f0" }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: "#999", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.08em" }}>Related Free Tools</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            {[
+              { label: "30-Day Marketing Plan Generator", href: "/tools/marketing-plan-generator" },
+              { label: "WhatsApp Campaign Generator", href: "/tools/whatsapp-campaign-generator" },
+              { label: "All Free Marketing Tools", href: "/tools" },
+            ].map(({ label, href }) => (
+              <a key={href} href={href} style={{ fontSize: 13, fontWeight: 700, color: "#7c3aed", background: "#f5f3ff", border: "1px solid #ede9fe", borderRadius: 20, padding: "6px 14px", textDecoration: "none" }}>{label} →</a>
+            ))}
+          </div>
+        </nav>
       </div>
+      <ToolSchema name="Free Facebook Ad Generator" description="Generate 3 complete Facebook ad variants instantly — primary text, headline, and CTA — tailored to your business." url="/tools/facebook-ad-generator" />
+      <FAQSchema faqs={FB_FAQS} />
+      <BreadcrumbSchema items={[{ name: "Home", url: "/" }, { name: "Free AI Tools", url: "/tools" }, { name: "Facebook Ad Generator", url: "/tools/facebook-ad-generator" }]} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
