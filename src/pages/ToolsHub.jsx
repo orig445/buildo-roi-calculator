@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Megaphone, CalendarDays, MessageCircle, Zap, Target, Gift, Rocket } from "lucide-react";
+import { Megaphone, CalendarDays, MessageCircle, Zap, Target, Gift, Rocket, SearchCheck } from "lucide-react";
 import { OrganizationSchema, BreadcrumbSchema, FAQSchema } from "@/components/seo/StructuredData";
 import useToolSEO from "@/components/seo/useToolSEO";
 import ToolFAQSection from "@/components/seo/ToolFAQSection";
@@ -33,6 +33,15 @@ const TOOLS = [
     name: "Free WhatsApp Campaign Generator",
     desc: "Generate a complete 5-message WhatsApp sequence — broadcast, follow-ups, last-chance, and re-engagement — instantly.",
     tags: ["WhatsApp Marketing", "Automation", "Sequences"],
+  },
+  {
+    href: "/seo",
+    Icon: SearchCheck,
+    iconColor: "#ea4335",
+    iconBg: "#fef2f2",
+    name: "Free SEO Analyzer",
+    desc: "Get an instant SEO health score for any website — quick wins, keyword gaps, technical issues, and a full audit report.",
+    tags: ["SEO Audit", "Quick Wins", "Keyword Analysis"],
   },
 ];
 
