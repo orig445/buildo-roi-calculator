@@ -6,8 +6,25 @@ import ScoreGauge from "@/components/seo/ScoreGauge";
 import QuickWins from "@/components/seo/QuickWins";
 import SectionCards from "@/components/seo/SectionCards";
 import EmailGate from "@/components/seo/EmailGate";
+import useToolSEO from "@/components/seo/useToolSEO";
+import { ToolSchema, FAQSchema, BreadcrumbSchema } from "@/components/seo/StructuredData";
+import ToolFAQSection from "@/components/seo/ToolFAQSection";
+
+const SEO_FAQS = [
+  { q: "What is a free SEO audit tool?", a: "A free SEO audit tool analyzes your website and gives you an SEO health score, identifying technical issues, content gaps, and quick wins to improve your Google ranking. Buildo's free SEO Analyzer uses AI and live web data to generate a full audit in seconds — no account required." },
+  { q: "How do I check my website's Google ranking performance?", a: "Enter your website URL into Buildo's free SEO Analyzer. You'll get an instant SEO score (0–100), a letter grade, your site's strengths, quick-win fixes, and keyword opportunities — all based on live analysis of your site." },
+  { q: "What does an SEO health score mean?", a: "An SEO health score (0–100) summarizes how well-optimized your website is for search engines. Scores above 70 are good; 50–70 need improvement; below 50 indicates critical issues. Buildo's analyzer breaks the score into categories: technical SEO, content quality, keyword targeting, and on-page optimization." },
+  { q: "What are SEO quick wins for small businesses?", a: "SEO quick wins are fixes that take under 30 minutes but can meaningfully improve your Google ranking — things like adding a missing meta description, fixing a broken H1 tag, adding alt text to images, or improving page load speed. Buildo's AI identifies your top 3–5 quick wins automatically." },
+  { q: "How long does it take to rank on Google after fixing SEO issues?", a: "Minor fixes (meta tags, titles, internal links) can show results in 2–4 weeks. Major improvements (content, backlinks, technical structure) typically take 3–6 months. Buildo's SEO Analyzer prioritizes fixes by impact so you focus on what moves the needle fastest." },
+  { q: "Is Buildo's SEO Analyzer really free?", a: "Yes — 100% free. Enter any website URL and get an instant score, quick wins, and keyword opportunities at no cost. An email is required only to receive the full detailed report." },
+];
 
 export default function SEOAnalyzer() {
+  useToolSEO({
+    title: "Free SEO Audit Tool — Instant Website SEO Score | Buildo",
+    description: "Check your website's Google ranking performance instantly. Get an SEO health score, quick wins, and keyword opportunities. Free, no sign-up required.",
+    url: "/seo",
+  });
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState(null);
@@ -236,8 +253,28 @@ export default function SEOAnalyzer() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* FAQ + Internal links */}
+        <ToolFAQSection faqs={SEO_FAQS} />
+
+        <nav aria-label="Related tools" style={{ marginTop: 40, padding: "24px 0", borderTop: "1px solid #f0f0f0" }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: "#999", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.08em" }}>Related Free Tools</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            {[
+              { label: "Facebook Ad Generator", href: "/tools/facebook-ad-generator" },
+              { label: "30-Day Marketing Plan Generator", href: "/tools/marketing-plan-generator" },
+              { label: "WhatsApp Campaign Generator", href: "/tools/whatsapp-campaign-generator" },
+              { label: "All Free Marketing Tools", href: "/tools" },
+            ].map(({ label, href }) => (
+              <a key={href} href={href} style={{ fontSize: 13, fontWeight: 700, color: "#7c3aed", background: "#f5f3ff", border: "1px solid #ede9fe", borderRadius: 20, padding: "6px 14px", textDecoration: "none" }}>{label} →</a>
+            ))}
+          </div>
+        </nav>
       </div>
 
+      <ToolSchema name="Free SEO Audit Tool" description="Check your website's Google ranking performance instantly. Get an SEO health score, quick wins, and keyword opportunities. Free, no sign-up required." url="/seo" />
+      <FAQSchema faqs={SEO_FAQS} />
+      <BreadcrumbSchema items={[{ name: "Home", url: "/" }, { name: "Free AI Tools", url: "/tools" }, { name: "SEO Analyzer", url: "/seo" }]} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
