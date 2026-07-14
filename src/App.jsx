@@ -21,6 +21,10 @@ import FacebookAdGenerator from "@/pages/tools/FacebookAdGenerator";
 import MarketingPlanGenerator from "@/pages/tools/MarketingPlanGenerator";
 import WhatsAppCampaignGenerator from "@/pages/tools/WhatsAppCampaignGenerator";
 import SEOAdminPage from "@/pages/SEOAdmin";
+import SuccessGuide from "@/pages/SuccessGuide";
+import AnalyticsDashboard from "@/pages/AnalyticsDashboard";
+import CaseStudies from "@/pages/CaseStudies";
+import FAQ from "@/pages/FAQ";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -61,6 +65,10 @@ const AuthenticatedApp = () => {
       <Route path="/tools/facebook-ad-generator" element={<FacebookAdGenerator />} />
       <Route path="/tools/marketing-plan-generator" element={<MarketingPlanGenerator />} />
       <Route path="/tools/whatsapp-campaign-generator" element={<WhatsAppCampaignGenerator />} />
+      <Route path="/success-guide" element={<SuccessGuide />} />
+      <Route path="/analytics-dashboard" element={<AnalyticsDashboard />} />
+      <Route path="/case-studies" element={<CaseStudies />} />
+      <Route path="/faq" element={<FAQ />} />
       <Route path="/buildo-vs-chatgpt" element={<ComparisonPage />} />
       <Route path="/buildo-vs-marketing-agency" element={<ComparisonPage />} />
       <Route path="/buildo-vs-canva" element={<ComparisonPage />} />
