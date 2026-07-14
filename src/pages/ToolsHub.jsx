@@ -1,5 +1,5 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { Megaphone, CalendarDays, MessageCircle, Zap, Target, Gift, Rocket } from "lucide-react";
 import { OrganizationSchema, BreadcrumbSchema, FAQSchema } from "@/components/seo/StructuredData";
 import useToolSEO from "@/components/seo/useToolSEO";
 import ToolFAQSection from "@/components/seo/ToolFAQSection";
@@ -9,21 +9,27 @@ import FinalCTA from "@/components/landing/FinalCTA";
 const TOOLS = [
   {
     href: "/tools/facebook-ad-generator",
-    icon: "📘",
+    Icon: Megaphone,
+    iconColor: "#1877f2",
+    iconBg: "#e7f0fd",
     name: "Free Facebook Ad Generator",
     desc: "Generate 3 ready-to-use Facebook ad variants — headlines, primary text, and CTAs — in under 60 seconds. No design skills needed.",
     tags: ["Facebook Ads", "AI Copywriting", "Free"],
   },
   {
     href: "/tools/marketing-plan-generator",
-    icon: "📅",
+    Icon: CalendarDays,
+    iconColor: "#7c3aed",
+    iconBg: "#f5f3ff",
     name: "Free 30-Day Marketing Plan Generator",
     desc: "Get a personalized monthly marketing plan with weekly activities, campaign ideas, and budget allocation by channel.",
     tags: ["Marketing Strategy", "Content Calendar", "Budget Split"],
   },
   {
     href: "/tools/whatsapp-campaign-generator",
-    icon: "💬",
+    Icon: MessageCircle,
+    iconColor: "#25D366",
+    iconBg: "#f0fdf4",
     name: "Free WhatsApp Campaign Generator",
     desc: "Generate a complete 5-message WhatsApp sequence — broadcast, follow-ups, last-chance, and re-engagement — instantly.",
     tags: ["WhatsApp Marketing", "Automation", "Sequences"],
@@ -102,7 +108,7 @@ export default function ToolsHub() {
       <section style={{ background: "linear-gradient(135deg,#f5f3ff,#ede9fe)", padding: "60px 20px 52px", textAlign: "center" }}>
         <div style={{ maxWidth: 700, margin: "0 auto" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#7c3aed", borderRadius: 20, padding: "5px 16px", fontSize: 12, fontWeight: 700, color: "#fff", marginBottom: 20 }}>
-            🆓 All Tools Are 100% Free
+            <Gift size={13} strokeWidth={2} /> All Tools Are 100% Free
           </div>
           <h1 style={{ fontSize: "clamp(28px,5vw,50px)", fontWeight: 900, color: "#111", margin: "0 0 18px", lineHeight: 1.12 }}>
             Free AI Marketing Tools<br />for Small Business
@@ -129,7 +135,9 @@ export default function ToolsHub() {
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "#7c3aed"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(124,58,237,0.13)"; e.currentTarget.style.transform = "translateY(-3px)"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "#e5e7eb"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.04)"; e.currentTarget.style.transform = "translateY(0)"; }}
               >
-                <div style={{ fontSize: 38, marginBottom: 16 }}>{tool.icon}</div>
+                <div style={{ width: 52, height: 52, borderRadius: 12, background: tool.iconBg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+                  <tool.Icon size={26} color={tool.iconColor} strokeWidth={1.8} />
+                </div>
                 <h3 style={{ fontSize: 18, fontWeight: 900, color: "#111", margin: "0 0 10px", lineHeight: 1.3 }}>{tool.name}</h3>
                 <p style={{ fontSize: 14, color: "#666", lineHeight: 1.75, margin: "0 0 18px" }}>{tool.desc}</p>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 20 }}>
@@ -154,13 +162,15 @@ export default function ToolsHub() {
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 20 }}>
             {[
-              { icon: "⚡", title: "Results in 60 seconds", desc: "No blank-page paralysis. Enter your details, get real, usable marketing content instantly." },
-              { icon: "🎯", title: "Industry-specific AI", desc: "The AI knows restaurants, gyms, clinics, real estate, e-commerce and 20+ more industries." },
-              { icon: "🆓", title: "Actually free", desc: "No credit card. No hidden trial. No email required to get your first result." },
-              { icon: "🔗", title: "Launch in one click", desc: "Loved the output? Upgrade to Buildo and turn it into a live multi-channel campaign." },
-            ].map(({ icon, title, desc }) => (
+              { Icon: Zap, iconColor: "#f59e0b", iconBg: "#fffbeb", title: "Results in 60 seconds", desc: "No blank-page paralysis. Enter your details, get real, usable marketing content instantly." },
+              { Icon: Target, iconColor: "#7c3aed", iconBg: "#f5f3ff", title: "Industry-specific AI", desc: "The AI knows restaurants, gyms, clinics, real estate, e-commerce and 20+ more industries." },
+              { Icon: Gift, iconColor: "#16a34a", iconBg: "#f0fdf4", title: "Actually free", desc: "No credit card. No hidden trial. No email required to get your first result." },
+              { Icon: Rocket, iconColor: "#1877f2", iconBg: "#e7f0fd", title: "Launch in one click", desc: "Loved the output? Upgrade to Buildo and turn it into a live multi-channel campaign." },
+            ].map(({ Icon, iconColor, iconBg, title, desc }) => (
               <div key={title} style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, padding: "22px 20px" }}>
-                <div style={{ fontSize: 30, marginBottom: 12 }}>{icon}</div>
+                <div style={{ width: 44, height: 44, borderRadius: 10, background: iconBg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
+                  <Icon size={22} color={iconColor} strokeWidth={1.8} />
+                </div>
                 <h3 style={{ fontSize: 15, fontWeight: 800, color: "#111", margin: "0 0 8px" }}>{title}</h3>
                 <p style={{ fontSize: 13, color: "#666", lineHeight: 1.7, margin: 0 }}>{desc}</p>
               </div>
