@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Globe, Search, CheckCircle, ArrowRight, Lock, X } from "lucide-react";
+import { Loader2, Globe, Search, CheckCircle, ArrowRight, Lock, X, Zap, Bot, Target, Lightbulb, Mail, Rocket } from "lucide-react";
 import ScoreGauge from "@/components/seo/ScoreGauge";
 import QuickWins from "@/components/seo/QuickWins";
 import SectionCards from "@/components/seo/SectionCards";
@@ -77,7 +77,7 @@ export default function SEOAnalyzer() {
         {/* Hero */}
         <div style={{ textAlign: "center", marginBottom: 36 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f5f3ff", border: "1px solid #ede9fe", borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 700, color: "#7c3aed", marginBottom: 14 }}>
-            <span>⚡</span> Powered by AI + Live Web Data
+            <Zap size={12} /> Powered by AI + Live Web Data
           </div>
           <h1 style={{ fontSize: 34, fontWeight: 900, color: "#111", margin: "0 0 10px", lineHeight: 1.2 }}>
             Free AI SEO Audit
@@ -145,7 +145,7 @@ export default function SEOAnalyzer() {
 
           {error && (
             <div style={{ marginTop: 14, fontSize: 13, color: "#dc2626", display: "flex", alignItems: "center", gap: 6 }}>
-              ⚠️ {error}
+              {error}
             </div>
           )}
         </div>
@@ -179,7 +179,7 @@ export default function SEOAnalyzer() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }}>
                 <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 14, padding: "18px 20px", textAlign: "center" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "#666", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
-                    <span>🔍</span> Google Score
+                    <Search size={12} /> Google Score
                   </div>
                   <div style={{ fontSize: 38, fontWeight: 900, color: report.score >= 70 ? "#16a34a" : report.score >= 50 ? "#d97706" : "#dc2626", lineHeight: 1 }}>{report.google_score ?? report.score}</div>
                   <div style={{ fontSize: 12, color: "#888", marginTop: 4 }}>מתוך 100</div>
@@ -189,7 +189,7 @@ export default function SEOAnalyzer() {
                 </div>
                 <div style={{ background: "#faf9ff", border: "1px solid #ede9fe", borderRadius: 14, padding: "18px 20px", textAlign: "center" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
-                    <span>🤖</span> AI Visibility Score
+                    <Bot size={12} /> AI Visibility Score
                   </div>
                   <div style={{ fontSize: 38, fontWeight: 900, color: "#7c3aed", lineHeight: 1 }}>{report.ai_score ?? Math.round((report.score ?? 50) * 0.85)}</div>
                   <div style={{ fontSize: 12, color: "#888", marginTop: 4 }}>מתוך 100</div>
@@ -229,7 +229,7 @@ export default function SEOAnalyzer() {
                         <div style={{ background: "#fff", borderRadius: 16, padding: "18px 28px", boxShadow: "0 8px 32px rgba(0,0,0,0.12)", border: "1.5px solid #ede9fe" }}>
                           <Lock size={28} color="#7c3aed" style={{ marginBottom: 8 }} />
                           <div style={{ fontSize: 14, fontWeight: 700, color: "#7c3aed" }}>
-                            {emailSent ? "✅ Report Sent!" : "Get full report via email"}
+                            {emailSent ? <><CheckCircle size={14} style={{ display: "inline", marginLeft: 4 }} /> Report Sent!</> : "Get full report via email"}
                           </div>
                           {!emailSent && <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>Click to unlock</div>}
                         </div>
@@ -242,14 +242,14 @@ export default function SEOAnalyzer() {
               {/* Keyword Opportunities */}
               {report.keyword_opportunities?.length > 0 && (
                 <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 14, padding: "18px 20px", marginBottom: 20 }}>
-                  <h3 style={{ fontSize: 15, fontWeight: 800, color: "#111", margin: "0 0 12px" }}>🎯 Keyword Opportunities</h3>
+                  <h3 style={{ fontSize: 15, fontWeight: 800, color: "#111", margin: "0 0 12px", display: "flex", alignItems: "center", gap: 6 }}><Target size={15} /> Keyword Opportunities</h3>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                     {report.keyword_opportunities.map((k, i) => (
                       <span key={i} style={{ background: "#ede9fe", color: "#7c3aed", padding: "5px 14px", borderRadius: 20, fontSize: 13, fontWeight: 600 }}>{k}</span>
                     ))}
                   </div>
                   {report.competitor_gap && (
-                    <p style={{ fontSize: 13, color: "#666", margin: "12px 0 0", lineHeight: 1.7 }}>💡 {report.competitor_gap}</p>
+                    <p style={{ fontSize: 13, color: "#666", margin: "12px 0 0", lineHeight: 1.7, display: "flex", alignItems: "flex-start", gap: 6 }}><Lightbulb size={13} style={{ flexShrink: 0, marginTop: 2 }} />{report.competitor_gap}</p>
                   )}
                 </div>
               )}
@@ -261,7 +261,7 @@ export default function SEOAnalyzer() {
                 transition={{ delay: 0.3 }}
                 style={{ background: "linear-gradient(135deg,#1a0a2e,#3b1f8c)", borderRadius: 16, padding: "28px 24px", textAlign: "center", marginTop: 24 }}
               >
-                <div style={{ fontSize: 28, marginBottom: 8 }}>🚀</div>
+                <Rocket size={28} color="#fff" style={{ marginBottom: 8 }} />
                 <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 900, margin: "0 0 8px" }}>
                   {emailSent ? "מוכנים לתקן את כל הבעיות?" : "רוצים שמישהו יתקן את זה בשבילכם?"}
                 </h3>
@@ -327,7 +327,7 @@ export default function SEOAnalyzer() {
                 <X size={20} />
               </button>
               <div style={{ textAlign: "center", marginBottom: 20 }}>
-                <div style={{ fontSize: 36, marginBottom: 8 }}>📧</div>
+                <Mail size={36} color="#7c3aed" style={{ marginBottom: 8 }} />
                 <h3 style={{ fontSize: 18, fontWeight: 900, color: "#111", margin: "0 0 8px" }}>קבלו את הדוח המלא</h3>
                 <p style={{ fontSize: 13, color: "#666", lineHeight: 1.7, margin: 0 }}>הזינו את האימייל שלכם ונשלח לכם את ניתוח ה-SEO המלא עם כל הסעיפים.</p>
               </div>
