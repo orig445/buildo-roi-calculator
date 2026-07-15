@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Globe, Search, CheckCircle, ArrowRight } from "lucide-react";
+import { Loader2, Globe, Search, CheckCircle, ArrowRight, Lock, X } from "lucide-react";
 import ScoreGauge from "@/components/seo/ScoreGauge";
 import QuickWins from "@/components/seo/QuickWins";
 import SectionCards from "@/components/seo/SectionCards";
@@ -31,6 +31,8 @@ export default function SEOAnalyzer() {
   const [error, setError] = useState("");
   const [emailSent, setEmailSent] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [modalEmail, setModalEmail] = useState("");
 
   const analyze = async () => {
     if (!url.trim()) return;
@@ -173,6 +175,31 @@ export default function SEOAnalyzer() {
                 </div>
               </div>
 
+              {/* Google Score + AI Score */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }}>
+                <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 14, padding: "18px 20px", textAlign: "center" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#666", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
+                    <span>🔍</span> Google Score
+                  </div>
+                  <div style={{ fontSize: 38, fontWeight: 900, color: report.score >= 70 ? "#16a34a" : report.score >= 50 ? "#d97706" : "#dc2626", lineHeight: 1 }}>{report.google_score ?? report.score}</div>
+                  <div style={{ fontSize: 12, color: "#888", marginTop: 4 }}>מתוך 100</div>
+                  <div style={{ marginTop: 10, height: 6, background: "#f0f0f0", borderRadius: 4, overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${report.google_score ?? report.score}%`, background: report.score >= 70 ? "#16a34a" : report.score >= 50 ? "#d97706" : "#dc2626", borderRadius: 4, transition: "width 0.8s ease" }} />
+                  </div>
+                </div>
+                <div style={{ background: "#faf9ff", border: "1px solid #ede9fe", borderRadius: 14, padding: "18px 20px", textAlign: "center" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
+                    <span>🤖</span> AI Visibility Score
+                  </div>
+                  <div style={{ fontSize: 38, fontWeight: 900, color: "#7c3aed", lineHeight: 1 }}>{report.ai_score ?? Math.round((report.score ?? 50) * 0.85)}</div>
+                  <div style={{ fontSize: 12, color: "#888", marginTop: 4 }}>מתוך 100</div>
+                  <div style={{ marginTop: 10, height: 6, background: "#f0f0f0", borderRadius: 4, overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${report.ai_score ?? Math.round((report.score ?? 50) * 0.85)}%`, background: "#7c3aed", borderRadius: 4, transition: "width 0.8s ease" }} />
+                  </div>
+                  <div style={{ fontSize: 11, color: "#7c3aed", marginTop: 6 }}>ChatGPT · Gemini · Perplexity</div>
+                </div>
+              </div>
+
               {/* Quick Wins */}
               <div style={{ marginBottom: 20 }}>
                 <QuickWins wins={report.quick_wins} />
@@ -194,11 +221,19 @@ export default function SEOAnalyzer() {
                     <div style={{ filter: "blur(5px)", pointerEvents: "none", userSelect: "none" }}>
                       <SectionCards sections={(report.full_report_sections || []).slice(2)} />
                     </div>
-                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.6)" }}>
-                      <div style={{ textAlign: "center" }}>
-                        <div style={{ fontSize: 28, marginBottom: 4 }}>🔒</div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: "#7c3aed" }}>Get full report via email</div>
-                      </div>
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.55)" }}>
+                      <button
+                        onClick={() => !emailSent && setShowEmailModal(true)}
+                        style={{ textAlign: "center", background: "none", border: "none", cursor: emailSent ? "default" : "pointer", padding: 0 }}
+                      >
+                        <div style={{ background: "#fff", borderRadius: 16, padding: "18px 28px", boxShadow: "0 8px 32px rgba(0,0,0,0.12)", border: "1.5px solid #ede9fe" }}>
+                          <Lock size={28} color="#7c3aed" style={{ marginBottom: 8 }} />
+                          <div style={{ fontSize: 14, fontWeight: 700, color: "#7c3aed" }}>
+                            {emailSent ? "✅ Report Sent!" : "Get full report via email"}
+                          </div>
+                          {!emailSent && <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>Click to unlock</div>}
+                        </div>
+                      </button>
                     </div>
                   </div>
                 )}
@@ -219,36 +254,35 @@ export default function SEOAnalyzer() {
                 </div>
               )}
 
-              {/* Email gate / success */}
-              {!emailSent ? (
-                <EmailGate onSubmit={sendFullReport} loading={emailLoading} />
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  style={{ background: "linear-gradient(135deg,#1a0a2e,#3b1f8c)", borderRadius: 16, padding: "28px 24px", textAlign: "center", marginTop: 28 }}
+              {/* Buildo CTA — always visible after report */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                style={{ background: "linear-gradient(135deg,#1a0a2e,#3b1f8c)", borderRadius: 16, padding: "28px 24px", textAlign: "center", marginTop: 24 }}
+              >
+                <div style={{ fontSize: 28, marginBottom: 8 }}>🚀</div>
+                <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 900, margin: "0 0 8px" }}>
+                  {emailSent ? "מוכנים לתקן את כל הבעיות?" : "רוצים שמישהו יתקן את זה בשבילכם?"}
+                </h3>
+                <p style={{ color: "rgba(255,255,255,0.65)", fontSize: 13, lineHeight: 1.7, margin: "0 0 20px" }}>
+                  Buildo מחברת את העסק שלכם לכלים שיקפיצו את הציון — בלי להתאמץ.
+                </p>
+                <a
+                  href="https://buildoai.com/worker-onboarding"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 8,
+                    background: "#7c3aed", color: "#fff", textDecoration: "none",
+                    borderRadius: 10, padding: "13px 28px", fontSize: 15, fontWeight: 800,
+                    fontFamily: "'Heebo', sans-serif", boxShadow: "0 4px 20px rgba(124,58,237,0.5)",
+                  }}
                 >
-                  <div style={{ fontSize: 36, marginBottom: 10 }}>✅</div>
-                  <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 900, margin: "0 0 8px" }}>Full Report Sent!</h3>
-                  <p style={{ color: "rgba(255,255,255,0.65)", fontSize: 13, lineHeight: 1.7, margin: "0 0 20px" }}>
-                    Check your inbox for your complete SEO report. Ready to take action?
-                  </p>
-                  <a
-                    href="https://buildoai.com/worker-onboarding"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: "inline-flex", alignItems: "center", gap: 8,
-                      background: "#7c3aed", color: "#fff", textDecoration: "none",
-                      borderRadius: 10, padding: "13px 28px", fontSize: 15, fontWeight: 800,
-                      fontFamily: "'Heebo', sans-serif",
-                    }}
-                  >
-                    Let Bildo Fix It For Me <ArrowRight size={16} />
-                  </a>
-                  <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, margin: "12px 0 0" }}>No credit card · Free trial</p>
-                </motion.div>
-              )}
+                  התחילו בחינם עם Buildo <ArrowRight size={16} />
+                </a>
+                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, margin: "12px 0 0" }}>ללא כרטיס אשראי · ניסיון חינמי</p>
+              </motion.div>
 
             </motion.div>
           )}
@@ -271,6 +305,64 @@ export default function SEOAnalyzer() {
           </div>
         </nav>
       </div>
+
+      {/* Email Modal */}
+      <AnimatePresence>
+        {showEmailModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+            onClick={() => setShowEmailModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              style={{ background: "#fff", borderRadius: 20, padding: "32px 28px", maxWidth: 420, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", position: "relative" }}
+            >
+              <button onClick={() => setShowEmailModal(false)} style={{ position: "absolute", top: 14, left: 14, background: "none", border: "none", cursor: "pointer", color: "#999" }}>
+                <X size={20} />
+              </button>
+              <div style={{ textAlign: "center", marginBottom: 20 }}>
+                <div style={{ fontSize: 36, marginBottom: 8 }}>📧</div>
+                <h3 style={{ fontSize: 18, fontWeight: 900, color: "#111", margin: "0 0 8px" }}>קבלו את הדוח המלא</h3>
+                <p style={{ fontSize: 13, color: "#666", lineHeight: 1.7, margin: 0 }}>הזינו את האימייל שלכם ונשלח לכם את ניתוח ה-SEO המלא עם כל הסעיפים.</p>
+              </div>
+              <input
+                type="email"
+                placeholder="your@email.com"
+                value={modalEmail}
+                onChange={e => setModalEmail(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Enter" && modalEmail.includes("@")) {
+                    sendFullReport(modalEmail);
+                    setShowEmailModal(false);
+                  }
+                }}
+                style={{ width: "100%", padding: "13px 14px", border: "1.5px solid #ddd", borderRadius: 10, fontSize: 14, fontFamily: "'Heebo', sans-serif", outline: "none", boxSizing: "border-box", marginBottom: 12, direction: "ltr" }}
+                onFocus={e => { e.target.style.borderColor = "#7c3aed"; }}
+                onBlur={e => { e.target.style.borderColor = "#ddd"; }}
+              />
+              <button
+                onClick={() => {
+                  if (modalEmail.includes("@")) {
+                    sendFullReport(modalEmail);
+                    setShowEmailModal(false);
+                  }
+                }}
+                disabled={!modalEmail.includes("@") || emailLoading}
+                style={{ width: "100%", padding: "13px", background: modalEmail.includes("@") ? "#7c3aed" : "#ddd", color: "#fff", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 800, fontFamily: "'Heebo', sans-serif", cursor: modalEmail.includes("@") ? "pointer" : "not-allowed" }}
+              >
+                {emailLoading ? "שולח..." : "שלחו לי את הדוח המלא →"}
+              </button>
+              <p style={{ fontSize: 11, color: "#999", textAlign: "center", marginTop: 10 }}>ללא ספאם · ניסיון חינמי עם Buildo</p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <ToolSchema name="Free SEO Audit Tool" description="Check your website's Google ranking performance instantly. Get an SEO health score, quick wins, and keyword opportunities. Free, no sign-up required." url="/seo" />
       <FAQSchema faqs={SEO_FAQS} />
