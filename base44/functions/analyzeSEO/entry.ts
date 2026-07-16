@@ -132,6 +132,18 @@ Return JSON with:
       ...aiResult,
     };
 
+    // Save SEO lead when email provided
+    if (email) {
+      try {
+        await base44.asServiceRole.entities.SEOLead.create({
+          email,
+          url: normalizedUrl,
+          score: aiResult.score,
+          grade: aiResult.grade,
+        });
+      } catch {}
+    }
+
     // If email requested, send full report
     if (email && fullReport) {
       const sectionsHtml = (aiResult.full_report_sections || []).map(s => {

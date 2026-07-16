@@ -56,6 +56,11 @@ export default function Admin() {
     queryFn: () => base44.entities.ClientBrief.list("-created_date", 500),
   });
 
+  const { data: seoLeads = [], refetch: refetchSeoLeads } = useQuery({
+    queryKey: ["seoLeads"],
+    queryFn: () => base44.entities.SEOLead.list("-created_date", 500),
+  });
+
   const adLeads = leads.filter(l => l.source === "ad_creator");
 
   const filtered = leads.filter((l) => {
@@ -101,7 +106,7 @@ export default function Admin() {
             <div className="font-display" style={{ fontSize: 18, color: "var(--gold-light)", fontWeight: 700 }}>ניהול לידים</div>
           </div>
         </div>
-        <button onClick={() => { refetch(); refetchAnalytics(); refetchSites(); refetchFbLeads(); refetchBriefs(); }} style={{ background: "none", border: "1px solid var(--gold-border)", borderRadius: 3, color: "var(--gold-light)", padding: "6px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+        <button onClick={() => { refetch(); refetchAnalytics(); refetchSites(); refetchFbLeads(); refetchBriefs(); refetchSeoLeads(); }} style={{ background: "none", border: "1px solid var(--gold-border)", borderRadius: 3, color: "var(--gold-light)", padding: "6px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
           <RefreshCw style={{ width: 13, height: 13 }} /> רענן
         </button>
       </div>
@@ -117,6 +122,7 @@ export default function Admin() {
             { key: "fb", label: `פייסבוק לידים (${fbLeads.length})`, icon: <Facebook style={{ width: 13, height: 13 }} /> },
             { key: "adleads", label: `Ad Creator לידים`, icon: <Mail style={{ width: 13, height: 13 }} /> },
             { key: "briefs", label: `אפיונים (${briefs.length})`, icon: <Building2 style={{ width: 13, height: 13 }} /> },
+            { key: "seoleads", label: `SEO לידים (${seoLeads.length})`, icon: <Search style={{ width: 13, height: 13 }} /> },
             { key: "seo", label: "ניהול SEO", icon: <Globe style={{ width: 13, height: 13 }} /> },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
@@ -292,6 +298,67 @@ export default function Admin() {
                           ) : "—"}
                         </td>
                         <td style={{ padding: "13px 16px", fontSize: 12, color: "var(--ink-mid)" }}>{lead.notes || "—"}</td>
+                        <td style={{ padding: "13px 16px" }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--ink-light)" }}>
+                            <Calendar style={{ width: 11, height: 11 }} />{fmtDate(lead.created_date)}
+                          </span>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "seoleads" && (
+          <div>
+            {seoLeads.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "60px 0", color: "var(--ink-light)" }}>אין לידים מ-SEO Analyzer עדיין</div>
+            ) : (
+              <div className="card-v" style={{ overflow: "hidden" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ background: "var(--cream-dark)", borderBottom: "1px solid var(--gold-border)" }}>
+                      {["אימייל", "אתר שנותח", "ציון", "דירוג", "תאריך"].map((h) => (
+                        <th key={h} className="font-label" style={{ fontSize: 8, letterSpacing: "0.12em", color: "var(--ink-light)", padding: "12px 16px", textAlign: "right", fontWeight: 600 }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {seoLeads.map((lead, i) => (
+                      <motion.tr
+                        key={lead.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: i * 0.02 }}
+                        style={{ borderBottom: "1px solid rgba(196,150,42,0.08)", transition: "background 0.15s" }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--cream-mid)"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                      >
+                        <td style={{ padding: "13px 16px" }}>
+                          <a href={`mailto:${lead.email}`} style={{ display: "flex", alignItems: "center", gap: 5, color: "var(--gold)", fontSize: 13, textDecoration: "none" }}>
+                            <Mail style={{ width: 12, height: 12 }} />{lead.email}
+                          </a>
+                        </td>
+                        <td style={{ padding: "13px 16px" }}>
+                          {lead.url ? (
+                            <a href={lead.url} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 5, color: "var(--forest-mid)", fontSize: 12, textDecoration: "none" }}>
+                              <Globe style={{ width: 11, height: 11 }} />{lead.url.replace(/^https?:\/\//, "")}
+                            </a>
+                          ) : "—"}
+                        </td>
+                        <td style={{ padding: "13px 16px", fontWeight: 700, fontSize: 14, color: lead.score >= 70 ? "var(--forest-mid)" : lead.score >= 50 ? "#d97706" : "var(--rust)" }}>
+                          {lead.score ?? "—"}
+                        </td>
+                        <td style={{ padding: "13px 16px" }}>
+                          {lead.grade ? (
+                            <span style={{ display: "inline-flex", alignItems: "center", fontSize: 12, fontWeight: 800, padding: "3px 10px", borderRadius: 20, background: "rgba(124,58,237,0.1)", color: "#7c3aed", border: "1px solid rgba(124,58,237,0.25)" }}>
+                              {lead.grade}
+                            </span>
+                          ) : "—"}
+                        </td>
                         <td style={{ padding: "13px 16px" }}>
                           <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--ink-light)" }}>
                             <Calendar style={{ width: 11, height: 11 }} />{fmtDate(lead.created_date)}
